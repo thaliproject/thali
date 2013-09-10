@@ -1,0 +1,1 @@
+Nothing in this directory is 'mainline'. That is, nothing here is intended to be used for any sort of production purposes. Rather the goal of this code is to rough out ideas. The expectations is that most of this code will just be thrown away. Note however that all code in this directory as in all directories is under the license in license.txt of the root.

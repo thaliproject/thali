@@ -1,0 +1,1 @@
+This is an abomination of a prototype built off the hello world in the Android docs which I then shoe horned WebView into. At some point I'll make it less ugly but for right now I just don't care. Just a reminder, that like everything else, it's under the license.txt file at the root.

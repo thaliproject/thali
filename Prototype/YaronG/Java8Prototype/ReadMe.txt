@@ -1,0 +1,1 @@
+This was an attempt to get the PouchDB based MicroBlogger app to run under JavaFX. This was when I found out that JavaFX doesn't support indexedDB or Web SQL (at least not in any way I understand). I am keeping this code around for now just incase I need to play with JavaFX again.
