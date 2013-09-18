@@ -14,8 +14,9 @@ import netscape.javascript.*;
  *
  * @author yarong
  */
-public class Testing extends Applet {
+public class SimpleJavascriptHttpServerApplet extends Applet {
     private SimpleHTTPServer server;
+    private JavascriptSimpleHTTPServerRequestHandler javascriptSimpleHTTPServerRequestHandler;
     
     
     public String helloWorldField = "I am a field!";
@@ -23,13 +24,10 @@ public class Testing extends Applet {
     {
         return "I am a method!";
     }
-    public void callMe(String callBackName)
+    
+    public boolean isHttpServerRunning()
     {
-        JSObject window = JSObject.getWindow(this);
-        int count = 0;
-        window.call(callBackName, new Object[] { (Object)count });
-        count = 10;
-        window.call(callBackName, new Object[] { (Object)count});
+        return server.isAlive();
     }
     
     public void startHttpServer(int port, String requestHandlerCallBack)
@@ -40,13 +38,13 @@ public class Testing extends Applet {
         }
         
         final int finalPort = port;
-        final String finalRequestHandlerCallBack = requestHandlerCallBack;
-        final JSObject finalWindow = JSObject.getWindow(this);
+        javascriptSimpleHTTPServerRequestHandler = new JavascriptSimpleHTTPServerRequestHandler(requestHandlerCallBack, JSObject.getWindow(this));
+        final JavascriptSimpleHTTPServerRequestHandler finalJavascriptSimpleHTTPServerRequestHandler = javascriptSimpleHTTPServerRequestHandler;
         
         AccessController.doPrivileged(new PrivilegedAction() {
             @Override
             public Object run() {
-                server = new SimpleHTTPServer(finalPort, new JavascriptSimpleHTTPServerRequestHandler(finalRequestHandlerCallBack, finalWindow));
+                server = new SimpleHTTPServer(finalPort, finalJavascriptSimpleHTTPServerRequestHandler);
                 try
                 {
                     server.start();
@@ -76,4 +74,10 @@ public class Testing extends Applet {
             }
         });
     }
+    
+    public void setResponse(JSObject responseObject)
+    {
+        javascriptSimpleHTTPServerRequestHandler.SetResponse(responseObject);
+    }
 }
+

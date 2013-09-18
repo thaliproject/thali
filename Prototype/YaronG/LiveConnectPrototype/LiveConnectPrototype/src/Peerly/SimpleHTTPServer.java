@@ -15,6 +15,12 @@ import java.util.logging.Logger;
 /**
  *
  * @author yarong
+ * NanoHTTPD uses the serve method to handle requests. So if one wants to handle
+ * requests in a manner different than Nano's default then one has to create a
+ * child class that overrides server. Which is what we have done here. In this
+ * case we also created a new constructor that allows the caller to register
+ * a handler. When this class gets a call it will do a little massaging on
+ * the request and then call the registered handler.
  */
 public class SimpleHTTPServer extends NanoHTTPD {
     private final SimpleRequestHandler simpleRequestHandler;
@@ -66,7 +72,7 @@ public class SimpleHTTPServer extends NanoHTTPD {
             }
         }
         
-        return simpleRequestHandler.handler(MethodEnumToMethodString(session.getMethod()), session.getUri(), session.getParms(), session.getHeaders(), requestBody).response;
+        return simpleRequestHandler.handler(MethodEnumToMethodString(session.getMethod()), session.getUri(), session.getParms(), session.getHeaders(), requestBody);
     }
     
     private String MethodEnumToMethodString(Method methodEnum)

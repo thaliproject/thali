@@ -11,15 +11,14 @@ import static fi.iki.elonen.NanoHTTPD.MIME_HTML;
  *
  * @author yarong
  */
-    public class SimpleResponse {
-        public final NanoHTTPD.Response response;    
+    public class SimpleResponse extends NanoHTTPD.Response {
         
         public SimpleResponse(int responseCode, String mimeType, String responseBody)
-        {            
-            response = new NanoHTTPD.Response(SighReallyDoIHaveToDoThis(responseCode), mimeType == null ? MIME_HTML : mimeType, responseBody);
+        {         
+            super(SighReallyDoIHaveToDoThis(responseCode), mimeType == null ? MIME_HTML : mimeType, responseBody);
         }
         
-        private NanoHTTPD.Response.Status SighReallyDoIHaveToDoThis(int responseCode)
+        private static NanoHTTPD.Response.Status SighReallyDoIHaveToDoThis(int responseCode)
         {
             switch(responseCode)
             {

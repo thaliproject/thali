@@ -30,7 +30,7 @@ function MicroBlogSubmitButtonHandler(obj) {
     postElement.value = "";
 }
 
-function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody)
+function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext)
 {
     var queryParams = JSON.parse(jsonQueryParams);
     var headers = JSON.parse(jsonHeaders);
@@ -38,14 +38,11 @@ function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody)
     response.responseCode = 200;
     response.responseMIMEType = "text/html";
     response.responseBody = "method: " + method + ", uri: " + uri;
-    return response;
+    responseContext(response);
 }
 
 function SetUp(obj) {
-    // I have run into issues where if I don't do something simple with the applet like load a field then more
-    // complex operations like running the server don't work at all, the methods pretend they aren't there. Odd.
-    var field = app.helloWorldField;
-    app.startHttpServer(8090, "RequestCallBack");
+    PeerlyHttpServer.startHttpServer(8090, Express.PeerlyHttpServerCallback);
 
     document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
 

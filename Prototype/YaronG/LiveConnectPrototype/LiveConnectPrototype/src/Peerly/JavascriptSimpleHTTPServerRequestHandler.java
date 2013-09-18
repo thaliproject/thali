@@ -5,6 +5,8 @@
 package Peerly;
 
 import java.util.Map;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 
@@ -14,22 +16,64 @@ import netscape.javascript.JSObject;
  */
 public class JavascriptSimpleHTTPServerRequestHandler implements SimpleHTTPServer.SimpleRequestHandler
 {
-    private String callBackName;
+    private String requestCallBackName;
     private JSObject window;
+    private JSObject responseObject;
 
-    public JavascriptSimpleHTTPServerRequestHandler(String callBackName, JSObject window)
+    public JavascriptSimpleHTTPServerRequestHandler(String requestCallBackName, JSObject window)
     {
-        this.callBackName = callBackName;
+        this.requestCallBackName = requestCallBackName;
         this.window = window;
     }
 
     @Override
-    public SimpleResponse handler(String method, String uri, Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
-        JSObject responseObject = (JSObject) window.call(callBackName, new Object[] { (Object)method, (Object)uri, (Object)StringMapToJson(queryParams), (Object)StringMapToJson(headers), (Object)requestBody } );
-        int responseCode = ((Double)responseObject.getMember("responseCode")).intValue();
+    public SimpleResponse handler(String method, String requestUriPath, Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
+        responseObject = null;
+        window.call(requestCallBackName, new Object[] { (Object)method, (Object)requestUriPath, (Object)StringMapToJson(queryParams), (Object)StringMapToJson(headers), (Object)requestBody } );
+        while(responseObject == null)
+        {
+            // TODO: Put some reasonable time out here so we don't get stuck in this loop for infinity
+            try {
+                Thread.sleep(10);
+            } catch (InterruptedException ex) {
+                Logger.getLogger(JavascriptSimpleHTTPServerRequestHandler.class.getName()).log(Level.SEVERE, null, ex);
+                throw new RuntimeException();
+            }            
+        }
+        
+        // Unfortunately Chrome returns a Double while FireFox return an int, oh joy
+        Object responseCodeObject = responseObject.getMember("responseCode");
+        int responseCode;
+        if (responseCodeObject instanceof Integer)
+        {
+            responseCode = (int)responseCodeObject;
+        } else
+        if (responseCodeObject instanceof Double)
+        {
+            responseCode = ((Double)responseObject.getMember("responseCode")).intValue();
+        } else
+        {
+            throw new RuntimeException();
+        }
+        
         String mimeType = PropertyToString(responseObject, "responseMIMEType");
         String responseBody = PropertyToString(responseObject, "responseBody");
-        return new SimpleResponse(responseCode, mimeType, responseBody);
+        SimpleResponse simpleResponse = new SimpleResponse(responseCode, mimeType, responseBody);
+
+        //BUBUG: This is beyond dorky, obviously we should have a proper map to list any headers that are to be set but I don't need
+        // that right now.
+        String locationHeaderValue = PropertyToString(responseObject, "LocationHeader");
+        if (locationHeaderValue != null)
+        {
+            simpleResponse.addHeader("Location", locationHeaderValue);
+        }
+        
+        return simpleResponse;
+    }
+    
+    public void SetResponse(JSObject responseObject)
+    {
+        this.responseObject = responseObject;
     }
     
     private String PropertyToString(JSObject responseObject, String propertyName)

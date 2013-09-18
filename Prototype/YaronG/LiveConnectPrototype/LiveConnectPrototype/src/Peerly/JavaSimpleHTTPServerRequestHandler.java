@@ -19,8 +19,8 @@ public class JavaSimpleHTTPServerRequestHandler implements SimpleHTTPServer.Simp
     }
     
     @Override
-    public SimpleResponse handler(String method, String uri,  Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
-        String htmlResponse = "<html><body><p>Method: " + method + "</p><p>uri: " + uri + "</p>";
+    public SimpleResponse handler(String method, String requestUriPath,  Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
+        String htmlResponse = "<html><body><p>Method: " + method + "</p><p>uri: " + requestUriPath + "</p>";
         htmlResponse += StringMapToHtml(queryParams, "Request URI Query Params") + StringMapToHtml(headers, "Request Headers");
         htmlResponse += "<h2>Request Body</h2><p>" + requestBody + "</p></body></html>";
         return new SimpleResponse(200, "text/html", htmlResponse);

@@ -25,7 +25,7 @@
 //OTHER DEALINGS IN THE SOFTWARE.
 var express   = Express //require('express')
 //, fs        = require('fs') - This is used in conjunction with level DB functionality used in Node, so it doesn't apply to us
-    , pkg       = require('./package.json')
+    , pkg       = { "version":0 }//require('./package.json') - I know, I should just get rid of it, but whatever
     , dbs       = {}
     , app       = express // module.exports = express()
     , Pouch     = PouchDB; //module.exports.Pouch = require('pouchdb');
@@ -49,8 +49,11 @@ Pouch.enableAllDbs = true;
 
         // Custom bodyParsing because express.bodyParser() chokes
         // on `malformed` requests.
-        req.on('data', function (chunk) { data += chunk; });
-        req.on('end', function () {
+//        req.on('data', function (chunk) { data += chunk; });
+//        req.on('end', function () {
+        // The current dorky Peerly server returns content as one big value, it doesn't support chunking (I know, dorky)
+        // so for now I can just set data to body and call it a day.
+            var data = req.body;
             if (data) {
                 try {
                     req.body = JSON.parse(data);
@@ -59,7 +62,7 @@ Pouch.enableAllDbs = true;
                 }
             }
             next();
-        });
+//        });
     });
 //});
 
@@ -162,11 +165,11 @@ app.del('/:db', function (req, res, next) {
         // Check for the data stores, and rebuild a Pouch instance if able
 //        fs.stat(name, function (err, stats) {
 //            if (err && err.code == 'ENOENT') {
-//                return res.send(404, {
-//                    status: 404,
-//                    error: 'not_found',
-//                    reason: 'no_db_file'
-//                });
+                return res.send(404, {
+                    status: 404,
+                    error: 'not_found',
+                    reason: 'no_db_file'
+                });
 //            }
 //
 //            if (stats.isDirectory()) {
