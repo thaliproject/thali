@@ -34,7 +34,7 @@ public class WebViewActivity extends Activity {
 			
 			public void onExceededDatabaseQuota(String url, String databaseIdentifier, long quota, long estimatedDatabaseSize, long totalQuota, WebStorage.QuotaUpdater quotaUpdater)
 			{
-				// THIS IS SO BOGUS IT MAKES ME CRY
+				// TODO:THIS IS SO BOGUS IT MAKES ME CRY (and opens a security hole the size of Alaska)
 				quotaUpdater.updateQuota(estimatedDatabaseSize * 2);
 			}
 		});
