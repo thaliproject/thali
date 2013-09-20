@@ -155,48 +155,21 @@ app.del('/:db', function (req, res, next) {
     app.all(route, function (req, res, next) {
         var name = encodeURIComponent(req.params.db);
 
-        // This is the code I use to replace the code below to deal with the situation where a database
-        // may have been created that dbs isn't aware of yet. The code below that I commented out originally
-        // handled this but it was based on a file model.
-
-        // dbs is really dangerous for us because we are not the only interface to accessing the underlying
-        // database. So in theory db's could be deleted without us knowing. So to be paranoid I'm always
-        // going to check.
-        // TODO: Figure out if dbs' behavior is going to cause us trouble anywhere else, can we get rid of dbs?
-
-        Pouch.allDbs(function(err, response)
-        {
-            if (err) res.send(500, Pouch.UNKNOWN_ERROR);
-            if (response.indexOf(name) > -1)
-            {
-                dbs[name] = Pouch(name);
-                req.db = dbs[name];
-                return next();
-            }
-
-            // The dbs used to exist, but doesn't anymore, it might have been deleted from under us
-            if (dbs.hasOwnProperty(name))
-            {
-                delete dbs[name];
-            }
-
-            return res.send(404, {
-                status: 404,
-                error: 'not_found',
-                reason: 'no_db_file'
-            });
-        })
+        if (name in dbs) {
+            req.db = dbs[name];
+            return next();
+        }
 
         // We are running in the browser using indexedDB or WebSQL so this functionality
         // doesn't work for us.
         // Check for the data stores, and rebuild a Pouch instance if able
 //        fs.stat(name, function (err, stats) {
 //            if (err && err.code == 'ENOENT') {
-//                return res.send(404, {
-//                    status: 404,
-//                    error: 'not_found',
-//                    reason: 'no_db_file'
-//                });
+                return res.send(404, {
+                    status: 404,
+                    error: 'not_found',
+                    reason: 'no_db_file'
+                });
 //            }
 //
 //            if (stats.isDirectory()) {

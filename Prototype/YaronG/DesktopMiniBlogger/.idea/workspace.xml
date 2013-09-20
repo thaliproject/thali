@@ -2,30 +2,53 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="78d210b2-f059-4b2c-bd54-1a2116614447" name="Default" comment="">
-      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/PeerlyHttpServer.js" />
-      <change type="DELETED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\ToyServer\Testing.java" afterPath="" />
-      <change type="MOVED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\Testing.java" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/SimpleJavascriptHttpServerApplet.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/gradle/wrapper/gradle-wrapper.jar" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/AndroidSimpleHTTPServerRequestHandler.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/org/json/JSONArray.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/org/json/JSONException.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/org/json/JSONObject.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/org/json/JSONString.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/org/json/JSONTokener.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/com/codeplex/peerly/common/JsonNanoHTTPD.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/com/codeplex/peerly/browser/JsonNanoHTTPDApplet.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/com/codeplex/peerly/common/JsonNanoHTTPDJavaScriptJavaHttpBridge.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/com/codeplex/peerly/browser/LiveConnectJsonNanoHTTPD.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/fi/iki/elonen/NanoHTTPD.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/PeerlyExpress.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/PeerlyHttpServer.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/PouchDBExpress.js" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/SimpleJavascriptHttpServerAndroid.java" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/build.gradle" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/gradle/wrapper/gradle-wrapper.properties" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/gradlew.bat" />
+      <change type="NEW" beforePath="" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/gradlew" />
+      <change type="DELETED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\JavascriptSimpleHTTPServerRequestHandler.java" afterPath="" />
+      <change type="DELETED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\SimpleJavascriptHttpServerApplet.java" afterPath="" />
+      <change type="MOVED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\JavaSimpleHTTPServerRequestHandler.java" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/JavaSimpleHTTPServerRequestHandler.java" />
+      <change type="MOVED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\SimpleHTTPServer.java" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/SimpleHTTPServer.java" />
+      <change type="MOVED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\SimpleResponse.java" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/SimpleResponse.java" />
+      <change type="MOVED" beforePath="C:\Peerly\Prototype\YaronG\LiveConnectPrototype\LiveConnectPrototype\src\Peerly\TestingInJava.java" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/Peerly/TestingInJava.java" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/LiveConnectPrototype.jar" afterPath="$PROJECT_DIR$/LiveConnectPrototype.jar" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/JavaSimpleHTTPServerRequestHandler.java" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/JavaSimpleHTTPServerRequestHandler.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/JavascriptSimpleHTTPServerRequestHandler.java" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/JavascriptSimpleHTTPServerRequestHandler.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/MicroBlogger.html" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/MicroBlogger.html" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MicroBlogger.html" afterPath="$PROJECT_DIR$/MicroBlogger.html" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/MicroBlogger.js" afterPath="$PROJECT_DIR$/MicroBlogger.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/MicroBlogger.js" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/assets/MicroBlogger/MicroBlogger.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PeerlyExpress.js" afterPath="$PROJECT_DIR$/PeerlyExpress.js" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PeerlyHttpServer.js" afterPath="$PROJECT_DIR$/PeerlyHttpServer.js" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/PouchDBExpress.js" afterPath="$PROJECT_DIR$/PouchDBExpress.js" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/SimpleHTTPServer.java" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/SimpleHTTPServer.java" />
-      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/SimpleResponse.java" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/src/Peerly/SimpleResponse.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/com/example/myfirstapp/WebViewActivity.java" afterPath="$PROJECT_DIR$/../AndroidPrototype/MyFirstApp/src/com/example/myfirstapp/WebViewActivity.java" />
+      <change type="MODIFICATION" beforePath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/nbproject/project.properties" afterPath="$PROJECT_DIR$/../LiveConnectPrototype/LiveConnectPrototype/nbproject/project.properties" />
       <change type="MODIFICATION" beforePath="$PROJECT_DIR$/.idea/workspace.xml" afterPath="$PROJECT_DIR$/.idea/workspace.xml" />
     </list>
     <ignored path="DesktopMiniBlogger.iws" />
     <ignored path=".idea/workspace.xml" />
-    <file path="/MicroBlogger.html" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379534372765" ignored="false" />
+    <file path="/MicroBlogger.html" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379627582835" ignored="false" />
     <file path="/MicroBlogger.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379464659658" ignored="false" />
-    <file path="/fragment.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379541335452" ignored="false" />
-    <file path="/PouchDBExpress.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379458003438" ignored="false" />
-    <file path="/PeerlyExpress.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379540945782" ignored="false" />
+    <file path="/fragment.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379636355003" ignored="false" />
+    <file path="/PouchDBExpress.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379637648779" ignored="false" />
+    <file path="/PeerlyExpress.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379634977417" ignored="false" />
     <file path="/Dummy.txt" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379439552812" ignored="false" />
     <file path="/HttpServer.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379443905905" ignored="false" />
-    <file path="/PeerlyHttpServer.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379541493654" ignored="false" />
+    <file path="/PeerlyHttpServer.js" changelist="78d210b2-f059-4b2c-bd54-1a2116614447" time="1379622568910" ignored="false" />
     <option name="TRACKING_ENABLED" value="true" />
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -45,10 +68,10 @@
   </component>
   <component name="FileEditorManager">
     <leaf>
-      <file leaf-file-name="MicroBlogger.html" pinned="false" current="true" current-in-tab="true">
+      <file leaf-file-name="MicroBlogger.html" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MicroBlogger.html">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="17" column="123" selection-start="775" selection-end="775" vertical-scroll-proportion="0.4110953">
+            <state line="23" column="50" selection-start="1032" selection-end="1032" vertical-scroll-proportion="-15.038462">
               <folding />
             </state>
           </provider>
@@ -57,16 +80,16 @@
       <file leaf-file-name="MicroBlogger.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/MicroBlogger.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="45" column="4" selection-start="1673" selection-end="1673" vertical-scroll-proportion="0.0">
+            <state line="44" column="22" selection-start="1617" selection-end="1617" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
         </entry>
       </file>
-      <file leaf-file-name="PouchDBExpress.js" pinned="false" current="false" current-in-tab="false">
+      <file leaf-file-name="PouchDBExpress.js" pinned="false" current="true" current-in-tab="true">
         <entry file="file://$PROJECT_DIR$/PouchDBExpress.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="74" column="0" selection-start="3275" selection-end="3275" vertical-scroll-proportion="0.0">
+            <state line="244" column="78" selection-start="8781" selection-end="8781" vertical-scroll-proportion="0.47727272">
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -77,7 +100,7 @@
       <file leaf-file-name="PeerlyHttpServer.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PeerlyHttpServer.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="23" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0">
+            <state line="11" column="244" selection-start="368" selection-end="368" vertical-scroll-proportion="0.0">
               <folding>
                 <element signature="n#!!doc" expanded="true" />
               </folding>
@@ -88,7 +111,7 @@
       <file leaf-file-name="PeerlyExpress.js" pinned="false" current="false" current-in-tab="false">
         <entry file="file://$PROJECT_DIR$/PeerlyExpress.js">
           <provider selected="true" editor-type-id="text-editor">
-            <state line="127" column="0" selection-start="4181" selection-end="4181" vertical-scroll-proportion="0.0">
+            <state line="93" column="0" selection-start="2695" selection-end="2695" vertical-scroll-proportion="0.0">
               <folding />
             </state>
           </provider>
@@ -105,6 +128,7 @@
     <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$/../../.." />
   </component>
   <component name="GitLogSettings">
+    <option name="myStructureFilterPaths" />
     <option name="myDateState">
       <MyDateState />
     </option>
@@ -114,11 +138,11 @@
       <list>
         <option value="download.pouchdb.com/pouchdb-nightly.js" />
         <option value="$PROJECT_DIR$/HttpServer.js" />
-        <option value="$PROJECT_DIR$/PouchDBExpress.js" />
-        <option value="$PROJECT_DIR$/MicroBlogger.html" />
         <option value="$PROJECT_DIR$/MicroBlogger.js" />
-        <option value="$PROJECT_DIR$/PeerlyExpress.js" />
         <option value="$PROJECT_DIR$/PeerlyHttpServer.js" />
+        <option value="$PROJECT_DIR$/MicroBlogger.html" />
+        <option value="$PROJECT_DIR$/PeerlyExpress.js" />
+        <option value="$PROJECT_DIR$/PouchDBExpress.js" />
       </list>
     </option>
   </component>
@@ -274,13 +298,13 @@
   </component>
   <component name="ToolWindowManager">
     <frame x="-8" y="-8" width="2576" height="1416" extended-state="6" />
-    <editor active="false" />
+    <editor active="true" />
     <layout>
       <window_info id="Messages" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.32537788" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="Changes" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3293556" sideWeight="0.5" order="-1" side_tool="false" content_ui="tabs" />
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.3293556" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Structure" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.25" sideWeight="0.5" order="1" side_tool="false" content_ui="tabs" />
-      <window_info id="Project" active="true" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24635395" sideWeight="0.6006364" order="0" side_tool="false" content_ui="combo" />
+      <window_info id="Project" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.24635395" sideWeight="0.6006364" order="0" side_tool="false" content_ui="combo" />
       <window_info id="Debug" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" weight="0.39936358" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" />
       <window_info id="Favorites" active="false" anchor="left" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" weight="0.33" sideWeight="0.5" order="-1" side_tool="true" content_ui="tabs" />
@@ -355,58 +379,51 @@
   </component>
   <component name="XDebuggerManager">
     <breakpoint-manager>
-      <breakpoints>
-        <line-breakpoint enabled="true" type="javascript">
-          <url>file://$PROJECT_DIR$/PeerlyExpress.js</url>
-          <line>126</line>
-          <option name="timeStamp" value="53" />
-        </line-breakpoint>
-      </breakpoints>
-      <option name="time" value="54" />
+      <option name="time" value="80" />
     </breakpoint-manager>
   </component>
   <component name="editorHistoryManager">
-    <entry file="http://download.pouchdb.com/pouchdb-nightly.js">
-      <provider selected="true" editor-type-id="httpFileEditor">
-        <state />
-      </provider>
-    </entry>
     <entry file="file://$PROJECT_DIR$/MicroBlogger.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="45" column="4" selection-start="1673" selection-end="1673" vertical-scroll-proportion="0.0">
+        <state line="44" column="22" selection-start="1617" selection-end="1617" vertical-scroll-proportion="0.0">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/MicroBlogger.html">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="23" column="50" selection-start="1032" selection-end="1032" vertical-scroll-proportion="-15.038462">
+          <folding />
+        </state>
+      </provider>
+    </entry>
+    <entry file="file://$PROJECT_DIR$/PeerlyExpress.js">
+      <provider selected="true" editor-type-id="text-editor">
+        <state line="93" column="0" selection-start="2695" selection-end="2695" vertical-scroll-proportion="0.0">
           <folding />
         </state>
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/PeerlyHttpServer.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="23" column="0" selection-start="1000" selection-end="1000" vertical-scroll-proportion="0.0">
+        <state line="11" column="244" selection-start="368" selection-end="368" vertical-scroll-proportion="0.0">
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/PeerlyExpress.js">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="127" column="0" selection-start="4181" selection-end="4181" vertical-scroll-proportion="0.0">
-          <folding />
-        </state>
+    <entry file="http://download.pouchdb.com/pouchdb-nightly.js">
+      <provider selected="true" editor-type-id="httpFileEditor">
+        <state />
       </provider>
     </entry>
     <entry file="file://$PROJECT_DIR$/PouchDBExpress.js">
       <provider selected="true" editor-type-id="text-editor">
-        <state line="74" column="0" selection-start="3275" selection-end="3275" vertical-scroll-proportion="0.0">
+        <state line="244" column="78" selection-start="8781" selection-end="8781" vertical-scroll-proportion="0.47727272">
           <folding>
             <element signature="n#!!doc" expanded="true" />
           </folding>
-        </state>
-      </provider>
-    </entry>
-    <entry file="file://$PROJECT_DIR$/MicroBlogger.html">
-      <provider selected="true" editor-type-id="text-editor">
-        <state line="17" column="123" selection-start="775" selection-end="775" vertical-scroll-proportion="0.4110953">
-          <folding />
         </state>
       </provider>
     </entry>

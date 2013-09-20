@@ -1,11 +1,11 @@
 function AddBlogEntry(blogText, dateTimeStamp) {
-	var blogEntry = {
+    var blogEntry = {
         _id: PouchDB.uuid(),
         body: blogText,
         dateTimePost: dateTimeStamp
     };
     db.put(blogEntry, function callback(err, result) {
-        // TODO: DO SOMETHING USEFUL HERE!
+        //TODO: DO SOMETHING USEFUL HERE!
     });
 }
 
@@ -30,8 +30,22 @@ function MicroBlogSubmitButtonHandler(obj) {
     postElement.value = "";
 }
 
+function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext)
+{
+    var queryParams = JSON.parse(jsonQueryParams);
+    var headers = JSON.parse(jsonHeaders);
+    var response = new Object();
+    response.responseCode = 200;
+    response.responseMIMEType = "text/html";
+    response.responseBody = "method: " + method + ", uri: " + uri;
+    responseContext(response);
+}
+
 function SetUp(obj) {
+    PeerlyHttpServer.startHttpServer(8090, Express.PeerlyHttpServerCallback);
+
     document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
+
     window.db = new PouchDB('microblog');
     window.remoteCouch = false;
     db.info(function(err, info) {
@@ -44,8 +58,4 @@ function SetUp(obj) {
     UpdateBlogEntriesTable();
 }
 
-
-window.onerror = function errorHandler(errorMsg, url, lineNumber) { 
-	//document.write("errorMsg: " + errorMsg + ", url: " + url + ", lineNumber: " + lineNumber);
-}
 window.onload = SetUp;

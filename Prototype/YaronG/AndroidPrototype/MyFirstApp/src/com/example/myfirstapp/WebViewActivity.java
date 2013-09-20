@@ -12,6 +12,9 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.support.v4.app.NavUtils;
 
+import Peerly.AndroidSimpleHTTPServerRequestHandler;
+import Peerly.SimpleJavascriptHttpServerAndroid;
+
 public class WebViewActivity extends Activity {
 
 	@Override
@@ -45,6 +48,7 @@ public class WebViewActivity extends Activity {
 		myWebView.getSettings().setDatabaseEnabled(true); // We need to enable the database since that's core to PouchDB
 		myWebView.getSettings().setDatabasePath(databasePath);
 		myWebView.getSettings().setDomStorageEnabled(true); // We really don't need this but for now I want all APIs available
+        myWebView.addJavascriptInterface(new SimpleJavascriptHttpServerAndroid(myWebView),"SimpleJavascriptHttpServerAndroid");
 		String htmlFileToLoad = "file:///android_asset/MicroBlogger/MicroBlogger.html"; //"file:///android_asset/test.html";
 		myWebView.loadUrl(htmlFileToLoad);
 	}
