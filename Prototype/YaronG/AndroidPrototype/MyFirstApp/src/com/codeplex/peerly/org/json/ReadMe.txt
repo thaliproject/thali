@@ -1,0 +1,1 @@
+Unfortunately Android uses an old version of the org.json libraries and I need a newer version. So I took the org.json source code and moved it to a new namespace. I then use that same code both in LiveConnect and in the Android code so I don't get naming conflicts.

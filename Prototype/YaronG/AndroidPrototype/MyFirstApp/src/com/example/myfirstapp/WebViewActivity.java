@@ -12,6 +12,8 @@ import android.webkit.WebChromeClient;
 import android.webkit.WebView;
 import android.support.v4.app.NavUtils;
 
+import com.codeplex.peerly.android.JsonNanoHTTPDJavascriptInterface;
+
 import Peerly.AndroidSimpleHTTPServerRequestHandler;
 import Peerly.SimpleJavascriptHttpServerAndroid;
 
@@ -45,10 +47,11 @@ public class WebViewActivity extends Activity {
 		myWebView.getSettings().setAppCacheEnabled(true);
 		myWebView.getSettings().setAppCachePath(databasePath);
 		myWebView.getSettings().setAllowFileAccessFromFileURLs(true); // I believe this is not true by default
+        myWebView.getSettings().setAllowUniversalAccessFromFileURLs(true); // To enable us to ignore cross domain restrictions
 		myWebView.getSettings().setDatabaseEnabled(true); // We need to enable the database since that's core to PouchDB
 		myWebView.getSettings().setDatabasePath(databasePath);
 		myWebView.getSettings().setDomStorageEnabled(true); // We really don't need this but for now I want all APIs available
-        myWebView.addJavascriptInterface(new SimpleJavascriptHttpServerAndroid(myWebView),"SimpleJavascriptHttpServerAndroid");
+        myWebView.addJavascriptInterface(new JsonNanoHTTPDJavascriptInterface(myWebView),"SimpleJavascriptHttpServerAndroid");
 		String htmlFileToLoad = "file:///android_asset/MicroBlogger/MicroBlogger.html"; //"file:///android_asset/test.html";
 		myWebView.loadUrl(htmlFileToLoad);
 	}

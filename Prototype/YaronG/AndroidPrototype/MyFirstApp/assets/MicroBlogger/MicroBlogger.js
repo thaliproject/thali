@@ -30,6 +30,17 @@ function MicroBlogSubmitButtonHandler(obj) {
     postElement.value = "";
 }
 
+function MicroBlogStartSynchHandler(obj) {
+    var remoteURLElement = document.getElementById("microBlogRemoteMicroBlogUrl");
+    var remoteURLValue = remoteURLElement.value;
+    var options = {
+        "onChange": UpdateBlogEntriesTable,
+        "continuous": true
+    };
+    window.db.replicate.to(remoteURLValue, options);
+    window.db.replicate.from(remoteURLValue, options);
+}
+
 function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext)
 {
     var queryParams = JSON.parse(jsonQueryParams);
@@ -44,6 +55,7 @@ function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody,
 function SetUp(obj) {
     PeerlyHttpServer.startHttpServer(8090, Express.PeerlyHttpServerCallback);
 
+    document.getElementById("microBlogStartSynch").onclick = MicroBlogStartSynchHandler;
     document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
 
     window.db = new PouchDB('microblog');

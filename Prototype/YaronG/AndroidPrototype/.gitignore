@@ -53,4 +53,6 @@ proguard/
 *.iml
 *.ipr
 *.iws
-.idea/
+.idea/workspace.xml
+.idea/tasks.xml
+out/

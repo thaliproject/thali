@@ -6,7 +6,7 @@ package com.codeplex.peerly.browser;
 
 import com.codeplex.peerly.common.JsonNanoHTTPD;
 import netscape.javascript.JSObject;
-import org.json.JSONObject;
+import com.codeplex.peerly.org.json.JSONObject;
 
 /**
  *

@@ -1,2 +1,8 @@
 /bin
 /gen
+
+out/
+
+# Local only files for IntelliJ
+.idea/workspace.xml
+.idea/tasks.xml

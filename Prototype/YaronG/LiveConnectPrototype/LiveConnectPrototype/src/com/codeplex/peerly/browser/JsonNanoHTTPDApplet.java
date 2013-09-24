@@ -9,8 +9,8 @@ import java.applet.Applet;
 import java.io.IOException;
 import java.security.AccessController;
 import java.security.PrivilegedAction;
-import netscape.javascript.*;
-import org.json.JSONObject;
+import netscape.javascript.JSObject;
+import com.codeplex.peerly.org.json.JSONObject;
 
 /**
  *

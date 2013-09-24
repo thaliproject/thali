@@ -6,7 +6,10 @@ Express._HandlerGenerator = function(matchingMethod, matchingUri, callback)
 {
     var methodPattern = Express._processWildCardStringToRegEx(matchingMethod);
     var keys = [];
-    var uriRegEx = Express._pathRegexp(matchingUri, keys, true, true);
+    // TODO: I need to study the last two flags more closely. I had to set them to false in order to match
+    // foo and foo/ (e.g. to match a request regardless of the presence or absence of a / at the end) but
+    // I should better understand what they are up to.
+    var uriRegEx = Express._pathRegexp(matchingUri, keys, false, false);
     return function(req)
     {
         req.params = [];
@@ -118,7 +121,12 @@ Express._createReqObject = function(jsonNanoHTTPDRequestObject)
             // HTTP headers are only supposed to contain ASCII so in theory this is actually safe
             return req._requestHeaders[headerName.toUpperCase()];
         },
-        "params": []
+        "params": [],
+        "socket": { "setTimeout" : function(timeout)
+                                    {
+                                        //NOOP for now
+                                    }
+                  }
     }
 
     for(var headerName in jsonNanoHTTPDRequestObject._requestHeaders)
@@ -141,6 +149,7 @@ Express._createResObject = function(responseCallBack)
 {
     var res =
     {
+        "_responseHeaders" : {},
         "send": function(responseCode, responseObject)
         {
             var response = new Object();
@@ -151,9 +160,13 @@ Express._createResObject = function(responseCallBack)
             response._responseHeaders = res._responseHeaders;
             responseCallBack(response);
         },
+        "setHeader": function(name, value)
+        {
+            res._responseHeaders[name] = value;
+        },
         "location": function(locationHeaderValue)
         {
-            res._responseHeaders["Location"] = locationHeaderValue;
+            res.setHeader["Location"] = locationHeaderValue;
         }
     }
     return res;

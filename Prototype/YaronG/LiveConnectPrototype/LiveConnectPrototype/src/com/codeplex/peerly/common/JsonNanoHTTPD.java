@@ -4,7 +4,6 @@
  */
 package com.codeplex.peerly.common;
 
-import com.codeplex.peerly.browser.LiveConnectJsonNanoHTTPD;
 import fi.iki.elonen.NanoHTTPD;
 import java.io.IOException;
 import java.io.InputStream;
@@ -13,7 +12,8 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
-import org.json.JSONObject;
+import com.codeplex.peerly.org.json.JSONException;
+import com.codeplex.peerly.org.json.JSONObject;
 
 /**
  *
@@ -45,7 +45,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
-                Logger.getLogger(LiveConnectJsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
+                Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
                 throw new RuntimeException();
             }            
         }
@@ -68,14 +68,18 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         String requestBody = StringifyRequestBody(headers, inputStream);
         
         JSONObject jsonRequestObject = new JSONObject();
-        jsonRequestObject.put("method", method);
-        jsonRequestObject.put("pathname", requestUriPath);
-        jsonRequestObject.put("body", requestBody);
-        jsonRequestObject.put("query", queryParams);
-        jsonRequestObject.put("protocol","http");
-        jsonRequestObject.put("host","localhost");
-        jsonRequestObject.put("subdomains", new String[0]);
-        jsonRequestObject.put("_requestHeaders", headers);
+        try {
+            jsonRequestObject.put("method", method);
+            jsonRequestObject.put("pathname", requestUriPath);
+            jsonRequestObject.put("body", requestBody);
+            jsonRequestObject.put("query", queryParams);
+            jsonRequestObject.put("protocol","http");
+            jsonRequestObject.put("host","localhost");
+            jsonRequestObject.put("subdomains", new String[0]);
+            jsonRequestObject.put("_requestHeaders", headers);
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
         return jsonRequestObject;
     }
     
@@ -128,6 +132,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
                 return "DELETE";
             case HEAD:
                 return "HEAD";
+            case OPTIONS:
+                return "OPTIONS";
             default:
                 throw new RuntimeException();
         }
@@ -135,8 +141,15 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     
     private Response createResponse(JSONObject jsonResponseObject)
     {
-        int responseCode = jsonResponseObject.getInt("responseCode");
-        String mimeType = jsonResponseObject.getString("responseMIMEType");
+        int responseCode = 0;
+        String mimeType = null;
+        try {
+            responseCode = jsonResponseObject.getInt("responseCode");
+            mimeType = jsonResponseObject.getString("responseMIMEType");
+        } catch (JSONException e) {
+            throw new RuntimeException(e);
+        }
+        
         String responseBody = jsonResponseObject.optString("responseBody");
         
         Response simpleResponse = new Response(responseCodeToResponseStatus(responseCode), mimeType, responseBody);
@@ -148,7 +161,12 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             while(keys.hasNext())
             {
                 String responseHeaderName = keys.next();
-                String responseHeaderValue = headers.getString(responseHeaderName);
+                String responseHeaderValue = null;
+                try {
+                    responseHeaderValue = headers.getString(responseHeaderName);
+                } catch (JSONException e) {
+                    throw new RuntimeException(e);
+                }
                 simpleResponse.addHeader(responseHeaderName, responseHeaderValue);
             }
         }
@@ -181,6 +199,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
                 return NanoHTTPD.Response.Status.FORBIDDEN;
             case 404:
                 return NanoHTTPD.Response.Status.NOT_FOUND;
+            case 409:
+                return NanoHTTPD.Response.Status.CONFLICT;
             case 416:
                 return NanoHTTPD.Response.Status.RANGE_NOT_SATISFIABLE;
             case 500:
