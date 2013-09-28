@@ -5,14 +5,18 @@ function AddBlogEntry(blogText, dateTimeStamp) {
         dateTimePost: dateTimeStamp
     };
     db.put(blogEntry, function callback(err, result) {
-        //TODO: DO SOMETHING USEFUL HERE!
+        if (err !== null) {
+            //TODO: DO SOMETHING USEFUL HERE!
+            throw err;
+        }
     });
 }
 
 function UpdateBlogEntriesTable() {
     db.allDocs({ include_docs: true }, function(err, response) {
-        if (!err) {
+        if (err !== null) {
             // TODO: DO SOMETHING USEFUL HERE!
+            throw err;
         }
         var blogEntriesTable = "<table><tr><th>Date</th><th>Value</th></tr>";
         response.rows.forEach(function callback(element, index, array) {
@@ -21,6 +25,25 @@ function UpdateBlogEntriesTable() {
         blogEntriesTable = blogEntriesTable + "</table>";
         document.getElementById("drawMicroBlogContent").innerHTML = blogEntriesTable;
     });
+}
+
+function DeleteContentsOfTable(callBack) {
+    db.allDocs({ include_docs: true }, function(err, response) {
+        if (err !== null) {
+            // TODO: DO SOMETHING USEFUL HERE!
+            throw err;
+        }
+        response.rows.forEach(function callback(element, index, array) {
+            db.remove(element.doc, function(err, response){
+                    if (err !== null) {
+                        // TODO: DO SOMETHING USEFUL HERE!
+                        throw err;
+                    }
+                }
+            )
+        });
+        callBack();
+    })
 }
 
 function MicroBlogSubmitButtonHandler(obj) {
@@ -41,22 +64,19 @@ function MicroBlogStartSynchHandler(obj) {
     window.db.replicate.from(remoteURLValue, options);
 }
 
-function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext)
-{
-    var queryParams = JSON.parse(jsonQueryParams);
-    var headers = JSON.parse(jsonHeaders);
-    var response = new Object();
-    response.responseCode = 200;
-    response.responseMIMEType = "text/html";
-    response.responseBody = "method: " + method + ", uri: " + uri;
-    responseContext(response);
+function MicroBlogDeleteContentsOfMicroBlogHandler(obj){
+    DeleteContentsOfTable(function() {
+       UpdateBlogEntriesTable();
+    });
 }
 
 function SetUp(obj) {
+
     PeerlyHttpServer.startHttpServer(8090, Express.PeerlyHttpServerCallback);
 
     document.getElementById("microBlogStartSynch").onclick = MicroBlogStartSynchHandler;
     document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
+    document.getElementById("deleteContentsOfMicroBlog").onclick = MicroBlogDeleteContentsOfMicroBlogHandler;
 
     window.db = new PouchDB('microblog');
     window.remoteCouch = false;

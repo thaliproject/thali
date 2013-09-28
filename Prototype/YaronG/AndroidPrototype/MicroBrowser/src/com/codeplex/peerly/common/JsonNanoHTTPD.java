@@ -5,9 +5,8 @@
 package com.codeplex.peerly.common;
 
 import fi.iki.elonen.NanoHTTPD;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+
+import java.io.*;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
@@ -58,7 +57,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         this.responseObject = responseObject;
     }
 
-    private JSONObject createJsonRequestObject(HTTPSession session)
+    private static JSONObject createJsonRequestObject(HTTPSession session)
     {
         String method = MethodEnumToMethodString(session.getMethod());
         String requestUriPath = session.getUri();
@@ -83,42 +82,12 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         return jsonRequestObject;
     }
     
-    private String StringifyRequestBody(Map<String, String> headers, InputStream inputStream) throws RuntimeException {
-        String requestBody = null;
-        int size;
-        // This is wrong on so many levels. First, we should validate that
-        // we want to deal with the content we have given. Second, this
-        // doesn't deal with chunked content. Third, we don't check that
-        // the content is actually UTF-8. Fourth, we don't check the MIME
-        // type. Fifth, we actually store everything in memory rather than
-        // processing it as a stream so we can use RAM better. Etc.
-        if (headers.containsKey("content-length"))
-        {
-            size = Integer.parseInt(headers.get("content-length"));
-            byte[] requestBodyByteArray = new byte[size];
-            int bytesRead;
-            try {
-                bytesRead = inputStream.read(requestBodyByteArray);
-                if (bytesRead != size)
-                {
-                    throw new RuntimeException();
-                }
-            } catch (IOException ex) {
-                Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
-                throw new RuntimeException();
-            }
-
-            try {
-                requestBody = new String(requestBodyByteArray,"UTF-8");
-            } catch (UnsupportedEncodingException ex) {
-                Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
-                throw new RuntimeException();
-            }
-        }
-        return requestBody;
+    private static String StringifyRequestBody(Map<String, String> headers, InputStream inputStream) throws RuntimeException {
+        int contentLength = headers.containsKey("content-length") ? Integer.parseInt(headers.get("content-length")) : 0;
+        return Utilities.StringifyInputStream(contentLength, inputStream);
     }
-    
-    private String MethodEnumToMethodString(Method methodEnum)
+
+    private static String MethodEnumToMethodString(Method methodEnum)
     {
         switch(methodEnum)
         {
@@ -139,7 +108,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
     }
     
-    private Response createResponse(JSONObject jsonResponseObject)
+    private static Response createResponse(JSONObject jsonResponseObject)
     {
         int responseCode = 0;
         String mimeType = null;
@@ -201,12 +170,14 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
                 return NanoHTTPD.Response.Status.NOT_FOUND;
             case 409:
                 return NanoHTTPD.Response.Status.CONFLICT;
+            case 412:
+                return NanoHTTPD.Response.Status.PRECONDITION_FAILED;
             case 416:
                 return NanoHTTPD.Response.Status.RANGE_NOT_SATISFIABLE;
             case 500:
                 return NanoHTTPD.Response.Status.INTERNAL_ERROR;
             default:
-                throw new RuntimeException();
+                throw new RuntimeException("Unrecognized Response Code was: " + responseCode);
         }
     }
 }

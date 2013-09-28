@@ -24,7 +24,9 @@ PeerlyHttpServer.startHttpServer = function(port, callback)
     {
         // It turns out I can't just return PeerlyHttpServer._server_.setResponse, this will trigger an error
         // called "NPMethod called on non-NPObject". The way around this is to use a lambda.
-        var responseCallBack = function(response) { PeerlyHttpServer._server.setResponse(JSON.stringify(response)) };
+        var responseCallBack = function(response) {
+            PeerlyHttpServer._server.setResponse(JSON.stringify(response))
+        };
         callback(JSON.parse(jsonNanoHTTPDRequestString), responseCallBack);
     }
 

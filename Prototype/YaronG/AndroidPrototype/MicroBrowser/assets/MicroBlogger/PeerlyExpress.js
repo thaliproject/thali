@@ -121,7 +121,12 @@ Express._createReqObject = function(jsonNanoHTTPDRequestObject)
             // HTTP headers are only supposed to contain ASCII so in theory this is actually safe
             return req._requestHeaders[headerName.toUpperCase()];
         },
-        "params": []
+        "params": [],
+        "socket": { "setTimeout" : function(timeout)
+                                    {
+                                        //NOOP for now
+                                    }
+                  }
     }
 
     for(var headerName in jsonNanoHTTPDRequestObject._requestHeaders)
