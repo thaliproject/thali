@@ -27,6 +27,6 @@ public class LiveConnectJsonNanoHTTPD extends JsonNanoHTTPD
     @Override
     protected void deliverRequestJsonToJavascript(JSONObject jsonRequestObject)
     {
-        window.call(requestCallBackName, new Object[] { (Object)jsonRequestObject.toString() });
+        window.call(requestCallBackName, new Object[] {jsonRequestObject.toString()});
     }
 }

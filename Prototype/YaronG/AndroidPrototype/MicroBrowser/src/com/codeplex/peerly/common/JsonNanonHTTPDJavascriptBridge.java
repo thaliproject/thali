@@ -12,7 +12,7 @@ import java.io.IOException;
  * This defines the methods that Javascript will expect to find on the HTTP
  * server object.
  */
-public interface JsonNanoHTTPDJavaScriptJavaHttpBridge {
+public interface JsonNanonHTTPDJavascriptBridge {
     public boolean isHttpServerRunning();
     public void startHttpServer(int port, String requestHandlerCallBack);
     public void stopHttpServer();

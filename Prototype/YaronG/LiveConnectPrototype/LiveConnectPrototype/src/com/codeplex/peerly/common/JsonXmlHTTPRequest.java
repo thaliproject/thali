@@ -2,8 +2,7 @@ package com.codeplex.peerly.common;
 
 import com.codeplex.peerly.org.json.JSONObject;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
@@ -34,9 +33,9 @@ import java.util.Map;
  * since WebView doesn't support sending values from Java to Javascript that aren't simple types or strings so
  * no ArrayBuffers or blobs or anything. Fixing that will drive lots of other changes.
  */
-public abstract class JsonRequest {
+public abstract class JsonXmlHTTPRequest {
 
-    abstract public void sendResponse(String javascriptCallBackMethodName, int key, String responseJsonString);
+    abstract public void sendResponse(String javascriptCallBackMethodName, int key, JSONObject responseObject);
 
     public void send(String javascriptCallBackMethodName, int key, String requestJsonString)
     {
@@ -53,7 +52,7 @@ public abstract class JsonRequest {
 
                     JSONObject responseObject = getResponse(httpURLConnection);
 
-                    sendResponse(finalJavascriptCallBackMethodName, finalKey, responseObject.toString());
+                    sendResponse(finalJavascriptCallBackMethodName, finalKey, responseObject);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                     // TODO: Interesting enough there is an error handler for xmlhttprequest but pouchdb doesn't use it
@@ -62,10 +61,10 @@ public abstract class JsonRequest {
                     e.printStackTrace();
                 }
             }
-        });
+        }).run();
     }
 
-    private JSONObject getResponse(HttpURLConnection httpURLConnection) throws IOException {
+    private static JSONObject getResponse(HttpURLConnection httpURLConnection) throws IOException {
         JSONObject responseObject = new JSONObject();
         responseObject.put("status", httpURLConnection.getResponseCode());
         JSONObject responseHeaderObject = new JSONObject();
@@ -79,38 +78,29 @@ public abstract class JsonRequest {
         }
         responseObject.put("headers", responseHeaderObject);
 
-        String contentLengthString = httpURLConnection.getHeaderField("content-length");
-        int contentLength = contentLengthString == null ? 0 : Integer.parseInt(contentLengthString);
-        String contentType = httpURLConnection.getHeaderField("content-type");
-
-        if (contentLength > 0 && contentType.equalsIgnoreCase("Application/JSON") == false)
-        {
-            // TODO: We really need logging support
-            throw new RuntimeException("We only support JSON (and nobody can see this exception since it is on its own thread)");
-        }
-
-        String responseText = Utilities.StringifyInputStream(contentLength, httpURLConnection.getInputStream());
+        // TODO: This is wrong on multiple levels. First, it assumes the contents are a string. They could be binary.
+        // second it assumes that the string's encoding is UTF-8 but in theory other encodings are possible which
+        // typically should be encoded as an argument in the content-type header.
+        String responseText = Utilities.StringifyByteStream(httpURLConnection.getInputStream(), "UTF-8");
         responseObject.put("responseText", responseText);
         return responseObject;
     }
 
-    private static HttpURLConnection sendRequest(JSONObject jsonObject, String urlString) throws IOException {
+    private static HttpURLConnection sendRequest(JSONObject jsonRequestObject, String urlString) throws IOException {
         URL url = new URL(urlString);
         HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
-        String method = jsonObject.getString("method");
+        String method = jsonRequestObject.getString("method");
         httpURLConnection.setRequestMethod(method);
-        JSONObject headers = jsonObject.getJSONObject("headers");
+        JSONObject headers = jsonRequestObject.getJSONObject("headers");
         for(Object headerNameObject : headers.keySet())
         {
             String headerName = (String) headerNameObject;
-            String headerValue = jsonObject.getString(headerName);
+            String headerValue = headers.getString(headerName);
             httpURLConnection.setRequestProperty(headerName, headerValue);
         }
-        // TODO: We don't support transfer encodings, this will stop a server from sending one
-        httpURLConnection.setRequestProperty("accept-encoding", "identity");
 
-        String requestText = jsonObject.getString("requestText");
-        if (requestText != null)
+        String requestText = jsonRequestObject.getString("requestText");
+        if (requestText != null && requestText.length() > 0)
         {
             httpURLConnection.setDoOutput(true);
             OutputStream out = httpURLConnection.getOutputStream();

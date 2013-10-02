@@ -3,7 +3,7 @@ package com.codeplex.peerly.android;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 
-import com.codeplex.peerly.common.JsonNanoHTTPDJavaScriptJavaHttpBridge;
+import com.codeplex.peerly.common.JsonNanonHTTPDJavascriptBridge;
 
 import com.codeplex.peerly.org.json.JSONException;
 import com.codeplex.peerly.org.json.JSONObject;
@@ -13,7 +13,7 @@ import java.io.IOException;
 /**
  * Created by yarong on 9/20/13.
  */
-public class JsonNanoHTTPDJavascriptInterface implements JsonNanoHTTPDJavaScriptJavaHttpBridge {
+public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascriptBridge {
     private WebView webView;
     private AndroidJsonNanoHTTPD server;
 

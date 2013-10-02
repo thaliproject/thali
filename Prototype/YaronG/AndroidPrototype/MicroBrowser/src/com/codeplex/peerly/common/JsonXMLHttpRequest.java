@@ -1,161 +1,111 @@
 package com.codeplex.peerly.common;
 
-import java.io.IOException;
-import java.io.OutputStream;
+import com.codeplex.peerly.org.json.JSONObject;
+
+import java.io.*;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.Map;
 
 /**
- * The underlying class that implements our JSON wrapper, SSL mutual auth enabled XMLHTTPRequest object. It only
- * implements the methods and functionality needed by PouchDB.
- *
- * This class only expects the readyState field to be accessed simultaneously from multiple threads. Otherwise
- * this class is not thread safe.
+ * This whole design is silly because it takes a synchronous function httpURLConnection and makes it asynchronous.
+ * It also doesn't support transport encoding (read: inline compression), chunking, or properly handle XMLHTTPRequest
+ * behaviors such as streaming out the request body, notifying when headers are available and being able to stream
+ * back the response body.
+ * So why do something so badly designed?
+ * The main reason is speed. Probably the best client library to really get things going right would be the Apache
+ * HTTP client library but the Android gods frown on it (http://android-developers.blogspot.in/2011/09/androids-http-clients.html).
+ * O.k. that's not a great reason but I would have to include the Apache HTTP client library in the Applet version of the
+ * code which required either always including it or having split code basis and neither was any fun.
+ * The silly design below is my way of handling the limitations of WebView. Unlike LiveConnect (Read: applets) which
+ * support creating new Java objects and passing them into Javascript, even managing their lifetimes, such is not the
+ * case with addJavascriptInterface which doesn't support exposing new Java objects without refreshing the entire
+ * browser session and doesn't have any way to pass the whole Java object in. This is a real problem because we
+ * want to give people an experience of using a XMLHttpRequest object that should be GC'd like any Javascript
+ * object but since Javascript doesn't have finalizers or destructors there is no way for us to know when an object
+ * has gone out of scope and therefore we would never know when to garbage collect the associated Java object!
+ * I 'solve' (as in see that dirt on that window? Let me use my hammer to clean that) the problem by creating a
+ * static class which asynchronously makes the request, gets the response and then calls back into Javascript.
+ * This sucks for all sorts of perf reasons and someday I might have to come up with something better but for right
+ * now it seems (famous last words) to work. Just don't try it with anything non-trivially sized or you'll blow RAM.
+ * But really, before we can deal with non-trivially sized data we are going to have to make changes everywhere
+ * since WebView doesn't support sending values from Java to Javascript that aren't simple types or strings so
+ * no ArrayBuffers or blobs or anything. Fixing that will drive lots of other changes.
  */
-public abstract class JsonXMLHttpRequest extends JsonXMLHttpRequestStateManager {
-    private SynchronizedHttpURLConnection synchronizedHttpURLConnection = null;
+public abstract class JsonXmlHTTPRequest {
 
-    public int getStatus()
+    abstract public void sendResponse(String javascriptCallBackMethodName, int key, JSONObject responseObject);
+
+    public void send(String javascriptCallBackMethodName, int key, String requestJsonString)
     {
-        if (getReadyState().stateNumber() < 2)
-        {
-            throw new RuntimeException("status can only be found when ready state is 2 or higher.");
-        }
-
-        try {
-            return synchronizedHttpURLConnection.getResponseCode();
-        } catch (IOException e) {
-            throw new RuntimeException(e.toString());
-        }
-    }
-
-    // TODO: When we support binary we need to put in support for the response property
-
-    public String getResponseText()
-    {
-        return getResponseBody();
-    }
-
-    public String GetResponseHeader(String header)
-    {
-        // We really don't support anything more sophisticated with
-        if (getReadyState().stateNumber() < ReadyState.HEADERS_RECEIVED.stateNumber())
-        {
-            return null;
-        }
-
-        return synchronizedHttpURLConnection.getHeaderField(header);
-    }
-
-    public abstract void OnReadyStateChange(ReadyState readyState);
-
-    public void open(String method, String url)
-    {
-        if (getReadyState() != ReadyState.UNSENT)
-        {
-            abort();
-        }
-
-        try {
-            URL urlObject = new URL(url);
-            // According to http://stackoverflow.com/questions/10116961/can-you-explain-the-httpurlconnection-connection-process creating the
-            // httpURLConnection object causes a connection to be opened and so matches with ReadyState 1.
-            synchronizedHttpURLConnection = new SynchronizedHttpURLConnection(urlObject);
-            synchronizedHttpURLConnection.setRequestMethod(method);
-            setReadyState(ReadyState.OPENED);
-        } catch (MalformedURLException e) {
-            abort();
-            throw new RuntimeException(e.toString());
-        } catch (IOException e) {
-            abort();
-            throw new RuntimeException(e.toString());
-        }
-    }
-
-    public void setRequestHeader(String header, String value)
-    {
-        if (getReadyState() != ReadyState.OPENED)
-        {
-            throw new RuntimeException("setRequestHeader MUST be called after open and before send.");
-        }
-
-        String currentRequestHeaderValue = synchronizedHttpURLConnection.getRequestProperty(header);
-
-        String newRequestHeaderValue = currentRequestHeaderValue == null ? value : currentRequestHeaderValue + "," + value;
-
-        synchronizedHttpURLConnection.setRequestProperty(header, newRequestHeaderValue);
-    }
-
-    public void abort()
-    {
-        if (synchronizedHttpURLConnection != null)
-        {
-            synchronizedHttpURLConnection.disconnect();
-        }
-
-        synchronizedHttpURLConnection = null;
-        setReadyState(ReadyState.UNSENT);
-    }
-
-    public void send(String data)
-    {
-        if (getReadyState() != ReadyState.OPENED)
-        {
-            throw new RuntimeException("You must have successfully called open before calling send.");
-        }
-
-        // TODO: We currently don't support transfer encoding but that is really dumb, we need to fix it. This
-        // setting keeps the server from using a transfer encoding.
-        synchronizedHttpURLConnection.setRequestProperty("Accept-Encoding", "identity");
-
-        final String finalData = data;
-
-        new Thread(new Runnable()
-        {
+        final String finalJavascriptCallBackMethodName = javascriptCallBackMethodName;
+        final int finalKey = key;
+        final String finalRequestJsonString = requestJsonString;
+        new Thread(new Runnable() {
             @Override
             public void run() {
-                if (finalData != null)
-                {
-                    synchronizedHttpURLConnection.setDoOutput(true);
-                    try {
-                        OutputStream out = synchronizedHttpURLConnection.getOutputStream();
-                        out.write(finalData.getBytes("UTF-8"));
-                    } catch (IOException e) {
-                        // TODO: There is an eventListener interface once can subscribe to on the XMLHttpRequest object
-                        // to hear about errors. But PouchDB doesn't use it. So I'm not quite sure what Pouch will do
-                        // if there is an error while sending/receiving a request. But for now we'll just abort.
-                        // TODO: We really need a logging framework so these errors at least get logged
-                    }
-                }
-
-                // The following is a sleezy and possibly just plain wrong trick. I want to see if the status and
-                // response headers are available so I just ask for all the headers. But if the server is using
-                // chunked headers then heck if I know how httpURLConnection models that. But whatever. The following
-                // call is supposed to block until the headers are available.
-                synchronizedHttpURLConnection.getHeaderFields();
-                setReadyState(ReadyState.HEADERS_RECEIVED);
-
-                // TODO: At some point we should support chunking and readyState 3 but not today.
-
-                // TODO: If the server goes bad this call could stall forever. Not good.
-
-                // TODO: This only works because we don't support servers that support transfer encoding
-                int contentLength = Integer.parseInt(synchronizedHttpURLConnection.getHeaderField("content-length"));
-                String contentType = synchronizedHttpURLConnection.getHeaderField("content-type");
-
-                // TODO: Obviously we need to support more than just JSON!
-                // MIME types are case insensitive
-                if (contentLength > 0 && contentType.equalsIgnoreCase("Application/JSON") == false)
-                {
-                    throw new RuntimeException("For now we only support Application/JSON but we received " + contentType);
-                }
-
+                JSONObject jsonObject = new JSONObject(finalRequestJsonString);
+                String urlString = jsonObject.getString("url");
                 try {
-                     setReadyStateToDone(Utilities.StringifyInputStream(contentLength, synchronizedHttpURLConnection.getInputStream()));
+                    HttpURLConnection httpURLConnection = sendRequest(jsonObject, urlString);
+
+                    JSONObject responseObject = getResponse(httpURLConnection);
+
+                    sendResponse(finalJavascriptCallBackMethodName, finalKey, responseObject);
+                } catch (MalformedURLException e) {
+                    e.printStackTrace();
+                    // TODO: Interesting enough there is an error handler for xmlhttprequest but pouchdb doesn't use it
+                    // so we haven't hooked in that functionality yet.
                 } catch (IOException e) {
-                    throw new RuntimeException(e.toString());
+                    e.printStackTrace();
                 }
             }
-        });
+        }).run();
+    }
+
+    private static JSONObject getResponse(HttpURLConnection httpURLConnection) throws IOException {
+        JSONObject responseObject = new JSONObject();
+        responseObject.put("status", httpURLConnection.getResponseCode());
+        JSONObject responseHeaderObject = new JSONObject();
+        for(String headerName : httpURLConnection.getHeaderFields().keySet())
+        {
+            // The Null key is apparently used to record the status response line in httpURLConnection
+            if (headerName != null)
+            {
+                responseHeaderObject.put(headerName, httpURLConnection.getHeaderField(headerName));
+            }
+        }
+        responseObject.put("headers", responseHeaderObject);
+
+        // TODO: This is wrong on multiple levels. First, it assumes the contents are a string. They could be binary.
+        // second it assumes that the string's encoding is UTF-8 but in theory other encodings are possible which
+        // typically should be encoded as an argument in the content-type header.
+        String responseText = Utilities.StringifyByteStream(httpURLConnection.getInputStream(), "UTF-8");
+        responseObject.put("responseText", responseText);
+        return responseObject;
+    }
+
+    private static HttpURLConnection sendRequest(JSONObject jsonRequestObject, String urlString) throws IOException {
+        URL url = new URL(urlString);
+        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        String method = jsonRequestObject.getString("method");
+        httpURLConnection.setRequestMethod(method);
+        JSONObject headers = jsonRequestObject.getJSONObject("headers");
+        for(Object headerNameObject : headers.keySet())
+        {
+            String headerName = (String) headerNameObject;
+            String headerValue = headers.getString(headerName);
+            httpURLConnection.setRequestProperty(headerName, headerValue);
+        }
+
+        String requestText = jsonRequestObject.getString("requestText");
+        if (requestText != null && requestText.length() > 0)
+        {
+            httpURLConnection.setDoOutput(true);
+            OutputStream out = httpURLConnection.getOutputStream();
+            out.write(requestText.getBytes("UTF-8"));
+        }
+        return httpURLConnection;
     }
 }

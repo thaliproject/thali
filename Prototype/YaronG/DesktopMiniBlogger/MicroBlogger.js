@@ -1,10 +1,10 @@
-function AddBlogEntry(blogText, dateTimeStamp) {
+function addBlogEntry(blogText, dateTimeStamp) {
     var blogEntry = {
-        _id: PouchDB.uuid(),
+        _id: window.PouchDB.uuid(),
         body: blogText,
         dateTimePost: dateTimeStamp
     };
-    db.put(blogEntry, function callback(err, result) {
+    window.db.put(blogEntry, function callback(err, result) {
         if (err !== null) {
             //TODO: DO SOMETHING USEFUL HERE!
             throw err;
@@ -12,8 +12,8 @@ function AddBlogEntry(blogText, dateTimeStamp) {
     });
 }
 
-function UpdateBlogEntriesTable() {
-    db.allDocs({ include_docs: true }, function(err, response) {
+function updateBlogEntriesTable() {
+    window.db.allDocs({ include_docs: true }, function (err, response) {
         if (err !== null) {
             // TODO: DO SOMETHING USEFUL HERE!
             throw err;
@@ -27,67 +27,69 @@ function UpdateBlogEntriesTable() {
     });
 }
 
-function DeleteContentsOfTable(callBack) {
-    db.allDocs({ include_docs: true }, function(err, response) {
+function deleteContentsOfTable(callBack) {
+    window.db.allDocs({ include_docs: true }, function (err, response) {
         if (err !== null) {
             // TODO: DO SOMETHING USEFUL HERE!
             throw err;
         }
         response.rows.forEach(function callback(element, index, array) {
-            db.remove(element.doc, function(err, response){
-                    if (err !== null) {
-                        // TODO: DO SOMETHING USEFUL HERE!
-                        throw err;
-                    }
+            window.db.remove(element.doc, function (err, response) {
+                if (err !== null) {
+                    // TODO: DO SOMETHING USEFUL HERE!
+                    throw err;
                 }
-            )
+            }
+                );
         });
         callBack();
-    })
+    });
 }
 
-function MicroBlogSubmitButtonHandler(obj) {
-    var postElement = document.getElementById("microBlogContentPostText");
-    var postElementvalue = postElement.value;
-    AddBlogEntry(postElementvalue, new Date().toISOString());
+function microBlogSubmitButtonHandler(obj) {
+    var postElement = document.getElementById("microBlogContentPostText"),
+        postElementvalue = postElement.value;
+    addBlogEntry(postElementvalue, new Date().toISOString());
     postElement.value = "";
 }
 
-function MicroBlogStartSynchHandler(obj) {
-    var remoteURLElement = document.getElementById("microBlogRemoteMicroBlogUrl");
-    var remoteURLValue = remoteURLElement.value;
-    var options = {
-        "onChange": UpdateBlogEntriesTable,
-        "continuous": true
-    };
+function microBlogStartSynchHandler(obj) {
+    var remoteURLElement = document.getElementById("microBlogRemoteMicroBlogUrl"),
+        remoteURLValue = remoteURLElement.value,
+        options = {
+            "onChange": updateBlogEntriesTable,
+            "continuous": true
+        };
     window.db.replicate.to(remoteURLValue, options);
     window.db.replicate.from(remoteURLValue, options);
 }
 
-function MicroBlogDeleteContentsOfMicroBlogHandler(obj){
-    DeleteContentsOfTable(function() {
-       UpdateBlogEntriesTable();
+function microBlogDeleteContentsOfMicroBlogHandler(obj) {
+    deleteContentsOfTable(function () {
+        updateBlogEntriesTable();
     });
 }
 
 function SetUp(obj) {
 
-    PeerlyHttpServer.startHttpServer(8090, Express.PeerlyHttpServerCallback);
+    var peerlyExpress = new window.PeerlyExpress(8090, window.PeerlyHttpServer),
+        pouchDBExpress = new window.PouchDBExpress(peerlyExpress, window.PouchDB);
+    //var peerlyHttpServer = new window.PeerlyHttpServer(8090, window.Express.PeerlyHttpServerCallback);
 
-    document.getElementById("microBlogStartSynch").onclick = MicroBlogStartSynchHandler;
-    document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
-    document.getElementById("deleteContentsOfMicroBlog").onclick = MicroBlogDeleteContentsOfMicroBlogHandler;
+    document.getElementById("microBlogStartSynch").onclick = microBlogStartSynchHandler;
+    document.getElementById("microBlogSubmitButton").onclick = microBlogSubmitButtonHandler;
+    document.getElementById("deleteContentsOfMicroBlog").onclick = microBlogDeleteContentsOfMicroBlogHandler;
 
-    window.db = new PouchDB('microblog');
-    window.remoteCouch = false;
-    db.info(function(err, info) {
-        db.changes({
+    window.db = new window.PouchDB('microblog');
+    window.db.remoteCouch = false;
+    window.db.info(function (err, info) {
+        window.db.changes({
             since: info.update_seq,
             continuous: true,
-            onChange: UpdateBlogEntriesTable
+            onChange: updateBlogEntriesTable
         });
     });
-    UpdateBlogEntriesTable();
+    updateBlogEntriesTable();
 }
 
 window.onload = SetUp;

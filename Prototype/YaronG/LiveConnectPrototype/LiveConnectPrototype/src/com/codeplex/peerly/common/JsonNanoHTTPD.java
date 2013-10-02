@@ -31,13 +31,13 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     {
         super(port);
     }
-    
+
     @Override
-    public Response serve(HTTPSession session) {
+    public Response serve(IHTTPSession session) {
         responseObject = null;
         JSONObject jsonRequestObject = createJsonRequestObject(session);
         deliverRequestJsonToJavascript(jsonRequestObject);
-        
+
         while(responseObject == null)
         {
             // TODO: Put some reasonable time out here so we don't get stuck in this loop for infinity
@@ -46,18 +46,18 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             } catch (InterruptedException ex) {
                 Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
                 throw new RuntimeException();
-            }            
+            }
         }
-        
+
         return createResponse(responseObject);
     }
-    
+
     public void SetResponse(JSONObject responseObject)
     {
         this.responseObject = responseObject;
     }
 
-    private static JSONObject createJsonRequestObject(HTTPSession session)
+    private static JSONObject createJsonRequestObject(IHTTPSession session)
     {
         String method = MethodEnumToMethodString(session.getMethod());
         String requestUriPath = session.getUri();
@@ -65,7 +65,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         Map<String, String> queryParams = session.getParms();
         String requestBody = StringifyRequestBody(headers, inputStream);
-        
+
         JSONObject jsonRequestObject = new JSONObject();
         try {
             jsonRequestObject.put("method", method);
@@ -81,7 +81,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
         return jsonRequestObject;
     }
-    
+
     private static String StringifyRequestBody(Map<String, String> headers, InputStream inputStream) throws RuntimeException {
         int contentLength = headers.containsKey("content-length") ? Integer.parseInt(headers.get("content-length")) : 0;
         return Utilities.StringifyInputStream(contentLength, inputStream);
@@ -101,13 +101,11 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
                 return "DELETE";
             case HEAD:
                 return "HEAD";
-            case OPTIONS:
-                return "OPTIONS";
             default:
                 throw new RuntimeException();
         }
     }
-    
+
     private static Response createResponse(JSONObject jsonResponseObject)
     {
         int responseCode = 0;
@@ -118,12 +116,12 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        
+
         String responseBody = jsonResponseObject.optString("responseBody");
-        
+
         Response simpleResponse = new Response(responseCodeToResponseStatus(responseCode), mimeType, responseBody);
 
-        JSONObject headers = jsonResponseObject.optJSONObject("_responseHeaders");
+        JSONObject headers = jsonResponseObject.optJSONObject("responseHeaders");
         if (headers != null)
         {
             Iterator<String> keys = headers.keys();
@@ -141,7 +139,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
         return simpleResponse;
     }
-    
+
     private static Response.Status responseCodeToResponseStatus(int responseCode)
     {
         switch(responseCode)

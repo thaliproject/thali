@@ -61,10 +61,6 @@ public abstract class NanoHTTPD {
      */
     public static final String MIME_HTML = "text/html";
     /**
-     * Common mime type for dynamic content: binary
-     */
-    public static final String MIME_DEFAULT_BINARY = "application/octet-stream";
-    /**
      * Pseudo-Parameter to use to store the actual query string in the parameters map for later re-processing.
      */
     private static final String QUERY_STRING_PARAMETER = "NanoHttpd.QUERY_STRING";
@@ -218,7 +214,7 @@ public abstract class NanoHTTPD {
      */
     @Deprecated
     public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms,
-                                   Map<String, String> files) {
+                          Map<String, String> files) {
         return new Response(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found");
     }
 
@@ -231,7 +227,7 @@ public abstract class NanoHTTPD {
      * @param session The HTTP session
      * @return HTTP response, see class Response for details
      */
-    public Response serve(HTTPSession session) {
+    public Response serve(IHTTPSession session) {
         Map<String, String> files = new HashMap<String, String>();
         Method method = session.getMethod();
         if (Method.PUT.equals(method) || Method.POST.equals(method)) {
@@ -336,7 +332,7 @@ public abstract class NanoHTTPD {
      * HTTP Request methods, with the ability to decode a <code>String</code> back to its enum value.
      */
     public enum Method {
-        GET, PUT, POST, DELETE, HEAD, OPTIONS;
+        GET, PUT, POST, DELETE, HEAD;
 
         static Method lookup(String method) {
             for (Method m : Method.values()) {
@@ -503,6 +499,10 @@ public abstract class NanoHTTPD {
          * The request method that spawned this response.
          */
         private Method requestMethod;
+        /**
+         * Use chunkedTransfer
+         */
+        private boolean chunkedTransfer;
 
         /**
          * Default constructor: response = HTTP_OK, mime = MIME_HTML and your supplied message
@@ -570,30 +570,55 @@ public abstract class NanoHTTPD {
                     }
                 }
 
-                int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
                 pw.print("Connection: keep-alive\r\n");
-                pw.print("Content-Length: "+pending+"\r\n");
 
-                pw.print("\r\n");
-                pw.flush();
-
-                if (requestMethod != Method.HEAD && data != null) {
-                    int BUFFER_SIZE = 16 * 1024;
-                    byte[] buff = new byte[BUFFER_SIZE];
-                    while (pending > 0) {
-                        int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
-                        if (read <= 0) {
-                            break;
-                        }
-                        outputStream.write(buff, 0, read);
-
-                        pending -= read;
-                    }
+                if (requestMethod != Method.HEAD && chunkedTransfer) {
+                    sendAsChunked(outputStream, pw);
+                } else {
+                    sendAsFixedLength(outputStream, pw);
                 }
                 outputStream.flush();
                 safeClose(data);
             } catch (IOException ioe) {
                 // Couldn't write? No can do.
+            }
+        }
+
+        private void sendAsChunked(OutputStream outputStream, PrintWriter pw) throws IOException {
+            pw.print("Transfer-Encoding: chunked\r\n");
+            pw.print("\r\n");
+            pw.flush();
+            int BUFFER_SIZE = 16 * 1024;
+            byte[] CRLF = "\r\n".getBytes();
+            byte[] buff = new byte[BUFFER_SIZE];
+            int read;
+            while ((read = data.read(buff)) > 0) {
+                outputStream.write(String.format("%x\r\n", read).getBytes());
+                outputStream.write(buff, 0, read);
+                outputStream.write(CRLF);
+            }
+            outputStream.write(String.format("0\r\n\r\n").getBytes());
+        }
+
+        private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
+            int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
+            pw.print("Content-Length: "+pending+"\r\n");
+
+            pw.print("\r\n");
+            pw.flush();
+
+            if (requestMethod != Method.HEAD && data != null) {
+                int BUFFER_SIZE = 16 * 1024;
+                byte[] buff = new byte[BUFFER_SIZE];
+                while (pending > 0) {
+                    int read = data.read(buff, 0, ((pending > BUFFER_SIZE) ? BUFFER_SIZE : pending));
+                    if (read <= 0) {
+                        break;
+                    }
+                    outputStream.write(buff, 0, read);
+
+                    pending -= read;
+                }
             }
         }
 
@@ -629,14 +654,19 @@ public abstract class NanoHTTPD {
             this.requestMethod = requestMethod;
         }
 
+        public void setChunkedTransfer(boolean chunkedTransfer) {
+            this.chunkedTransfer = chunkedTransfer;
+        }
+
         /**
          * Some HTTP response status codes
          */
         public enum Status {
             OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
-                "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409,"Conflict"), PRECONDITION_FAILED(412, "Precondition Failed"),
-                RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
+                    "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409,"Conflict"), PRECONDITION_FAILED(412, "Precondition Failed"),
+                    RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
+
             private final int requestStatus;
             private final String description;
 
@@ -687,7 +717,32 @@ public abstract class NanoHTTPD {
     /**
      * Handles one session, i.e. parses the HTTP request and returns the response.
      */
-    protected class HTTPSession {
+    public interface IHTTPSession {
+        void execute() throws IOException;
+
+        Map<String, String> getParms();
+
+        Map<String, String> getHeaders();
+
+        /**
+         * @return the path part of the URL.
+         */
+        String getUri();
+
+        Method getMethod();
+
+        InputStream getInputStream();
+
+        CookieHandler getCookies();
+
+        /**
+         * Adds the files in the request body to the files map.
+         * @arg files - map to modify
+         */
+        void parseBody(Map<String, String> files) throws IOException, ResponseException;
+    }
+
+    protected class HTTPSession implements IHTTPSession {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;
@@ -706,6 +761,7 @@ public abstract class NanoHTTPD {
             this.outputStream = outputStream;
         }
 
+        @Override
         public void execute() throws IOException {
             try {
                 // Read the first 8192 bytes.
@@ -780,7 +836,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        protected void parseBody(Map<String, String> files) throws IOException, ResponseException {
+        @Override
+        public void parseBody(Map<String, String> files) throws IOException, ResponseException {
             RandomAccessFile randomAccessFile = null;
             BufferedReader in = null;
             try {
@@ -837,7 +894,7 @@ public abstract class NanoHTTPD {
                         String boundaryStartString = "boundary=";
                         int boundaryContentStart = contentTypeHeader.indexOf(boundaryStartString) + boundaryStartString.length();
                         String boundary = contentTypeHeader.substring(boundaryContentStart, contentTypeHeader.length());
-                        if (boundary.startsWith("\"") && boundary.startsWith("\"")) {
+                        if (boundary.startsWith("\"") && boundary.endsWith("\"")) {
                             boundary = boundary.substring(1, boundary.length() - 1);
                         }
 
@@ -867,7 +924,7 @@ public abstract class NanoHTTPD {
          * Decodes the sent headers and loads the data into Key/value pairs
          */
         private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers)
-            throws ResponseException {
+                throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -1099,33 +1156,39 @@ public abstract class NanoHTTPD {
                 int sep = e.indexOf('=');
                 if (sep >= 0) {
                     p.put(decodePercent(e.substring(0, sep)).trim(),
-                        decodePercent(e.substring(sep + 1)));
+                            decodePercent(e.substring(sep + 1)));
                 } else {
                     p.put(decodePercent(e).trim(), "");
                 }
             }
         }
 
+        @Override
         public final Map<String, String> getParms() {
             return parms;
         }
 
+        @Override
         public final Map<String, String> getHeaders() {
             return headers;
         }
 
+        @Override
         public final String getUri() {
             return uri;
         }
 
+        @Override
         public final Method getMethod() {
             return method;
         }
 
+        @Override
         public final InputStream getInputStream() {
             return inputStream;
         }
 
+        @Override
         public CookieHandler getCookies() {
             return cookies;
         }
