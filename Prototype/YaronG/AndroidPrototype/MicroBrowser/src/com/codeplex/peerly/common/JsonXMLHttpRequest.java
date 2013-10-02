@@ -35,11 +35,11 @@ import java.util.Map;
  */
 public abstract class JsonXmlHTTPRequest {
 
-    abstract public void sendResponse(String javascriptCallBackMethodName, int key, JSONObject responseObject);
+    abstract public void sendResponse(String peerlyXMLHttpRequestManagerObjectName, int key, JSONObject responseObject);
 
-    public void send(String javascriptCallBackMethodName, int key, String requestJsonString)
+    public void send(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString)
     {
-        final String finalJavascriptCallBackMethodName = javascriptCallBackMethodName;
+        final String finalPeerlyXMLHttpRequestManagerObjectName = peerlyXMLHttpRequestManagerObjectName;
         final int finalKey = key;
         final String finalRequestJsonString = requestJsonString;
         new Thread(new Runnable() {
@@ -52,7 +52,7 @@ public abstract class JsonXmlHTTPRequest {
 
                     JSONObject responseObject = getResponse(httpURLConnection);
 
-                    sendResponse(finalJavascriptCallBackMethodName, finalKey, responseObject);
+                    sendResponse(finalPeerlyXMLHttpRequestManagerObjectName, finalKey, responseObject);
                 } catch (MalformedURLException e) {
                     e.printStackTrace();
                     // TODO: Interesting enough there is an error handler for xmlhttprequest but pouchdb doesn't use it
@@ -61,7 +61,7 @@ public abstract class JsonXmlHTTPRequest {
                     e.printStackTrace();
                 }
             }
-        }).run();
+        }).start();
     }
 
     private static JSONObject getResponse(HttpURLConnection httpURLConnection) throws IOException {
@@ -81,7 +81,11 @@ public abstract class JsonXmlHTTPRequest {
         // TODO: This is wrong on multiple levels. First, it assumes the contents are a string. They could be binary.
         // second it assumes that the string's encoding is UTF-8 but in theory other encodings are possible which
         // typically should be encoded as an argument in the content-type header.
-        String responseText = Utilities.StringifyByteStream(httpURLConnection.getInputStream(), "UTF-8");
+        // TODO: I actually have been too lazy to see if 3xx responses are treated as exceptions, seriously would it
+        // kill the folks in Java land to have docs? Or are there docs that explain when exceptions are thrown for
+        // httpurlconnection and I just haven't found them?
+        InputStream theInputStream = httpURLConnection.getResponseCode() > 399 ? httpURLConnection.getErrorStream() : httpURLConnection.getInputStream();
+        String responseText = Utilities.StringifyByteStream(theInputStream, "UTF-8");
         responseObject.put("responseText", responseText);
         return responseObject;
     }

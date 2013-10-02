@@ -43,7 +43,8 @@ public class Main extends Activity {
         myWebView.getSettings().setDatabaseEnabled(true); // We need to enable the database since that's core to PouchDB
         myWebView.getSettings().setDatabasePath(databasePath);
         myWebView.getSettings().setDomStorageEnabled(true); // We really don't need this but for now I want all APIs available
-        myWebView.addJavascriptInterface(new JsonNanoHTTPDJavascriptInterface(myWebView),"SimpleJavascriptHttpServerAndroid");
+        myWebView.addJavascriptInterface(new JsonNanoHTTPDJavascriptInterface(myWebView),"AndroidJsonNanoHTTPD");
+        myWebView.addJavascriptInterface(new JsonXmlHTTPRequestJavascriptInterface(myWebView), "AndroidJsonXMLHttpRequest");
         String htmlFileToLoad = "file:///android_asset/MicroBlogger/MicroBlogger.html";
         myWebView.loadUrl(htmlFileToLoad);
     }

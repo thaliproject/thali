@@ -125,7 +125,7 @@ PeerlyExpress.prototype._defaultMethodGenerator = function(methodName, handlers,
     return function (matchingUri, callback) {
         handlers.push(handlerGenerator(methodName, matchingUri, callback));
     }
-}
+};
 
 /**
  * Generates request handlers to process incoming request.
@@ -249,9 +249,8 @@ PeerlyExpress.prototype._ProcessRequest = function(req, res, index, handlers) {
 };
 
 /**
- * The function called by the HTTP server when a request arrives
- * @param {PeerlyHTTPServerRequestObject} jsonNanoHTTPDRequestObject
- * @param {Function} responseCallBack
+ * Generates the function that will be called back by the HTTP server.
+ * @returns {function(this:PeerlyExpress)}
  * @constructor
  */
 PeerlyExpress.prototype.PeerlyHttpServerCallbackGenerator = function () {

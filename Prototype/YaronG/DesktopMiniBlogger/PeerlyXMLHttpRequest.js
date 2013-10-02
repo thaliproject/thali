@@ -6,7 +6,7 @@ function PeerlyXMLHttpRequestObject() {
     this.method = "";
     this.url = "";
     this.headers = {};
-    this.requestText = null;
+    this.requestText = "";
 }
 
 /**
@@ -16,7 +16,7 @@ function PeerlyXMLHttpRequestObject() {
 function PeerlyXMLHttpResponseObject() {
     this.status = "";
     this.headers = {};
-    this.responseText = null;
+    this.responseText = "";
 }
 
 /**
@@ -29,7 +29,7 @@ function PeerlyXMLHttpResponseObject() {
 function PeerlyXMLHttpRequestManager(globalCallBackName) {
     this._globalCallBackName = globalCallBackName;
     this._xmlHTTPObjects = {};
-    this._javaObject = {};
+    this._javaObject = typeof AndroidJsonXMLHttpRequest === 'undefined' ? peerlyJavaApp : AndroidJsonXMLHttpRequest;
     this._currentKey = 0;
 
     if (typeof window[globalCallBackName] !== 'undefined') {
@@ -49,7 +49,7 @@ function PeerlyXMLHttpRequestManager(globalCallBackName) {
 PeerlyXMLHttpRequestManager.prototype.send = function (xmlHttpRequestObject, peerlyXMLHttpRequestArguments) {
     this._currentKey += 1;
     this._xmlHTTPObjects[this._currentKey] = xmlHttpRequestObject;
-    this._javaObject.send(this._globalCallBackName, this._currentKey, JSON.stringify(peerlyXMLHttpRequestArguments));
+    this._javaObject.sendJsonXmlHTTPRequest(this._globalCallBackName, this._currentKey, JSON.stringify(peerlyXMLHttpRequestArguments));
     return this._currentKey;
 };
 
@@ -93,6 +93,7 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
     this._onreadystatechange = null;
     this._peerlyXmlHttpRequestManager = peerlyXmlHttpRequestManager;
     this._peerlyGlobalXMLHttpRequestHandlerKey = null;
+    this._withCredentials = false;
 
     Object.defineProperties(this, {
         "responseType": {
@@ -104,11 +105,11 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
             }
         },
         "withCredentials" : {
-            "get" : function () { return false; },
+            "get" : function () { return this._withCredentials; },
             "set" : function (newValue) {
-                if (newValue !== false) {
-                    throw "Sorry we only support false for withCredentials since we ignore CORS and we don't support cookies.";
-                }
+                // TODO: For now we just swallow this since PouchDB sets this to true but we really should throw hen this is true since
+                // we have no intention of supporting cookies as they are a huge security hole.
+                return this._withCredentials;
             }
         },
         "onreadystatechange" : {
@@ -127,7 +128,7 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
         "status" : {
             "get" : function () {
                 if (this.readyState < 2) {
-                    throw "status isn't available until we get to at least readystate 3";
+                    throw "status isn't available until we get to at least readystate 2";
                 }
 
                 return this._responseObject.status;
@@ -180,6 +181,7 @@ PeerlyXMLHttpRequest.prototype.open = function (method, url) {
 
     this._requestObject.method = method;
     this._requestObject.url = url;
+    this._setReadyState(1);
 };
 
 /**
@@ -195,7 +197,7 @@ PeerlyXMLHttpRequest.prototype.setRequestHeader = function (header, value) {
 
     var currentHeaderValue = this._requestObject.headers[header];
 
-    this._requestObject.headers[header] = currentHeaderValue === null ? value : currentHeaderValue + "," + value;
+    this._requestObject.headers[header] = currentHeaderValue === undefined ? value : currentHeaderValue + "," + value;
 };
 
 /**
@@ -233,7 +235,7 @@ PeerlyXMLHttpRequest.prototype.send = function (data) {
         throw "You must have called open and not previously called send.";
     }
 
-    this._requestObject.requestText = data;
+    this._requestObject.requestText = (typeof data === 'undefined' || data === null) ? "" : data;
 
-    this._peerlyGlobalXMLHttpRequestHandlerKey = this._peerlyXmlHttpRequestManager.send(this._requestObject);
+    this._peerlyGlobalXMLHttpRequestHandlerKey = this._peerlyXmlHttpRequestManager.send(this, this._requestObject);
 };

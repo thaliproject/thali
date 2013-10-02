@@ -12,14 +12,14 @@
 function PeerlyHttpServer(port, callback) {
     this._callback = callback;
 
-    // This is a function, defined off the global window object so so as to keep WebView happy, that callbacks
+    // This is a function, defined off the global window object so so as to keep my silly .call method in LiveConnectJsonNanoHTTPD happy, that callbacks
     // about this port will be sent to.
     var externalCallBackName = "_PeerlySubmittedCallBack" + port;
-    window[externalCallBackName] = this._incomingRequestCallBackHandlerGenerator(this._server, this._callback);
+    window[externalCallBackName] = this._incomingRequestCallBackHandlerGenerator();
 
     // TODO: This depends on the applet tag (in the non-Android case) which is stupid, we need to load the applet and name it programmatically
     // so the code is more robust, see notes for how to do this pretty easily
-    this._server = (typeof SimpleJavascriptHttpServerAndroid === 'undefined') ? peerlyJavaApp : SimpleJavascriptHttpServerAndroid;
+    this._server = (typeof AndroidJsonNanoHTTPD === 'undefined') ? peerlyJavaApp : AndroidJsonNanoHTTPD;
     this._server.startHttpServer(port, externalCallBackName);
 }
 

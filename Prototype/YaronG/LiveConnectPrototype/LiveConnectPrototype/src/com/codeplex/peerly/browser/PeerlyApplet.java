@@ -88,8 +88,8 @@ public class PeerlyApplet extends Applet implements JsonNanonHTTPDJavascriptBrid
     }
 
     @Override
-    public void sendJsonXmlHTTPRequest(String javascriptCallBackMethodName, int key, String requestJsonString) {
-        final String finalJavascriptCallBackMethodName = javascriptCallBackMethodName;
+    public void sendJsonXmlHTTPRequest(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString) {
+        final String finalJavascriptCallBackMethodName = peerlyXMLHttpRequestManagerObjectName;
         final int finalKey = key;
         final String finalRequestJsonString = requestJsonString;
         final JSObject finalWindow = JSObject.getWindow(this);

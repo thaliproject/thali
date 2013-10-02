@@ -71,16 +71,22 @@ function microBlogDeleteContentsOfMicroBlogHandler(obj) {
 }
 
 function SetUp(obj) {
+    var localBlogName = "microblog",
+        peerlyXMLHTTPRequestManager = new window.PeerlyXMLHttpRequestManager("peerlyXMLHTTPRequestManager");
+    window.XMLHttpRequest = function () {
+        return new window.PeerlyXMLHttpRequest(peerlyXMLHTTPRequestManager);
+    };
 
     var peerlyExpress = new window.PeerlyExpress(8090, window.PeerlyHttpServer),
-        pouchDBExpress = new window.PouchDBExpress(peerlyExpress, window.PouchDB);
-    //var peerlyHttpServer = new window.PeerlyHttpServer(8090, window.Express.PeerlyHttpServerCallback);
+        pouchDBExpress = new window.PouchDBExpress(peerlyExpress, window.PouchDB),
+        inAndroid = typeof AndroidJsonNanoHTTPD !== 'undefined';
 
+    document.getElementById("microBlogRemoteMicroBlogUrl").value = "http://" + (inAndroid ? "10.0.2.2:8090" : "127.0.0.1:8091") + "/" + localBlogName;
     document.getElementById("microBlogStartSynch").onclick = microBlogStartSynchHandler;
     document.getElementById("microBlogSubmitButton").onclick = microBlogSubmitButtonHandler;
     document.getElementById("deleteContentsOfMicroBlog").onclick = microBlogDeleteContentsOfMicroBlogHandler;
 
-    window.db = new window.PouchDB('microblog');
+    window.db = new window.PouchDB(localBlogName);
     window.db.remoteCouch = false;
     window.db.info(function (err, info) {
         window.db.changes({
