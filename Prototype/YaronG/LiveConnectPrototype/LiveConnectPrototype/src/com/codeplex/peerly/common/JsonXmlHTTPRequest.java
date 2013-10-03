@@ -6,7 +6,6 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
-import java.util.Map;
 
 /**
  * This whole design is silly because it takes a synchronous function httpURLConnection and makes it asynchronous.
@@ -85,7 +84,7 @@ public abstract class JsonXmlHTTPRequest {
         // kill the folks in Java land to have docs? Or are there docs that explain when exceptions are thrown for
         // httpurlconnection and I just haven't found them?
         InputStream theInputStream = httpURLConnection.getResponseCode() > 399 ? httpURLConnection.getErrorStream() : httpURLConnection.getInputStream();
-        String responseText = Utilities.StringifyByteStream(theInputStream, "UTF-8");
+        String responseText = Utilities.InputStreamOfCharsToString(theInputStream, "UTF-8");
         responseObject.put("responseText", responseText);
         return responseObject;
     }

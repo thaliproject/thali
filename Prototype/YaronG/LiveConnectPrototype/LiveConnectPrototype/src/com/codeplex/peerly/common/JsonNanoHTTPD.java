@@ -84,7 +84,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
 
     private static String StringifyRequestBody(Map<String, String> headers, InputStream inputStream) throws RuntimeException {
         int contentLength = headers.containsKey("content-length") ? Integer.parseInt(headers.get("content-length")) : 0;
-        return Utilities.StringifyInputStream(contentLength, inputStream);
+        return Utilities.InputStreamOfCharsToString(contentLength, inputStream);
     }
 
     private static String MethodEnumToMethodString(Method methodEnum)
