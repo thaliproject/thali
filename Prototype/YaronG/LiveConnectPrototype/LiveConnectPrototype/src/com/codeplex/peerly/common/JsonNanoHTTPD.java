@@ -77,6 +77,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             jsonRequestObject.put("subdomains", new String[0]);
             jsonRequestObject.put("_requestHeaders", headers);
         } catch (JSONException e) {
+            Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, e);
             throw new RuntimeException(e);
         }
         return jsonRequestObject;
@@ -110,12 +111,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     {
         int responseCode = 0;
         String mimeType = null;
-        try {
-            responseCode = jsonResponseObject.getInt("responseCode");
-            mimeType = jsonResponseObject.getString("responseMIMEType");
-        } catch (JSONException e) {
-            throw new RuntimeException(e);
-        }
+        responseCode = jsonResponseObject.getInt("responseCode");
+        mimeType = jsonResponseObject.getString("responseMIMEType");
 
         String responseBody = jsonResponseObject.optString("responseBody");
 

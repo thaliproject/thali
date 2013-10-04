@@ -2,6 +2,7 @@ package fi.iki.elonen;
 
 import java.io.*;
 import java.net.*;
+import java.net.ServerSocket;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
@@ -88,10 +89,15 @@ public abstract class NanoHTTPD {
      * Constructs an HTTP server on given hostname and port.
      */
     public NanoHTTPD(String hostname, int port) {
+        this(hostname, port, null);
+    }
+
+    public NanoHTTPD(String hostname, int port, ServerSocket myServerSocket) {
         this.hostname = hostname;
         this.myPort = port;
         setTempFileManagerFactory(new DefaultTempFileManagerFactory());
         setAsyncRunner(new DefaultAsyncRunner());
+        this.myServerSocket = myServerSocket;
     }
 
     private static final void safeClose(ServerSocket serverSocket) {
@@ -127,7 +133,10 @@ public abstract class NanoHTTPD {
      * @throws IOException if the socket is in use.
      */
     public void start() throws IOException {
-        myServerSocket = new ServerSocket();
+        if (myServerSocket == null) {
+            myServerSocket = new ServerSocket();
+        }
+
         myServerSocket.bind((hostname != null) ? new InetSocketAddress(hostname, myPort) : new InetSocketAddress(myPort));
 
         myThread = new Thread(new Runnable() {
@@ -665,8 +674,7 @@ public abstract class NanoHTTPD {
             OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                     "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
                     "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409,"Conflict"), PRECONDITION_FAILED(412, "Precondition Failed"),
-                    RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
-
+            RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
             private final int requestStatus;
             private final String description;
 

@@ -9,6 +9,15 @@ import android.webkit.ConsoleMessage;
 import android.webkit.WebChromeClient;
 import android.webkit.WebStorage;
 import android.webkit.WebView;
+import com.codeplex.peerly.common.PeerlyKeyStoreManagement;
+import com.codeplex.peerly.common.PeerlyTrustStoreManagement;
+import org.bouncycastle.operator.OperatorCreationException;
+
+import javax.net.ssl.TrustManager;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.cert.CertificateException;
 
 public class Main extends Activity {
     @Override
@@ -43,7 +52,7 @@ public class Main extends Activity {
         myWebView.getSettings().setDatabaseEnabled(true); // We need to enable the database since that's core to PouchDB
         myWebView.getSettings().setDatabasePath(databasePath);
         myWebView.getSettings().setDomStorageEnabled(true); // We really don't need this but for now I want all APIs available
-        myWebView.addJavascriptInterface(new JsonNanoHTTPDJavascriptInterface(myWebView),"AndroidJsonNanoHTTPD");
+        myWebView.addJavascriptInterface(new JsonNanoHTTPDJavascriptInterface(myWebView), "AndroidJsonNanoHTTPD");
         myWebView.addJavascriptInterface(new JsonXmlHTTPRequestJavascriptInterface(myWebView), "AndroidJsonXMLHttpRequest");
         String htmlFileToLoad = "file:///android_asset/MicroBlogger/MicroBlogger.html";
         myWebView.loadUrl(htmlFileToLoad);

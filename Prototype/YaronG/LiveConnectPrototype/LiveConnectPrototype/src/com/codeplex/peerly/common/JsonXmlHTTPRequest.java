@@ -6,6 +6,8 @@ import java.io.*;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 /**
  * This whole design is silly because it takes a synchronous function httpURLConnection and makes it asynchronous.
@@ -41,7 +43,17 @@ public abstract class JsonXmlHTTPRequest {
         final String finalPeerlyXMLHttpRequestManagerObjectName = peerlyXMLHttpRequestManagerObjectName;
         final int finalKey = key;
         final String finalRequestJsonString = requestJsonString;
-        new Thread(new Runnable() {
+
+        Thread.UncaughtExceptionHandler uncaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
+            @Override
+            public void uncaughtException(Thread thread, Throwable throwable) {
+                Logger.getLogger(JsonXmlHTTPRequest.class.getName()).log(Level.SEVERE, null, throwable);
+                // TODO: There is an error event on xmlhttprequest that one can listen to and we should eventually
+                // hook this up to that but that event isn't used by PouchDB so for now I'll skip it.
+            }
+        };
+
+        Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
                 JSONObject jsonObject = new JSONObject(finalRequestJsonString);
@@ -53,14 +65,19 @@ public abstract class JsonXmlHTTPRequest {
 
                     sendResponse(finalPeerlyXMLHttpRequestManagerObjectName, finalKey, responseObject);
                 } catch (MalformedURLException e) {
-                    e.printStackTrace();
                     // TODO: Interesting enough there is an error handler for xmlhttprequest but pouchdb doesn't use it
                     // so we haven't hooked in that functionality yet.
+                    Logger.getLogger(JsonXmlHTTPRequest.class.getName()).log(Level.SEVERE, null, e);
+                    throw new RuntimeException(e);
                 } catch (IOException e) {
-                    e.printStackTrace();
+                    Logger.getLogger(JsonXmlHTTPRequest.class.getName()).log(Level.SEVERE, null, e);
+                    throw new RuntimeException(e);
                 }
             }
-        }).start();
+        });
+
+        thread.setUncaughtExceptionHandler(uncaughtExceptionHandler);
+        thread.start();
     }
 
     private static JSONObject getResponse(HttpURLConnection httpURLConnection) throws IOException {

@@ -4,6 +4,9 @@ import com.codeplex.peerly.common.JsonXmlHTTPRequest;
 import com.codeplex.peerly.org.json.JSONObject;
 import netscape.javascript.JSObject;
 
+import java.util.logging.Level;
+import java.util.logging.Logger;
+
 public class LiveConnectJsonXmlHTTPRequest extends JsonXmlHTTPRequest {
     private String peerlyXMLHttpRequestManagerObjectName;
     private JSObject window;
