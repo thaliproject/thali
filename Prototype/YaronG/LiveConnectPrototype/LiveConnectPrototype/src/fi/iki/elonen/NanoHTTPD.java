@@ -1,5 +1,8 @@
 package fi.iki.elonen;
 
+import javax.net.ssl.SSLServerSocket;
+import javax.net.ssl.SSLSession;
+import javax.net.ssl.SSLSocket;
 import java.io.*;
 import java.net.*;
 import java.net.ServerSocket;
@@ -82,7 +85,7 @@ public abstract class NanoHTTPD {
      * Constructs an HTTP server on given port.
      */
     public NanoHTTPD(int port) {
-        this(null, port);
+        this(null, port, null);
     }
 
     /**
@@ -156,7 +159,9 @@ public abstract class NanoHTTPD {
                                     try {
                                         outputStream = finalAccept.getOutputStream();
                                         TempFileManager tempFileManager = tempFileManagerFactory.create();
-                                        HTTPSession session = new HTTPSession(tempFileManager, inputStream, outputStream);
+                                        HTTPSession session = (finalAccept instanceof SSLSocket) ?
+                                                new HTTPSSLSession(tempFileManager, inputStream, outputStream, ((SSLSocket)finalAccept).getSession()) :
+                                                new HTTPSession(tempFileManager, inputStream, outputStream);
                                         while (!finalAccept.isClosed()) {
                                             session.execute();
                                         }
@@ -748,6 +753,24 @@ public abstract class NanoHTTPD {
          * @arg files - map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
+    }
+
+    public interface IHTTPSSLSession extends IHTTPSession {
+        SSLSession getSslSession();
+    }
+
+    protected class HTTPSSLSession extends HTTPSession implements IHTTPSSLSession {
+        private SSLSession sslSession;
+
+        public HTTPSSLSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream, SSLSession sslSession) {
+            super(tempFileManager, inputStream, outputStream);
+            this.sslSession = sslSession;
+        }
+
+        @Override
+        public SSLSession getSslSession() {
+            return  sslSession;
+        }
     }
 
     protected class HTTPSession implements IHTTPSession {

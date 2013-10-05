@@ -7,12 +7,17 @@ package com.codeplex.peerly.common;
 import fi.iki.elonen.NanoHTTPD;
 
 import java.io.*;
+import java.net.ServerSocket;
+import java.security.KeyManagementException;
+import java.security.NoSuchAlgorithmException;
 import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import com.codeplex.peerly.org.json.JSONException;
 import com.codeplex.peerly.org.json.JSONObject;
+
+import javax.net.ssl.*;
 
 /**
  *
@@ -27,9 +32,31 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     // then say Android's WebView
     protected abstract void deliverRequestJsonToJavascript(JSONObject jsonRequestObject);
 
-    public JsonNanoHTTPD(int port)
-    {
-        super(port);
+    public JsonNanoHTTPD(int port) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+        this(port, null);
+    }
+
+    public JsonNanoHTTPD(int port, KeyManager keyManager) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+        super(null, port, CreateTLSServerSocket(keyManager, new DelayedTrustManager()));
+    }
+
+    /**
+     * Creates a server socket that will work over TLSv1.2, will present the key in the key manager, will
+     * mandate that clients authenticate themselves and will only accept client certs that are in the
+     * trust manager.
+     * @param keyManager
+     * @param trustManager
+     * @return
+     * @throws NoSuchAlgorithmException
+     * @throws KeyManagementException
+     * @throws IOException
+     */
+    private static ServerSocket CreateTLSServerSocket(KeyManager keyManager, TrustManager trustManager) throws NoSuchAlgorithmException, KeyManagementException, IOException {
+        SSLContext sslContext = SSLContext.getInstance("TLSv1.2");
+        sslContext.init(new KeyManager[] { keyManager }, new TrustManager[] { trustManager }, null);
+        SSLServerSocket sslServerSocket = (SSLServerSocket) sslContext.getServerSocketFactory().createServerSocket();
+        sslServerSocket.setNeedClientAuth(true);
+        return sslServerSocket;
     }
 
     @Override

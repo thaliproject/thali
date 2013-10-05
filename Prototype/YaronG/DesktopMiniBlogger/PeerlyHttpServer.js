@@ -10,16 +10,22 @@
  * @constructor
  */
 function PeerlyHttpServer(port, callback) {
+    this._port = port;
     this._callback = callback;
+
+    // TODO: This depends on the applet tag (in the non-Android case) which is stupid, we need to load the applet and name it programmatically
+    // so the code is more robust, see notes for how to do this pretty easily
+    this._server = (typeof AndroidJsonNanoHTTPD === 'undefined') ? window.peerlyJavaApp.getJsonNanoHTTPDJavascriptInterface() : AndroidJsonNanoHTTPD;
+
+    if (this._server.isHttpServerRunning(port)) {
+        throw "There is already a HTTP server running on that port.";
+    }
 
     // This is a function, defined off the global window object so so as to keep my silly .call method in LiveConnectJsonNanoHTTPD happy, that callbacks
     // about this port will be sent to.
     var externalCallBackName = "_PeerlySubmittedCallBack" + port;
     window[externalCallBackName] = this._incomingRequestCallBackHandlerGenerator();
 
-    // TODO: This depends on the applet tag (in the non-Android case) which is stupid, we need to load the applet and name it programmatically
-    // so the code is more robust, see notes for how to do this pretty easily
-    this._server = (typeof AndroidJsonNanoHTTPD === 'undefined') ? peerlyJavaApp : AndroidJsonNanoHTTPD;
     this._server.startHttpServer(port, externalCallBackName);
 }
 
@@ -33,7 +39,7 @@ PeerlyHttpServer.prototype._incomingRequestCallBackHandlerGenerator = function (
         // It turns out I can't just return PeerlyHttpServer._server_.setResponse, this will trigger an error
         // called "NPMethod called on non-NPObject". The way around this is to use a lambda.
         var responseCallBack = function (response) {
-            this._server.setResponse(JSON.stringify(response));
+            this._server.setResponse(this._port, JSON.stringify(response));
         };
         this._callback(JSON.parse(jsonNanoHTTPDRequestString), responseCallBack.bind(this));
     };
@@ -45,11 +51,11 @@ PeerlyHttpServer.prototype._incomingRequestCallBackHandlerGenerator = function (
  * @returns {Boolean}
  */
 PeerlyHttpServer.prototype.isHttpServerRunning = function () {
-    return this._server.isHttpServerRunning();
+    return this._server.isHttpServerRunning(this._port);
 };
 
 PeerlyHttpServer.prototype.stopHttpServer = function () {
-    this._server.stopHttpServer();
+    this._server.stopHttpServer(this._port);
 };
 
 function PeerlyHTTPServerRequestObject() {

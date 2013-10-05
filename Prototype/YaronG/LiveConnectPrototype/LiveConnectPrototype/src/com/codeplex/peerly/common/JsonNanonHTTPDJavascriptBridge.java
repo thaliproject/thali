@@ -13,8 +13,8 @@ import java.io.IOException;
  * server object.
  */
 public interface JsonNanonHTTPDJavascriptBridge {
-    public boolean isHttpServerRunning();
+    public boolean isHttpServerRunning(int port);
     public void startHttpServer(int port, String requestHandlerCallBack);
-    public void stopHttpServer();
-    public void setResponse(String responseJsonString);
+    public void stopHttpServer(int port);
+    public void setResponse(int port, String responseJsonString);
 }
