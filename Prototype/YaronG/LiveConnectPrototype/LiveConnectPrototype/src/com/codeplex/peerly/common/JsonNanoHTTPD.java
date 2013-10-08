@@ -37,7 +37,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     }
 
     public JsonNanoHTTPD(int port, KeyManager keyManager) throws NoSuchAlgorithmException, KeyManagementException, IOException {
-        super(null, port, CreateTLSServerSocket(keyManager, new DelayedTrustManager()));
+        super(null, port, keyManager == null ? null : CreateTLSServerSocket(keyManager, new DelayedTrustManager()));
     }
 
     /**

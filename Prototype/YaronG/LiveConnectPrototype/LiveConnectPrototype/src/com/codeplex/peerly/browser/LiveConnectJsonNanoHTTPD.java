@@ -22,7 +22,7 @@ public class LiveConnectJsonNanoHTTPD extends JsonNanoHTTPD
     private JSObject window;
 
     public LiveConnectJsonNanoHTTPD(int port, String requestCallBackName, JSObject window) throws NoSuchAlgorithmException, KeyManagementException, IOException {
-        super(port, null, null);
+        super(port, null);
         this.requestCallBackName = requestCallBackName;
         this.window = window;
     }
