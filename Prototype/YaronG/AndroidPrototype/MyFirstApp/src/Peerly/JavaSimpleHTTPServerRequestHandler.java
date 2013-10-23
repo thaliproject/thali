@@ -7,30 +7,25 @@ package Peerly;
 import java.util.Map;
 
 /**
- *
  * @author yarong
- * This is just used for local testing
+ *         This is just used for local testing
  */
-public class JavaSimpleHTTPServerRequestHandler implements SimpleHTTPServer.SimpleRequestHandler
-{
-    public JavaSimpleHTTPServerRequestHandler()
-    {
+public class JavaSimpleHTTPServerRequestHandler implements SimpleHTTPServer.SimpleRequestHandler {
+    public JavaSimpleHTTPServerRequestHandler() {
         super();
     }
-    
+
     @Override
-    public SimpleResponse handler(String method, String requestUriPath,  Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
+    public SimpleResponse handler(String method, String requestUriPath, Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
         String htmlResponse = "<html><body><p>Method: " + method + "</p><p>uri: " + requestUriPath + "</p>";
         htmlResponse += StringMapToHtml(queryParams, "Request URI Query Params") + StringMapToHtml(headers, "Request Headers");
         htmlResponse += "<h2>Request Body</h2><p>" + requestBody + "</p></body></html>";
         return new SimpleResponse(200, "text/html", htmlResponse);
     }
-    
-    private String StringMapToHtml(Map<String, String> map, String title)
-    {
+
+    private String StringMapToHtml(Map<String, String> map, String title) {
         String htmlResponse = "<h2>" + title + "</h2>";
-        for(Map.Entry<String, String> entry : map.entrySet())
-        {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
             htmlResponse += "<p>" + entry.getKey() + " = " + entry.getValue() + "</p>";
         }
         return htmlResponse;

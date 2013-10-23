@@ -1,5 +1,5 @@
 function AddBlogEntry(blogText, dateTimeStamp) {
-	var blogEntry = {
+    var blogEntry = {
         _id: PouchDB.uuid(),
         body: blogText,
         dateTimePost: dateTimeStamp
@@ -10,7 +10,7 @@ function AddBlogEntry(blogText, dateTimeStamp) {
 }
 
 function UpdateBlogEntriesTable() {
-    db.allDocs({ include_docs: true }, function(err, response) {
+    db.allDocs({ include_docs: true }, function (err, response) {
         if (!err) {
             // TODO: DO SOMETHING USEFUL HERE!
         }
@@ -34,7 +34,7 @@ function SetUp(obj) {
     document.getElementById("microBlogSubmitButton").onclick = MicroBlogSubmitButtonHandler;
     window.db = new PouchDB('microblog');
     window.remoteCouch = false;
-    db.info(function(err, info) {
+    db.info(function (err, info) {
         db.changes({
             since: info.update_seq,
             continuous: true,
@@ -45,7 +45,7 @@ function SetUp(obj) {
 }
 
 
-window.onerror = function errorHandler(errorMsg, url, lineNumber) { 
-	//document.write("errorMsg: " + errorMsg + ", url: " + url + ", lineNumber: " + lineNumber);
+window.onerror = function errorHandler(errorMsg, url, lineNumber) {
+    //document.write("errorMsg: " + errorMsg + ", url: " + url + ", lineNumber: " + lineNumber);
 }
 window.onload = SetUp;

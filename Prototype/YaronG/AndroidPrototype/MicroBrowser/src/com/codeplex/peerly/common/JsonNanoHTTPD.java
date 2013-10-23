@@ -11,13 +11,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.codeplex.peerly.org.json.JSONException;
 import com.codeplex.peerly.org.json.JSONObject;
 
 /**
- *
  * @author yarong
- * Wraps the NanoHTTPD server in a JSON translation layer
+ *         Wraps the NanoHTTPD server in a JSON translation layer
  */
 public abstract class JsonNanoHTTPD extends NanoHTTPD {
     private JSONObject responseObject;
@@ -27,8 +27,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     // then say Android's WebView
     protected abstract void deliverRequestJsonToJavascript(JSONObject jsonRequestObject);
 
-    public JsonNanoHTTPD(int port)
-    {
+    public JsonNanoHTTPD(int port) {
         super(port);
     }
 
@@ -38,8 +37,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         JSONObject jsonRequestObject = createJsonRequestObject(session);
         deliverRequestJsonToJavascript(jsonRequestObject);
 
-        while(responseObject == null)
-        {
+        while (responseObject == null) {
             // TODO: Put some reasonable time out here so we don't get stuck in this loop for infinity
             try {
                 Thread.sleep(10);
@@ -52,13 +50,11 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         return createResponse(responseObject);
     }
 
-    public void SetResponse(JSONObject responseObject)
-    {
+    public void SetResponse(JSONObject responseObject) {
         this.responseObject = responseObject;
     }
 
-    private static JSONObject createJsonRequestObject(IHTTPSession session)
-    {
+    private static JSONObject createJsonRequestObject(IHTTPSession session) {
         String method = MethodEnumToMethodString(session.getMethod());
         String requestUriPath = session.getUri();
         InputStream inputStream = session.getInputStream();
@@ -72,8 +68,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             jsonRequestObject.put("pathname", requestUriPath);
             jsonRequestObject.put("body", requestBody);
             jsonRequestObject.put("query", queryParams);
-            jsonRequestObject.put("protocol","http");
-            jsonRequestObject.put("host","localhost");
+            jsonRequestObject.put("protocol", "http");
+            jsonRequestObject.put("host", "localhost");
             jsonRequestObject.put("subdomains", new String[0]);
             jsonRequestObject.put("_requestHeaders", headers);
         } catch (JSONException e) {
@@ -88,10 +84,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         return Utilities.InputStreamOfCharsToString(contentLength, inputStream);
     }
 
-    private static String MethodEnumToMethodString(Method methodEnum)
-    {
-        switch(methodEnum)
-        {
+    private static String MethodEnumToMethodString(Method methodEnum) {
+        switch (methodEnum) {
             case GET:
                 return "GET";
             case PUT:
@@ -107,8 +101,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
     }
 
-    private static Response createResponse(JSONObject jsonResponseObject)
-    {
+    private static Response createResponse(JSONObject jsonResponseObject) {
         int responseCode = 0;
         String mimeType = null;
         responseCode = jsonResponseObject.getInt("responseCode");
@@ -119,11 +112,9 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         Response simpleResponse = new Response(responseCodeToResponseStatus(responseCode), mimeType, responseBody);
 
         JSONObject headers = jsonResponseObject.optJSONObject("responseHeaders");
-        if (headers != null)
-        {
+        if (headers != null) {
             Iterator<String> keys = headers.keys();
-            while(keys.hasNext())
-            {
+            while (keys.hasNext()) {
                 String responseHeaderName = keys.next();
                 String responseHeaderValue = null;
                 try {
@@ -137,10 +128,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         return simpleResponse;
     }
 
-    private static Response.Status responseCodeToResponseStatus(int responseCode)
-    {
-        switch(responseCode)
-        {
+    private static Response.Status responseCodeToResponseStatus(int responseCode) {
+        switch (responseCode) {
             case 200:
                 return NanoHTTPD.Response.Status.OK;
             case 201:

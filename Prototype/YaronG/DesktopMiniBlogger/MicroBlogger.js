@@ -35,12 +35,12 @@ function deleteContentsOfTable(callBack) {
         }
         response.rows.forEach(function callback(element, index, array) {
             window.db.remove(element.doc, function (err, response) {
-                if (err !== null) {
-                    // TODO: DO SOMETHING USEFUL HERE!
-                    throw err;
+                    if (err !== null) {
+                        // TODO: DO SOMETHING USEFUL HERE!
+                        throw err;
+                    }
                 }
-            }
-                );
+            );
         });
         callBack();
     });
@@ -71,11 +71,14 @@ function microBlogDeleteContentsOfMicroBlogHandler(obj) {
 }
 
 function SetUp(obj) {
-    var localBlogName = "microblog",
-        peerlyXMLHTTPRequestManager = new window.PeerlyXMLHttpRequestManager("peerlyXMLHTTPRequestManager");
-    window.XMLHttpRequest = function () {
-        return new window.PeerlyXMLHttpRequest(peerlyXMLHTTPRequestManager);
-    };
+    var debugProxyHost = null, //"127.0.0.1";
+        debugProxyPort = null, //8888;
+        localBlogName = "microblog",
+        peerlyXMLHTTPRequestManager = new window.PeerlyXMLHttpRequestManager("peerlyXMLHTTPRequestManager", debugProxyHost, debugProxyPort);
+
+//    window.XMLHttpRequest = function () {
+//        return new window.PeerlyXMLHttpRequest(peerlyXMLHTTPRequestManager);
+//    };
 
     var peerlyExpress = new window.PeerlyExpress(8090, window.PeerlyHttpServer),
         pouchDBExpress = new window.PouchDBExpress(peerlyExpress, window.PouchDB),

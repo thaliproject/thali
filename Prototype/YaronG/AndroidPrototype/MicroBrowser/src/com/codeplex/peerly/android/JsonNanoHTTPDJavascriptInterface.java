@@ -17,16 +17,14 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     private WebView webView;
     private AndroidJsonNanoHTTPD server;
 
-    public JsonNanoHTTPDJavascriptInterface(WebView webView)
-    {
+    public JsonNanoHTTPDJavascriptInterface(WebView webView) {
         this.webView = webView;
     }
 
     @Override
     @JavascriptInterface
     public boolean isHttpServerRunning() {
-        if (server == null)
-        {
+        if (server == null) {
             return false;
         }
 
@@ -36,18 +34,14 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     @Override
     @JavascriptInterface
     public void startHttpServer(int port, String requestHandlerCallBack) {
-        if (server != null)
-        {
+        if (server != null) {
             throw new RuntimeException("The server is already running.");
         }
 
         server = new AndroidJsonNanoHTTPD(port, requestHandlerCallBack, webView);
-        try
-        {
+        try {
             server.start();
-        }
-        catch (IOException ioe)
-        {
+        } catch (IOException ioe) {
             throw new RuntimeException(ioe);
         }
     }
@@ -55,8 +49,7 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     @Override
     @JavascriptInterface
     public void stopHttpServer() {
-        if (server != null)
-        {
+        if (server != null) {
             server.stop();
         }
     }

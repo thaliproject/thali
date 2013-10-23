@@ -11,24 +11,19 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author yarong
  */
 public class TestingInJava {
     public static SimpleHTTPServer server;
-    
-    public static void main(String[] args) 
-    {
+
+    public static void main(String[] args) {
         int port = 8090;
         server = new SimpleHTTPServer(port, (SimpleHTTPServer.SimpleRequestHandler) new JavaSimpleHTTPServerRequestHandler());
-        try
-        {
+        try {
             server.start();
-        }
-        catch (IOException ioe)
-        {
+        } catch (IOException ioe) {
             throw new RuntimeException();
-        }     
+        }
         BufferedReader bufferedReader = new BufferedReader(new InputStreamReader(System.in));
         try {
             bufferedReader.readLine();

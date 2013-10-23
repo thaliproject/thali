@@ -1,0 +1,35 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.6.+'
+    }
+}
+apply plugin: 'android'
+
+repositories {
+    mavenCentral()
+    maven {
+        url "http://files.couchbase.com/maven2/"
+    }
+    mavenLocal()
+}
+
+android {
+    compileSdkVersion 17
+    buildToolsVersion "17.0.0"
+
+    defaultConfig {
+        minSdkVersion 17
+        targetSdkVersion 18
+    }
+}
+
+dependencies {
+    // hack to add .so objects (bit.ly/17pUlJ1)
+    compile fileTree(dir: 'libs', include: '*.jar')
+    compile 'com.couchbase.cblite:CBLite:1.0.0-beta'
+    compile 'com.android.support:support-v4:18.0.0'
+    compile 'org.ektorp:org.ektorp.android:1.4.1'
+}

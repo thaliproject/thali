@@ -23,47 +23,48 @@
 //    WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING
 //FROM, OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR
 //OTHER DEALINGS IN THE SOFTWARE.
-var express   = Express //require('express')
+var express = Express //require('express')
 //, fs        = require('fs') - This is used in conjunction with level DB functionality used in Node, so it doesn't apply to us
-    , pkg       = { "version":0 }//require('./package.json') - I know, I should just get rid of it, but whatever
-    , dbs       = {}
-    , app       = express // module.exports = express()
-    , Pouch     = PouchDB; //module.exports.Pouch = require('pouchdb');
+    , pkg = { "version": 0 }//require('./package.json') - I know, I should just get rid of it, but whatever
+    , dbs = {}
+    , app = express // module.exports = express()
+    , Pouch = PouchDB; //module.exports.Pouch = require('pouchdb');
 
 // We'll need this for the _all_dbs route.
 Pouch.enableAllDbs = true;
 
 //app.configure(function () { - This function is deprecated in Express and anyway always runs
-    app.use(function (req, res, next) {
+app.use(function (req, res, next) {
 //        var opts = {} - This variable is not used anywhere in this function, so I'm not sure why it's here.
 //            , data = ''
 //            , prop;
 
-        // Normalize query string parameters for direct passing
-        // into Pouch queries.
-        for (prop in req.query) {
-            try {
-                req.query[prop] = JSON.parse(req.query[prop]);
-            } catch (e) {}
+    // Normalize query string parameters for direct passing
+    // into Pouch queries.
+    for (prop in req.query) {
+        try {
+            req.query[prop] = JSON.parse(req.query[prop]);
+        } catch (e) {
         }
+    }
 
-        // Custom bodyParsing because express.bodyParser() chokes
-        // on `malformed` requests.
+    // Custom bodyParsing because express.bodyParser() chokes
+    // on `malformed` requests.
 //        req.on('data', function (chunk) { data += chunk; });
 //        req.on('end', function () {
-        // The current dorky Peerly server returns content as one big value, it doesn't support chunking (I know, dorky)
-        // so for now I can just set data to body and call it a day.
-            var data = req.body;
-            if (data) {
-                try {
-                    req.body = JSON.parse(data);
-                } catch (e) {
-                    req.body = data;
-                }
-            }
-            next();
+    // The current dorky Peerly server returns content as one big value, it doesn't support chunking (I know, dorky)
+    // so for now I can just set data to body and call it a day.
+    var data = req.body;
+    if (data) {
+        try {
+            req.body = JSON.parse(data);
+        } catch (e) {
+            req.body = data;
+        }
+    }
+    next();
 //        });
-    });
+});
 //});
 
 // Root route, return welcome message
@@ -79,7 +80,9 @@ app.get('/_uuids', function (req, res, next) {
     var count = req.query.count || 1
         , uuids = [];
 
-    while (--count >= 0) { uuids.push(Pouch.uuid()); }
+    while (--count >= 0) {
+        uuids.push(Pouch.uuid());
+    }
     res.send(200, {
         uuids: uuids
     });
@@ -111,7 +114,7 @@ app.post('/_replicate', function (req, res, next) {
 
     // if continuous pull replication return 'ok' since we cannot wait for callback
     if (target in dbs && opts.continuous) {
-        res.send(200, { ok : true });
+        res.send(200, { ok: true });
     }
 
 });
@@ -151,7 +154,7 @@ app.del('/:db', function (req, res, next) {
 
 // At this point, some route middleware can take care of identifying the
 // correct Pouch instance.
-['/:db/*','/:db'].forEach(function (route) {
+['/:db/*', '/:db'].forEach(function (route) {
     app.all(route, function (req, res, next) {
         var name = encodeURIComponent(req.params.db);
 
@@ -164,19 +167,16 @@ app.del('/:db', function (req, res, next) {
         // going to check.
         // TODO: Figure out if dbs' behavior is going to cause us trouble anywhere else, can we get rid of dbs?
 
-        Pouch.allDbs(function(err, response)
-        {
+        Pouch.allDbs(function (err, response) {
             if (err) res.send(500, Pouch.UNKNOWN_ERROR);
-            if (response.indexOf(name) > -1)
-            {
+            if (response.indexOf(name) > -1) {
                 dbs[name] = Pouch(name);
                 req.db = dbs[name];
                 return next();
             }
 
             // The dbs used to exist, but doesn't anymore, it might have been deleted from under us
-            if (dbs.hasOwnProperty(name))
-            {
+            if (dbs.hasOwnProperty(name)) {
                 delete dbs[name];
             }
 

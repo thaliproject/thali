@@ -45,6 +45,7 @@ public abstract class PeerlyKeyStoreManagement {
     /**
      * Just to keep things simpler we pass in the keystore to be saved rather than making the internal class keystore
      * protected.
+     *
      * @param keyStore
      */
     public abstract void SaveKeyStore(KeyStore keyStore);
@@ -57,6 +58,7 @@ public abstract class PeerlyKeyStoreManagement {
 
     /**
      * Creates an empty keystore secured with the supplied passphrase and then base64'd
+     *
      * @param passphrase
      */
     public static String CreateBase64KeyStore(char[] passphrase) throws KeyStoreException, CertificateException, NoSuchAlgorithmException, IOException {
@@ -72,6 +74,7 @@ public abstract class PeerlyKeyStoreManagement {
     /**
      * Creates a new public/private key pair and stores it under the supplied alias protected by the supplied passphrase.
      * The updated keystore is then saved.
+     *
      * @param keyAlias
      * @param passphrase
      */
@@ -110,7 +113,7 @@ public abstract class PeerlyKeyStoreManagement {
         X509Certificate x509Certificate = jcaX509CertificateConverter.getCertificate(x509CertificateHolder);
 
         // Store the private key and the cert in the keystore
-        KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(keyPair.getPrivate(), new Certificate[] { x509Certificate });
+        KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(keyPair.getPrivate(), new Certificate[]{x509Certificate});
         keyStore.setEntry(keyAlias, privateKeyEntry, new KeyStore.PasswordProtection(passphrase));
 
         SaveKeyStore(keyStore);
@@ -123,6 +126,7 @@ public abstract class PeerlyKeyStoreManagement {
 
     /**
      * Returns the root X.509 cert for the given alias
+     *
      * @param alias
      * @return
      * @throws KeyStoreException

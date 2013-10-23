@@ -61,14 +61,14 @@ public class DelayedTrustManager implements X509TrustManager {
         // with nulls.
         keyStore.load(null, null);
 
-        for(int i = 0; i < x509Certificates.length; ++i) {
+        for (int i = 0; i < x509Certificates.length; ++i) {
             KeyStore.TrustedCertificateEntry trustedCertificateEntry = new KeyStore.TrustedCertificateEntry(x509Certificates[i]);
             keyStore.setEntry(rootCertAlias, trustedCertificateEntry, null);
         }
 
         TrustManagerFactory trustManagerFactory = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm());
         trustManagerFactory.init(keyStore);
-        return (X509TrustManager)trustManagerFactory.getTrustManagers()[0];
+        return (X509TrustManager) trustManagerFactory.getTrustManagers()[0];
     }
 
     /**
@@ -81,6 +81,7 @@ public class DelayedTrustManager implements X509TrustManager {
      * that way out. Keep in mind that the trust store is temporary, just used for SSL purposes. The persistence format
      * for the public keys used to put in the contents of the trust store is X.509 which is an actual standard. So we
      * really don't care what temporary store Java is using.
+     *
      * @return
      */
     private static KeyStore GenerateKeyStoreForTrustStore() throws KeyStoreException {

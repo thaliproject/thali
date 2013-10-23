@@ -1,0 +1,10 @@
+<component name="libraryTable">
+  <library name="ComCouchbaseCbliteCBLite100Beta.aar">
+    <CLASSES>
+      <root url="file://$PROJECT_DIR$/CouchDBTest/build/exploded-bundles/ComCouchbaseCbliteCBLite100Beta.aar/res" />
+      <root url="jar://$PROJECT_DIR$/CouchDBTest/build/exploded-bundles/ComCouchbaseCbliteCBLite100Beta.aar/classes.jar!/" />
+    </CLASSES>
+    <JAVADOC />
+    <SOURCES />
+  </library>
+</component>

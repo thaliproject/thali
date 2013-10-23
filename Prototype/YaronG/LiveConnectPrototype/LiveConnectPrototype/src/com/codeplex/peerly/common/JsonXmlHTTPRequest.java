@@ -3,9 +3,7 @@ package com.codeplex.peerly.common;
 import com.codeplex.peerly.org.json.JSONObject;
 
 import java.io.*;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
+import java.net.*;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -33,17 +31,18 @@ import java.util.logging.Logger;
  * But really, before we can deal with non-trivially sized data we are going to have to make changes everywhere
  * since WebView doesn't support sending values from Java to Javascript that aren't simple types or strings so
  * no ArrayBuffers or blobs or anything. Fixing that will drive lots of other changes.
+ * TODO: Note that this approach leaks memory when there are errors that prevent the response to a request from
+ * making its way to Javascript. When we eventually put in error handling logic in Javascript (e.g. the error event)
+ * we should put in timers to make sure everything both in Java (we don't want a thread hanging out forever) and
+ * Javascript gets cleaned up. Note that in Javascript we will need a timer inside of Javascript to be sure we won't
+ * leak memory since we have seen cases (admittedly caused by a threading issue) where calls from java to javascript
+ * didn't make it.
  */
 public abstract class JsonXmlHTTPRequest {
 
     abstract public void sendResponse(String peerlyXMLHttpRequestManagerObjectName, int key, JSONObject responseObject);
 
-    public void send(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString)
-    {
-        final String finalPeerlyXMLHttpRequestManagerObjectName = peerlyXMLHttpRequestManagerObjectName;
-        final int finalKey = key;
-        final String finalRequestJsonString = requestJsonString;
-
+    public void send(final String peerlyXMLHttpRequestManagerObjectName, final int key, final String requestJsonString, final String proxyIPorDNS, final int proxyPort) {
         Thread.UncaughtExceptionHandler uncaughtExceptionHandler = new Thread.UncaughtExceptionHandler() {
             @Override
             public void uncaughtException(Thread thread, Throwable throwable) {
@@ -56,14 +55,14 @@ public abstract class JsonXmlHTTPRequest {
         Thread thread = new Thread(new Runnable() {
             @Override
             public void run() {
-                JSONObject jsonObject = new JSONObject(finalRequestJsonString);
+                JSONObject jsonObject = new JSONObject(requestJsonString);
                 String urlString = jsonObject.getString("url");
                 try {
-                    HttpURLConnection httpURLConnection = sendRequest(jsonObject, urlString);
+                    HttpURLConnection httpURLConnection = sendRequest(jsonObject, urlString, proxyIPorDNS, proxyPort);
 
                     JSONObject responseObject = getResponse(httpURLConnection);
 
-                    sendResponse(finalPeerlyXMLHttpRequestManagerObjectName, finalKey, responseObject);
+                    sendResponse(peerlyXMLHttpRequestManagerObjectName, key, responseObject);
                 } catch (MalformedURLException e) {
                     // TODO: Interesting enough there is an error handler for xmlhttprequest but pouchdb doesn't use it
                     // so we haven't hooked in that functionality yet.
@@ -84,11 +83,9 @@ public abstract class JsonXmlHTTPRequest {
         JSONObject responseObject = new JSONObject();
         responseObject.put("status", httpURLConnection.getResponseCode());
         JSONObject responseHeaderObject = new JSONObject();
-        for(String headerName : httpURLConnection.getHeaderFields().keySet())
-        {
+        for (String headerName : httpURLConnection.getHeaderFields().keySet()) {
             // The Null key is apparently used to record the status response line in httpURLConnection
-            if (headerName != null)
-            {
+            if (headerName != null) {
                 responseHeaderObject.put(headerName, httpURLConnection.getHeaderField(headerName));
             }
         }
@@ -106,22 +103,21 @@ public abstract class JsonXmlHTTPRequest {
         return responseObject;
     }
 
-    private static HttpURLConnection sendRequest(JSONObject jsonRequestObject, String urlString) throws IOException {
+    private static HttpURLConnection sendRequest(JSONObject jsonRequestObject, String urlString, String proxyIPorDNS, int proxyPort) throws IOException {
         URL url = new URL(urlString);
-        HttpURLConnection httpURLConnection = (HttpURLConnection) url.openConnection();
+        Proxy proxy = proxyIPorDNS == null ? null : new Proxy(Proxy.Type.HTTP, new InetSocketAddress(proxyIPorDNS, proxyPort));
+        HttpURLConnection httpURLConnection = (HttpURLConnection) (proxy == null ? url.openConnection() : url.openConnection(proxy));
         String method = jsonRequestObject.getString("method");
         httpURLConnection.setRequestMethod(method);
         JSONObject headers = jsonRequestObject.getJSONObject("headers");
-        for(Object headerNameObject : headers.keySet())
-        {
+        for (Object headerNameObject : headers.keySet()) {
             String headerName = (String) headerNameObject;
             String headerValue = headers.getString(headerName);
             httpURLConnection.setRequestProperty(headerName, headerValue);
         }
 
         String requestText = jsonRequestObject.getString("requestText");
-        if (requestText != null && requestText.length() > 0)
-        {
+        if (requestText != null && requestText.length() > 0) {
             httpURLConnection.setDoOutput(true);
             OutputStream out = httpURLConnection.getOutputStream();
             out.write(requestText.getBytes("UTF-8"));

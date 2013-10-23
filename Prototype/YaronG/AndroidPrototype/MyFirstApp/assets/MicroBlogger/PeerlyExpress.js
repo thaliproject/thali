@@ -2,27 +2,23 @@
 var Express = new Object();
 Express._Handlers = [];
 
-Express._HandlerGenerator = function(matchingMethod, matchingUri, callback)
-{
+Express._HandlerGenerator = function (matchingMethod, matchingUri, callback) {
     var methodPattern = Express._processWildCardStringToRegEx(matchingMethod);
     var keys = [];
     var uriRegEx = Express._pathRegexp(matchingUri, keys, false, false);
-    return function(req)
-    {
+    return function (req) {
         req.params = [];
         return (methodPattern.test(req.method) && Express._parsePathForMatch(uriRegEx, req.pathname, keys, req.params)) ? callback : undefined;
     }
 }
 
 // The following was adapted from Route.prototype.match in https://github.com/visionmedia/express/blob/master/lib/router/route.js
-Express._parsePathForMatch = function(uriRegEx, path, keys, params)
-{
+Express._parsePathForMatch = function (uriRegEx, path, keys, params) {
     var matches = uriRegEx.exec(path);
 
     if (!matches) return false;
 
-    for(var i = 1, len = matches.length; i < len; ++i)
-    {
+    for (var i = 1, len = matches.length; i < len; ++i) {
         var key = keys[i - 1];
 
         var val = 'string' == typeof matches[i]
@@ -39,72 +35,63 @@ Express._parsePathForMatch = function(uriRegEx, path, keys, params)
     return true;
 }
 
-Express._processWildCardStringToRegEx = function(wildcardString)
-{
-    var replaceWildCard = wildcardString.replace(/[*]/g,'.*');
-    var regexPattern = new RegExp("^"+replaceWildCard+"$");
+Express._processWildCardStringToRegEx = function (wildcardString) {
+    var replaceWildCard = wildcardString.replace(/[*]/g, '.*');
+    var regexPattern = new RegExp("^" + replaceWildCard + "$");
     regexPattern.compile(regexPattern);
     return regexPattern;
 }
 
-Express.use = function(callback)
-{
-    Express._Handlers.push(Express._HandlerGenerator("*","*",callback));
+Express.use = function (callback) {
+    Express._Handlers.push(Express._HandlerGenerator("*", "*", callback));
 }
 
-Express._supportedMethods = [{"friendlyName":"get", "methodName":"GET"},
- {"friendlyName":"post","methodName":"POST"},
- {"friendlyName":"put", "methodName":"PUT"},
- {"friendlyName":"del", "methodName":"DELETE"}];
+Express._supportedMethods = [
+    {"friendlyName": "get", "methodName": "GET"},
+    {"friendlyName": "post", "methodName": "POST"},
+    {"friendlyName": "put", "methodName": "PUT"},
+    {"friendlyName": "del", "methodName": "DELETE"}
+];
 
-Express._supportedMethods.forEach(function(methodObj, index, array){
-    Express[methodObj.friendlyName] = function(matchingUri, callback){
-      Express._Handlers.push(Express._HandlerGenerator(methodObj.methodName, matchingUri, callback));
+Express._supportedMethods.forEach(function (methodObj, index, array) {
+    Express[methodObj.friendlyName] = function (matchingUri, callback) {
+        Express._Handlers.push(Express._HandlerGenerator(methodObj.methodName, matchingUri, callback));
     }
 })
 
-Express.all = function(matchingUri, callback)
-{
+Express.all = function (matchingUri, callback) {
     Express._Handlers.push(Express._HandlerGenerator("*", matchingUri, callback));
 }
 
-Express._ProcessRequest = function(req, res, index, handlers)
-{
-    if (index > handlers.length - 1)
-    {
+Express._ProcessRequest = function (req, res, index, handlers) {
+    if (index > handlers.length - 1) {
         res.send(404);
         return;
     }
     var callBack = handlers[index](req);
-    if (typeof callBack == 'function')
-    {
-        try
-        {
-            callBack(req, res, function() {
-               Express._ProcessRequest(req, res, index + 1, handlers);
+    if (typeof callBack == 'function') {
+        try {
+            callBack(req, res, function () {
+                Express._ProcessRequest(req, res, index + 1, handlers);
             });
         }
-        catch(err)
-        {
+        catch (err) {
             throw err;
         }
     }
-    else
-    {
+    else {
         Express._ProcessRequest(req, res, index + 1, handlers);
     }
 }
 
-Express.PeerlyHttpServerCallback = function(jsonNanoHTTPDRequestObject, responseCallBack)
-{
+Express.PeerlyHttpServerCallback = function (jsonNanoHTTPDRequestObject, responseCallBack) {
     var req = Express._createReqObject(jsonNanoHTTPDRequestObject);
     var res = Express._createResObject(responseCallBack);
 
     Express._ProcessRequest(req, res, 0, Express._Handlers);
 }
 
-Express._createReqObject = function(jsonNanoHTTPDRequestObject)
-{
+Express._createReqObject = function (jsonNanoHTTPDRequestObject) {
     var req = {
         "method": jsonNanoHTTPDRequestObject.method,
         "pathname": jsonNanoHTTPDRequestObject.pathname,
@@ -114,23 +101,19 @@ Express._createReqObject = function(jsonNanoHTTPDRequestObject)
         "host": jsonNanoHTTPDRequestObject.host,
         "subdomains": jsonNanoHTTPDRequestObject.subdomains,
         "_requestHeaders": {},
-        "get": function(headerName)
-        {
+        "get": function (headerName) {
             // HTTP headers are only supposed to contain ASCII so in theory this is actually safe
             return req._requestHeaders[headerName.toUpperCase()];
         },
         "params": []
     }
 
-    for(var headerName in jsonNanoHTTPDRequestObject._requestHeaders)
-    {
+    for (var headerName in jsonNanoHTTPDRequestObject._requestHeaders) {
         req._requestHeaders[headerName.toUpperCase()] = jsonNanoHTTPDRequestObject._requestHeaders[headerName];
     }
 
-    for(var queryName in jsonNanoHTTPDRequestObject.query)
-    {
-        if (queryName != "NanoHttpd.QUERY_STRING")
-        {
+    for (var queryName in jsonNanoHTTPDRequestObject.query) {
+        if (queryName != "NanoHttpd.QUERY_STRING") {
             req.query[queryName] = jsonNanoHTTPDRequestObject.query[queryName];
         }
     }
@@ -138,13 +121,11 @@ Express._createReqObject = function(jsonNanoHTTPDRequestObject)
     return req;
 }
 
-Express._createResObject = function(responseCallBack)
-{
+Express._createResObject = function (responseCallBack) {
     var res =
     {
-        "_responseHeaders" : {},
-        "send": function(responseCode, responseObject)
-        {
+        "_responseHeaders": {},
+        "send": function (responseCode, responseObject) {
             var response = new Object();
             response.responseCode = responseCode;
             //TODO: We need to figure out how to set sane mime types when dealing with documents, but for now I don't care.
@@ -153,12 +134,10 @@ Express._createResObject = function(responseCallBack)
             response._responseHeaders = res._responseHeaders;
             responseCallBack(response);
         },
-        "setHeader": function(name, value)
-        {
+        "setHeader": function (name, value) {
             res._responseHeaders[name] = value;
         },
-        "location": function(locationHeaderValue)
-        {
+        "location": function (locationHeaderValue) {
             res.setHeader["Location"] = locationHeaderValue;
         }
     }
@@ -205,14 +184,14 @@ Express._createResObject = function(responseCallBack)
  * @return {RegExp}
  * @api private
  */
-Express._pathRegexp = function(path, keys, sensitive, strict) {
+Express._pathRegexp = function (path, keys, sensitive, strict) {
     if (toString.call(path) == '[object RegExp]') return path;
     if (Array.isArray(path)) path = '(' + path.join('|') + ')';
     path = path
         .concat(strict ? '' : '/?')
         .replace(/\/\(/g, '(?:/')
-        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?(\*)?/g, function(_, slash, format, key, capture, optional, star){
-            keys.push({ name: key, optional: !! optional });
+        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?(\*)?/g, function (_, slash, format, key, capture, optional, star) {
+            keys.push({ name: key, optional: !!optional });
             slash = slash || '';
             return ''
                 + (optional ? '' : slash)
@@ -237,7 +216,7 @@ Express._pathRegexp = function(path, keys, sensitive, strict) {
  * @api private
  */
 
-Express._decode = function(str) {
+Express._decode = function (str) {
     try {
         return decodeURIComponent(str);
     } catch (e) {

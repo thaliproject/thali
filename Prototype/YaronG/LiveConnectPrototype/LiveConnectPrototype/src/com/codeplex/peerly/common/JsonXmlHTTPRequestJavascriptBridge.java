@@ -8,5 +8,5 @@ package com.codeplex.peerly.common;
  * To change this template use File | Settings | File Templates.
  */
 public interface JsonXmlHTTPRequestJavascriptBridge {
-    public void sendJsonXmlHTTPRequest(String javascriptCallBackMethodName, int key, String requestJsonString);
+    public void sendJsonXmlHTTPRequest(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString, String proxyIPorDNS, int proxyPort);
 }

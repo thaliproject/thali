@@ -5,6 +5,7 @@
 package com.codeplex.peerly.common;
 
 import fi.iki.elonen.NanoHTTPD;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
@@ -12,13 +13,13 @@ import java.util.Iterator;
 import java.util.Map;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+
 import com.codeplex.peerly.org.json.JSONException;
 import com.codeplex.peerly.org.json.JSONObject;
 
 /**
- *
  * @author yarong
- * Wraps the NanoHTTPD server in a JSON translation layer
+ *         Wraps the NanoHTTPD server in a JSON translation layer
  */
 public abstract class JsonNanoHTTPD extends NanoHTTPD {
     private JSONObject responseObject;
@@ -28,53 +29,49 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
     // then say Android's WebView
     protected abstract void deliverRequestJsonToJavascript(JSONObject jsonRequestObject);
 
-    public JsonNanoHTTPD(int port)
-    {
+    public JsonNanoHTTPD(int port) {
         super(port);
     }
-    
+
     @Override
     public Response serve(HTTPSession session) {
         responseObject = null;
         JSONObject jsonRequestObject = createJsonRequestObject(session);
         deliverRequestJsonToJavascript(jsonRequestObject);
-        
-        while(responseObject == null)
-        {
+
+        while (responseObject == null) {
             // TODO: Put some reasonable time out here so we don't get stuck in this loop for infinity
             try {
                 Thread.sleep(10);
             } catch (InterruptedException ex) {
                 Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
                 throw new RuntimeException();
-            }            
+            }
         }
-        
+
         return createResponse(responseObject);
     }
-    
-    public void SetResponse(JSONObject responseObject)
-    {
+
+    public void SetResponse(JSONObject responseObject) {
         this.responseObject = responseObject;
     }
 
-    private JSONObject createJsonRequestObject(HTTPSession session)
-    {
+    private JSONObject createJsonRequestObject(HTTPSession session) {
         String method = MethodEnumToMethodString(session.getMethod());
         String requestUriPath = session.getUri();
         InputStream inputStream = session.getInputStream();
         Map<String, String> headers = session.getHeaders();
         Map<String, String> queryParams = session.getParms();
         String requestBody = StringifyRequestBody(headers, inputStream);
-        
+
         JSONObject jsonRequestObject = new JSONObject();
         try {
             jsonRequestObject.put("method", method);
             jsonRequestObject.put("pathname", requestUriPath);
             jsonRequestObject.put("body", requestBody);
             jsonRequestObject.put("query", queryParams);
-            jsonRequestObject.put("protocol","http");
-            jsonRequestObject.put("host","localhost");
+            jsonRequestObject.put("protocol", "http");
+            jsonRequestObject.put("host", "localhost");
             jsonRequestObject.put("subdomains", new String[0]);
             jsonRequestObject.put("_requestHeaders", headers);
         } catch (JSONException e) {
@@ -82,7 +79,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
         return jsonRequestObject;
     }
-    
+
     private String StringifyRequestBody(Map<String, String> headers, InputStream inputStream) throws RuntimeException {
         String requestBody = null;
         int size;
@@ -92,15 +89,13 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         // the content is actually UTF-8. Fourth, we don't check the MIME
         // type. Fifth, we actually store everything in memory rather than
         // processing it as a stream so we can use RAM better. Etc.
-        if (headers.containsKey("content-length"))
-        {
+        if (headers.containsKey("content-length")) {
             size = Integer.parseInt(headers.get("content-length"));
             byte[] requestBodyByteArray = new byte[size];
             int bytesRead;
             try {
                 bytesRead = inputStream.read(requestBodyByteArray);
-                if (bytesRead != size)
-                {
+                if (bytesRead != size) {
                     throw new RuntimeException();
                 }
             } catch (IOException ex) {
@@ -109,7 +104,7 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
             }
 
             try {
-                requestBody = new String(requestBodyByteArray,"UTF-8");
+                requestBody = new String(requestBodyByteArray, "UTF-8");
             } catch (UnsupportedEncodingException ex) {
                 Logger.getLogger(JsonNanoHTTPD.class.getName()).log(Level.SEVERE, null, ex);
                 throw new RuntimeException();
@@ -117,11 +112,9 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
         return requestBody;
     }
-    
-    private String MethodEnumToMethodString(Method methodEnum)
-    {
-        switch(methodEnum)
-        {
+
+    private String MethodEnumToMethodString(Method methodEnum) {
+        switch (methodEnum) {
             case GET:
                 return "GET";
             case PUT:
@@ -138,9 +131,8 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
                 throw new RuntimeException();
         }
     }
-    
-    private Response createResponse(JSONObject jsonResponseObject)
-    {
+
+    private Response createResponse(JSONObject jsonResponseObject) {
         int responseCode = 0;
         String mimeType = null;
         try {
@@ -149,17 +141,15 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         } catch (JSONException e) {
             throw new RuntimeException(e);
         }
-        
+
         String responseBody = jsonResponseObject.optString("responseBody");
-        
+
         Response simpleResponse = new Response(responseCodeToResponseStatus(responseCode), mimeType, responseBody);
 
         JSONObject headers = jsonResponseObject.optJSONObject("_responseHeaders");
-        if (headers != null)
-        {
+        if (headers != null) {
             Iterator<String> keys = headers.keys();
-            while(keys.hasNext())
-            {
+            while (keys.hasNext()) {
                 String responseHeaderName = keys.next();
                 String responseHeaderValue = null;
                 try {
@@ -172,11 +162,9 @@ public abstract class JsonNanoHTTPD extends NanoHTTPD {
         }
         return simpleResponse;
     }
-    
-    private static Response.Status responseCodeToResponseStatus(int responseCode)
-    {
-        switch(responseCode)
-        {
+
+    private static Response.Status responseCodeToResponseStatus(int responseCode) {
+        switch (responseCode) {
             case 200:
                 return NanoHTTPD.Response.Status.OK;
             case 201:

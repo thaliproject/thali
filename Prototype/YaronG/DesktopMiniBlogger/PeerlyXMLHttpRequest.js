@@ -23,14 +23,18 @@ function PeerlyXMLHttpResponseObject() {
  * Because of PeerlyXMLHttp's asynchronous nature we need a manager in Javascript that can make sure responses to
  * requests get routed the right way. That's the job of this class.
  * @param {String} globalCallBackName - A variable (that must be undefined) on the window object that response will be routed to.
+ * @param {String} [proxyIPorDNS] - Specifies the IP or DNS for a HTTP proxy
+ * @param {String} [proxyPort] - Specifies the port for the HTTP proxy
  * @constructor
  * @public
  */
-function PeerlyXMLHttpRequestManager(globalCallBackName) {
+function PeerlyXMLHttpRequestManager(globalCallBackName, proxyIPorDNS, proxyPort) {
     this._globalCallBackName = globalCallBackName;
     this._xmlHTTPObjects = {};
     this._javaObject = typeof AndroidJsonXMLHttpRequest === 'undefined' ? peerlyJavaApp : AndroidJsonXMLHttpRequest;
     this._currentKey = 0;
+    this._proxyIPorDNS = !proxyIPorDNS ? null : proxyIPorDNS;
+    this._proxyPort = !proxyPort ? 0 : proxyPort;
 
     if (typeof window[globalCallBackName] !== 'undefined') {
         throw "The globalCallBackName has already been defined so we have to assume someone else is using it.";
@@ -49,7 +53,7 @@ function PeerlyXMLHttpRequestManager(globalCallBackName) {
 PeerlyXMLHttpRequestManager.prototype.send = function (xmlHttpRequestObject, peerlyXMLHttpRequestArguments) {
     this._currentKey += 1;
     this._xmlHTTPObjects[this._currentKey] = xmlHttpRequestObject;
-    this._javaObject.sendJsonXmlHTTPRequest(this._globalCallBackName, this._currentKey, JSON.stringify(peerlyXMLHttpRequestArguments));
+    this._javaObject.sendJsonXmlHTTPRequest(this._globalCallBackName, this._currentKey, JSON.stringify(peerlyXMLHttpRequestArguments), this._proxyIPorDNS, this._proxyPort);
     return this._currentKey;
 };
 
@@ -62,7 +66,7 @@ PeerlyXMLHttpRequestManager.prototype.send = function (xmlHttpRequestObject, pee
  */
 PeerlyXMLHttpRequestManager.prototype.receive = function (key, responseJsonString) {
     var currentObject = this._xmlHTTPObjects[key];
-    if (currentObject === null) {
+    if (!currentObject) {
         return;
     }
     currentObject._receiveResponse(JSON.parse(responseJsonString));
@@ -97,24 +101,30 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
 
     Object.defineProperties(this, {
         "responseType": {
-            "get" : function () { return this._responseType; },
-            "set" : function (newResponseType) {
+            "get": function () {
+                return this._responseType;
+            },
+            "set": function (newResponseType) {
                 if (newResponseType !== "") {
                     throw "Sorry, we only support string response types which are represented as an empty string";
                 }
             }
         },
-        "withCredentials" : {
-            "get" : function () { return this._withCredentials; },
-            "set" : function (newValue) {
+        "withCredentials": {
+            "get": function () {
+                return this._withCredentials;
+            },
+            "set": function (newValue) {
                 // TODO: For now we just swallow this since PouchDB sets this to true but we really should throw hen this is true since
                 // we have no intention of supporting cookies as they are a huge security hole.
                 return this._withCredentials;
             }
         },
-        "onreadystatechange" : {
-            "get" : function () { return this._onreadystatechange; },
-            "set" : function (newValue) {
+        "onreadystatechange": {
+            "get": function () {
+                return this._onreadystatechange;
+            },
+            "set": function (newValue) {
                 if (newValue !== null && typeof newValue !== 'function') {
                     throw "Sorry, only functions or null can be submitted.";
                 }
@@ -122,11 +132,13 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
                 this._onreadystatechange = newValue;
             }
         },
-        "readyState" : {
-            "get" : function () { return this._readyState; }
+        "readyState": {
+            "get": function () {
+                return this._readyState;
+            }
         },
-        "status" : {
-            "get" : function () {
+        "status": {
+            "get": function () {
                 if (this.readyState < 2) {
                     throw "status isn't available until we get to at least readystate 2";
                 }
@@ -134,8 +146,8 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
                 return this._responseObject.status;
             }
         },
-        "responseText" : {
-            "get" : function () {
+        "responseText": {
+            "get": function () {
                 if (this.readyState < 4) {
                     return null;
                 }

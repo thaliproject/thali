@@ -38,8 +38,7 @@ public class Main extends Activity {
                 return true;
             }
 
-            public void onExceededDatabaseQuota(String url, String databaseIdentifier, long quota, long estimatedDatabaseSize, long totalQuota, WebStorage.QuotaUpdater quotaUpdater)
-            {
+            public void onExceededDatabaseQuota(String url, String databaseIdentifier, long quota, long estimatedDatabaseSize, long totalQuota, WebStorage.QuotaUpdater quotaUpdater) {
                 // TODO:THIS IS SO BOGUS IT MAKES ME CRY (and opens a security hole the size of Alaska)
                 quotaUpdater.updateQuota(estimatedDatabaseSize * 2);
             }

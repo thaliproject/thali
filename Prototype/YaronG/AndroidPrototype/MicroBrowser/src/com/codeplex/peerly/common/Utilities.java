@@ -24,28 +24,22 @@ public class Utilities {
         // the content is actually UTF-8. Fourth, we don't check the MIME
         // type. Fifth, we actually store everything in memory rather than
         // processing it as a stream so we can use RAM better. Etc.
-        if (contentLength > 0)
-        {
+        if (contentLength > 0) {
             byte[] byteArray = new byte[contentLength];
-            try
-            {
+            try {
                 int bytesRead = 0;
-                while(bytesRead < contentLength)
-                {
+                while (bytesRead < contentLength) {
                     int currentBytesRead = inputStream.read(byteArray, bytesRead, contentLength - bytesRead);
-                    if (currentBytesRead == -1)
-                    {
+                    if (currentBytesRead == -1) {
                         break;
                     }
                     bytesRead += currentBytesRead;
                 }
-                if (bytesRead != contentLength)
-                {
+                if (bytesRead != contentLength) {
                     throw new RuntimeException("Expected " + contentLength + "bytes but got " + bytesRead + "bytes.");
                 }
-                requestBody =  new String(byteArray, "UTF-8");
-            } catch (IOException ioe)
-            {
+                requestBody = new String(byteArray, "UTF-8");
+            } catch (IOException ioe) {
                 throw new RuntimeException(ioe.toString());
             }
         }
@@ -83,6 +77,7 @@ public class Utilities {
     /**
      * TODO: This is criminally inefficient, we could instead just read in groups of 3 bytes and translate
      * them without ever having to manifest the whole byte value in memory. But oh well.
+     *
      * @param byteArrayOutputStream
      * @return
      */
@@ -92,10 +87,11 @@ public class Utilities {
 
     /**
      * This is used to null out passphrases.
+     *
      * @param chars
      */
     public static void ReplaceCharsWithZeros(char[] chars) {
-        for(int i = 0; i < chars.length; ++i) {
+        for (int i = 0; i < chars.length; ++i) {
             chars[i] = 0;
         }
     }

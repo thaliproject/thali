@@ -25,11 +25,9 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     }
 
     @Override
-    public boolean isHttpServerRunning(int port)
-    {
+    public boolean isHttpServerRunning(int port) {
 
-        if (servers.containsKey(port) == false)
-        {
+        if (servers.containsKey(port) == false) {
             return false;
         }
 
@@ -43,10 +41,8 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     }
 
     @Override
-    public void startHttpServer(int port, String requestHandlerCallBack)
-    {
-        if (servers.containsKey(port))
-        {
+    public void startHttpServer(int port, String requestHandlerCallBack) {
+        if (servers.containsKey(port)) {
             throw new RuntimeException("The server is already running.");
         }
 
@@ -55,13 +51,11 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
         AccessController.doPrivileged(new PrivilegedAction<Object>() {
             @Override
             public Object run() {
-                try
-                {
+                try {
                     LiveConnectJsonNanoHTTPD liveConnectJsonNanoHTTPD = new LiveConnectJsonNanoHTTPD(finalPort, finalRequestHandlerCallBack, window);
                     servers.put(finalPort, liveConnectJsonNanoHTTPD);
                     liveConnectJsonNanoHTTPD.start();
-                }
-                catch (Exception e) {
+                } catch (Exception e) {
                     Logger.getLogger(PeerlyApplet.class.getName()).log(Level.SEVERE, null, e);
                     throw new RuntimeException(e.toString()); // At this point the exception will be caught in Javascript and
                     // depending on environment the string is visible but not an internal
@@ -74,10 +68,8 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     }
 
     @Override
-    public void stopHttpServer(int port)
-    {
-        if (servers.containsKey(port) == false)
-        {
+    public void stopHttpServer(int port) {
+        if (servers.containsKey(port) == false) {
             return;
         }
 
@@ -95,8 +87,7 @@ public class JsonNanoHTTPDJavascriptInterface implements JsonNanonHTTPDJavascrip
     }
 
     @Override
-    public void setResponse(int port, String responseJsonString)
-    {
+    public void setResponse(int port, String responseJsonString) {
         servers.get(port).SetResponse(new JSONObject(responseJsonString));
     }
 }

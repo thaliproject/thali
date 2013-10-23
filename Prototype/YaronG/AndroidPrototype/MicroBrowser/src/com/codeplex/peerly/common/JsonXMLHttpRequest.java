@@ -38,8 +38,7 @@ public abstract class JsonXmlHTTPRequest {
 
     abstract public void sendResponse(String peerlyXMLHttpRequestManagerObjectName, int key, JSONObject responseObject);
 
-    public void send(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString)
-    {
+    public void send(String peerlyXMLHttpRequestManagerObjectName, int key, String requestJsonString) {
         final String finalPeerlyXMLHttpRequestManagerObjectName = peerlyXMLHttpRequestManagerObjectName;
         final int finalKey = key;
         final String finalRequestJsonString = requestJsonString;
@@ -84,11 +83,9 @@ public abstract class JsonXmlHTTPRequest {
         JSONObject responseObject = new JSONObject();
         responseObject.put("status", httpURLConnection.getResponseCode());
         JSONObject responseHeaderObject = new JSONObject();
-        for(String headerName : httpURLConnection.getHeaderFields().keySet())
-        {
+        for (String headerName : httpURLConnection.getHeaderFields().keySet()) {
             // The Null key is apparently used to record the status response line in httpURLConnection
-            if (headerName != null)
-            {
+            if (headerName != null) {
                 responseHeaderObject.put(headerName, httpURLConnection.getHeaderField(headerName));
             }
         }
@@ -112,16 +109,14 @@ public abstract class JsonXmlHTTPRequest {
         String method = jsonRequestObject.getString("method");
         httpURLConnection.setRequestMethod(method);
         JSONObject headers = jsonRequestObject.getJSONObject("headers");
-        for(Object headerNameObject : headers.keySet())
-        {
+        for (Object headerNameObject : headers.keySet()) {
             String headerName = (String) headerNameObject;
             String headerValue = headers.getString(headerName);
             httpURLConnection.setRequestProperty(headerName, headerValue);
         }
 
         String requestText = jsonRequestObject.getString("requestText");
-        if (requestText != null && requestText.length() > 0)
-        {
+        if (requestText != null && requestText.length() > 0) {
             httpURLConnection.setDoOutput(true);
             OutputStream out = httpURLConnection.getOutputStream();
             out.write(requestText.getBytes("UTF-8"));

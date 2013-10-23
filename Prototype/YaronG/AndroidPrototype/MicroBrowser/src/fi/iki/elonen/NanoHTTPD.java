@@ -611,7 +611,7 @@ public abstract class NanoHTTPD {
 
         private void sendAsFixedLength(OutputStream outputStream, PrintWriter pw) throws IOException {
             int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
-            pw.print("Content-Length: "+pending+"\r\n");
+            pw.print("Content-Length: " + pending + "\r\n");
 
             pw.print("\r\n");
             pw.flush();
@@ -673,7 +673,7 @@ public abstract class NanoHTTPD {
         public enum Status {
             OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                     "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409,"Conflict"), PRECONDITION_FAILED(412, "Precondition Failed"),
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409, "Conflict"), PRECONDITION_FAILED(412, "Precondition Failed"),
             RANGE_NOT_SATISFIABLE(416, "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
             private final int requestStatus;
             private final String description;
@@ -745,6 +745,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
+         *
          * @arg files - map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
@@ -1259,7 +1260,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        @Override public Iterator<String> iterator() {
+        @Override
+        public Iterator<String> iterator() {
             return cookies.keySet().iterator();
         }
 

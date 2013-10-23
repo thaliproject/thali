@@ -97,24 +97,30 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
 
     Object.defineProperties(this, {
         "responseType": {
-            "get" : function () { return this._responseType; },
-            "set" : function (newResponseType) {
+            "get": function () {
+                return this._responseType;
+            },
+            "set": function (newResponseType) {
                 if (newResponseType !== "") {
                     throw "Sorry, we only support string response types which are represented as an empty string";
                 }
             }
         },
-        "withCredentials" : {
-            "get" : function () { return this._withCredentials; },
-            "set" : function (newValue) {
+        "withCredentials": {
+            "get": function () {
+                return this._withCredentials;
+            },
+            "set": function (newValue) {
                 // TODO: For now we just swallow this since PouchDB sets this to true but we really should throw hen this is true since
                 // we have no intention of supporting cookies as they are a huge security hole.
                 return this._withCredentials;
             }
         },
-        "onreadystatechange" : {
-            "get" : function () { return this._onreadystatechange; },
-            "set" : function (newValue) {
+        "onreadystatechange": {
+            "get": function () {
+                return this._onreadystatechange;
+            },
+            "set": function (newValue) {
                 if (newValue !== null && typeof newValue !== 'function') {
                     throw "Sorry, only functions or null can be submitted.";
                 }
@@ -122,11 +128,13 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
                 this._onreadystatechange = newValue;
             }
         },
-        "readyState" : {
-            "get" : function () { return this._readyState; }
+        "readyState": {
+            "get": function () {
+                return this._readyState;
+            }
         },
-        "status" : {
-            "get" : function () {
+        "status": {
+            "get": function () {
                 if (this.readyState < 2) {
                     throw "status isn't available until we get to at least readystate 2";
                 }
@@ -134,8 +142,8 @@ function PeerlyXMLHttpRequest(peerlyXmlHttpRequestManager) {
                 return this._responseObject.status;
             }
         },
-        "responseText" : {
-            "get" : function () {
+        "responseText": {
+            "get": function () {
                 if (this.readyState < 4) {
                     return null;
                 }

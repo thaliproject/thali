@@ -16,7 +16,7 @@ function PeerlyExpressRequestObject(peerlyHTTPServerRequestObject) {
     this._requestHeaders = {};
     this.params = [];
     this.socket = {
-        "setTimeout" : function (timeout) {
+        "setTimeout": function (timeout) {
             //NOOP for now
         }
     };
@@ -59,7 +59,7 @@ function PeerlyExpressResponseObject(responseCallBack) {
  * @param {Number} responseCode
  * @param {String | null} responseBody - The body, if any, to send in the response
  */
-PeerlyExpressResponseObject.prototype.send = function(responseCode, responseBody) {
+PeerlyExpressResponseObject.prototype.send = function (responseCode, responseBody) {
     var response = new PeerlyHTTPServerResponseObject();
     response.responseCode = responseCode;
     //TODO: We need to figure out how to set sane mime types when dealing with documents, but for now I don't care.
@@ -74,7 +74,7 @@ PeerlyExpressResponseObject.prototype.send = function(responseCode, responseBody
  * @param {String} name
  * @param {String} value
  */
-PeerlyExpressResponseObject.prototype.setHeader = function(name, value) {
+PeerlyExpressResponseObject.prototype.setHeader = function (name, value) {
     this._responseHeaders[name] = value;
 };
 
@@ -82,7 +82,7 @@ PeerlyExpressResponseObject.prototype.setHeader = function(name, value) {
  * Set the location header
  * @param {String} locationHeaderValue
  */
-PeerlyExpressResponseObject.prototype.location = function(locationHeaderValue) {
+PeerlyExpressResponseObject.prototype.location = function (locationHeaderValue) {
     this.setHeader["Location"] = locationHeaderValue;
 };
 
@@ -97,15 +97,14 @@ PeerlyExpressResponseObject.prototype.location = function(locationHeaderValue) {
 function PeerlyExpress(port, peerlyHttpServer) {
     this._handlers = [];
     var supportedMethods = [
-        {"friendlyName" : "get", "methodName" : "GET"},
-        {"friendlyName" : "post", "methodName" : "POST"},
-        {"friendlyName" : "put", "methodName" : "PUT"},
-        {"friendlyName" : "del", "methodName" : "DELETE"}
+        {"friendlyName": "get", "methodName": "GET"},
+        {"friendlyName": "post", "methodName": "POST"},
+        {"friendlyName": "put", "methodName": "PUT"},
+        {"friendlyName": "del", "methodName": "DELETE"}
     ];
 
     // Defines handlers for specific HTTP Method handlers on the express object
-    for (var i = 0; i < supportedMethods.length; ++i)
-    {
+    for (var i = 0; i < supportedMethods.length; ++i) {
         var methodObj = supportedMethods[i];
         this[methodObj.friendlyName] = this._defaultMethodGenerator(methodObj.methodName, this._handlers, this._handlerGenerator.bind(this));
     }
@@ -121,7 +120,7 @@ function PeerlyExpress(port, peerlyHttpServer) {
  * @returns {Function}
  * @private
  */
-PeerlyExpress.prototype._defaultMethodGenerator = function(methodName, handlers, handlerGenerator) {
+PeerlyExpress.prototype._defaultMethodGenerator = function (methodName, handlers, handlerGenerator) {
     return function (matchingUri, callback) {
         handlers.push(handlerGenerator(methodName, matchingUri, callback));
     }
@@ -166,7 +165,7 @@ PeerlyExpress.prototype._parsePathForMatch = function (uriRegEx, path, keys, par
 
     if (!matches) return false;
 
-    for(var i = 1, len = matches.length; i < len; ++i) {
+    for (var i = 1, len = matches.length; i < len; ++i) {
         var key = keys[i - 1];
 
         var val = 'string' == typeof matches[i]
@@ -189,17 +188,17 @@ PeerlyExpress.prototype._parsePathForMatch = function (uriRegEx, path, keys, par
  * @returns {RegExp}
  * @private
  */
-PeerlyExpress.prototype._processWildCardStringToRegEx = function(wildcardString) {
-    var replaceWildCard = wildcardString.replace(/[*]/g,'.*');
-    return new RegExp("^"+replaceWildCard+"$");
+PeerlyExpress.prototype._processWildCardStringToRegEx = function (wildcardString) {
+    var replaceWildCard = wildcardString.replace(/[*]/g, '.*');
+    return new RegExp("^" + replaceWildCard + "$");
 };
 
 /**
  * Handler that matches all methods and paths.
  * @param {Function} callback - handler to call on a match
  */
-PeerlyExpress.prototype.use = function(callback) {
-    this._handlers.push(this._handlerGenerator("*","*",callback));
+PeerlyExpress.prototype.use = function (callback) {
+    this._handlers.push(this._handlerGenerator("*", "*", callback));
 };
 
 /**
@@ -207,7 +206,7 @@ PeerlyExpress.prototype.use = function(callback) {
  * @param {String} matchPath - path to match using Express magical matching syntax
  * @param {Function} callback - handler to call if a match is found
  */
-PeerlyExpress.prototype.all = function(matchPath, callback) {
+PeerlyExpress.prototype.all = function (matchPath, callback) {
     this._handlers.push(this._handlerGenerator("*", matchPath, callback));
 };
 
@@ -220,30 +219,25 @@ PeerlyExpress.prototype.all = function(matchPath, callback) {
  * @param {Function[]} handlers
  * @private
  */
-PeerlyExpress.prototype._ProcessRequest = function(req, res, index, handlers) {
-    if (index > handlers.length - 1)
-    {
+PeerlyExpress.prototype._ProcessRequest = function (req, res, index, handlers) {
+    if (index > handlers.length - 1) {
         res.send(404, null);
         return;
     }
     var callBack = handlers[index](req);
-    if (typeof callBack == 'function')
-    {
-        try
-        {
+    if (typeof callBack == 'function') {
+        try {
             var nextCallback = function () {
                 this._ProcessRequest(req, res, index + 1, handlers);
             };
 
             callBack(req, res, nextCallback.bind(this));
         }
-        catch(err)
-        {
+        catch (err) {
             throw err;
         }
     }
-    else
-    {
+    else {
         this._ProcessRequest(req, res, index + 1, handlers);
     }
 };
@@ -302,14 +296,14 @@ PeerlyExpress.prototype.PeerlyHttpServerCallbackGenerator = function () {
  * @return {RegExp}
  * @api private
  */
-PeerlyExpress.prototype._pathRegexp = function(path, keys, sensitive, strict) {
+PeerlyExpress.prototype._pathRegexp = function (path, keys, sensitive, strict) {
     if (toString.call(path) == '[object RegExp]') return path;
     if (Array.isArray(path)) path = '(' + path.join('|') + ')';
     path = path
         .concat(strict ? '' : '/?')
         .replace(/\/\(/g, '(?:/')
-        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?(\*)?/g, function(_, slash, format, key, capture, optional, star){
-            keys.push({ name: key, optional: !! optional });
+        .replace(/(\/)?(\.)?:(\w+)(?:(\(.*?\)))?(\?)?(\*)?/g, function (_, slash, format, key, capture, optional, star) {
+            keys.push({ name: key, optional: !!optional });
             slash = slash || '';
             return ''
                 + (optional ? '' : slash)
@@ -334,7 +328,7 @@ PeerlyExpress.prototype._pathRegexp = function(path, keys, sensitive, strict) {
  * @api private
  */
 
-PeerlyExpress.prototype._decode = function(str) {
+PeerlyExpress.prototype._decode = function (str) {
     try {
         return decodeURIComponent(str);
     } catch (e) {

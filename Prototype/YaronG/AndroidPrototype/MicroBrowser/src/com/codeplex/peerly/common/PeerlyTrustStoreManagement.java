@@ -37,6 +37,7 @@ public class PeerlyTrustStoreManagement {
 
     /**
      * Creates a trust manager for user with SSL to validate the identity of the server one is connecting to.
+     *
      * @param x509RootCert
      * @return
      * @throws KeyStoreException
@@ -72,6 +73,7 @@ public class PeerlyTrustStoreManagement {
      * that way out. Keep in mind that the trust store is temporary, just used for SSL purposes. The persistance format
      * for the public keys used to put in the contents of the trust store is X.509 which is an actual standard. So we
      * really don't care what temporary store Java is using.
+     *
      * @return
      */
     private static KeyStore GenerateKeyStoreForTrustStore() throws KeyStoreException {

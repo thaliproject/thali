@@ -29,7 +29,7 @@ public class ServerJSObject extends JSObject {
             throw new RuntimeException("Too many objects.");
         }
 
-        String requestObject = (String)objects[0];
+        String requestObject = (String) objects[0];
         JSONObject request = new JSONObject(requestObject);
         JSONObject response = new JSONObject();
         response.put("responseCode", 200);

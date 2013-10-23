@@ -13,11 +13,9 @@ import java.security.KeyManagementException;
 import java.security.NoSuchAlgorithmException;
 
 /**
- *
  * @author yarong
  */
-public class LiveConnectJsonNanoHTTPD extends JsonNanoHTTPD
-{
+public class LiveConnectJsonNanoHTTPD extends JsonNanoHTTPD {
     private String requestCallBackName;
     private JSObject window;
 
@@ -28,8 +26,7 @@ public class LiveConnectJsonNanoHTTPD extends JsonNanoHTTPD
     }
 
     @Override
-    protected void deliverRequestJsonToJavascript(JSONObject jsonRequestObject)
-    {
-        window.call(requestCallBackName, new Object[] {jsonRequestObject.toString()});
+    protected void deliverRequestJsonToJavascript(JSONObject jsonRequestObject) {
+        window.call(requestCallBackName, new Object[]{jsonRequestObject.toString()});
     }
 }

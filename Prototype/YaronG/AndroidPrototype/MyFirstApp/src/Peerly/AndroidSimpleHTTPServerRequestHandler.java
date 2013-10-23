@@ -11,17 +11,14 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 
 /**
- *
  * @author yarong
  */
-public class AndroidSimpleHTTPServerRequestHandler implements SimpleHTTPServer.SimpleRequestHandler
-{
+public class AndroidSimpleHTTPServerRequestHandler implements SimpleHTTPServer.SimpleRequestHandler {
     private String requestCallBackName;
     private WebView webView;
     private Object responseObject;
 
-    public AndroidSimpleHTTPServerRequestHandler(String requestCallBackName, WebView webView)
-    {
+    public AndroidSimpleHTTPServerRequestHandler(String requestCallBackName, WebView webView) {
         this.requestCallBackName = requestCallBackName;
         this.webView = webView;
     }
@@ -29,10 +26,9 @@ public class AndroidSimpleHTTPServerRequestHandler implements SimpleHTTPServer.S
     @Override
     public SimpleResponse handler(String method, String requestUriPath, Map<String, String> queryParams, Map<String, String> headers, String requestBody) {
         responseObject = null;
-        String javascriptUri = "javascript:"+requestCallBackName+"(\""+method+"\",\""+requestUriPath+"\",\""+StringMapToJson(queryParams)+"\",\""+StringMapToJson(headers)+"\",\""+requestBody+"\")";
+        String javascriptUri = "javascript:" + requestCallBackName + "(\"" + method + "\",\"" + requestUriPath + "\",\"" + StringMapToJson(queryParams) + "\",\"" + StringMapToJson(headers) + "\",\"" + requestBody + "\")";
         webView.loadUrl(javascriptUri);
-        while(responseObject == null)
-        {
+        while (responseObject == null) {
             // TODO: Put some reasonable time out here so we don't get stuck in this loop for infinity
             try {
                 Thread.sleep(10);
@@ -73,8 +69,7 @@ public class AndroidSimpleHTTPServerRequestHandler implements SimpleHTTPServer.S
         throw new RuntimeException("You should have debugged what the hell the responseObject is before you got here.");
     }
 
-    public void SetResponse(Object responseObject)
-    {
+    public void SetResponse(Object responseObject) {
         this.responseObject = responseObject;
     }
 
@@ -90,18 +85,13 @@ public class AndroidSimpleHTTPServerRequestHandler implements SimpleHTTPServer.S
 //        }
 //    }
 
-    private String StringMapToJson(Map<String, String> map)
-    {
+    private String StringMapToJson(Map<String, String> map) {
         boolean first = true;
         StringBuilder json = new StringBuilder("{");
-        for (Map.Entry<String, String> entry : map.entrySet())
-        {
-            if (first == true)
-            {
+        for (Map.Entry<String, String> entry : map.entrySet()) {
+            if (first == true) {
                 first = false;
-            }
-            else
-            {
+            } else {
                 json.append(",");
             }
             json.append("\\\"");

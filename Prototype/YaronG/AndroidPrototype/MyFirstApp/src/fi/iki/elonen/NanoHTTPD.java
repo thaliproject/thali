@@ -218,7 +218,7 @@ public abstract class NanoHTTPD {
      */
     @Deprecated
     public Response serve(String uri, Method method, Map<String, String> headers, Map<String, String> parms,
-                                   Map<String, String> files) {
+                          Map<String, String> files) {
         return new Response(Response.Status.NOT_FOUND, MIME_PLAINTEXT, "Not Found");
     }
 
@@ -572,7 +572,7 @@ public abstract class NanoHTTPD {
 
                 int pending = data != null ? data.available() : 0; // This is to support partial sends, see serveFile()
                 pw.print("Connection: keep-alive\r\n");
-                pw.print("Content-Length: "+pending+"\r\n");
+                pw.print("Content-Length: " + pending + "\r\n");
 
                 pw.print("\r\n");
                 pw.flush();
@@ -634,9 +634,9 @@ public abstract class NanoHTTPD {
          */
         public enum Status {
             OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
-                "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409, "Conflict"), RANGE_NOT_SATISFIABLE(416,
-                "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
+                    "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), CONFLICT(409, "Conflict"), RANGE_NOT_SATISFIABLE(416,
+                    "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
             private final int requestStatus;
             private final String description;
 
@@ -867,7 +867,7 @@ public abstract class NanoHTTPD {
          * Decodes the sent headers and loads the data into Key/value pairs
          */
         private void decodeHeader(BufferedReader in, Map<String, String> pre, Map<String, String> parms, Map<String, String> headers)
-            throws ResponseException {
+                throws ResponseException {
             try {
                 // Read the request line
                 String inLine = in.readLine();
@@ -1099,7 +1099,7 @@ public abstract class NanoHTTPD {
                 int sep = e.indexOf('=');
                 if (sep >= 0) {
                     p.put(decodePercent(e.substring(0, sep)).trim(),
-                        decodePercent(e.substring(sep + 1)));
+                            decodePercent(e.substring(sep + 1)));
                 } else {
                     p.put(decodePercent(e).trim(), "");
                 }
@@ -1188,7 +1188,8 @@ public abstract class NanoHTTPD {
             }
         }
 
-        @Override public Iterator<String> iterator() {
+        @Override
+        public Iterator<String> iterator() {
             return cookies.keySet().iterator();
         }
 

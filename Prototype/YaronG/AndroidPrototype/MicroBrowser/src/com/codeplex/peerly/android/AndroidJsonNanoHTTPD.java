@@ -12,8 +12,7 @@ public class AndroidJsonNanoHTTPD extends JsonNanoHTTPD {
     private String requestCallBackName;
     private WebView webView;
 
-    public AndroidJsonNanoHTTPD(int port, String requestCallBackName, WebView webview)
-    {
+    public AndroidJsonNanoHTTPD(int port, String requestCallBackName, WebView webview) {
         super(port);
         this.requestCallBackName = requestCallBackName;
         this.webView = webview;
@@ -21,11 +20,10 @@ public class AndroidJsonNanoHTTPD extends JsonNanoHTTPD {
 
     @Override
     protected void deliverRequestJsonToJavascript(JSONObject jsonRequestObject) {
-        final String javascriptUri = "javascript:"+requestCallBackName+"("+JSONObject.quote(jsonRequestObject.toString())+");";
+        final String javascriptUri = "javascript:" + requestCallBackName + "(" + JSONObject.quote(jsonRequestObject.toString()) + ");";
 
         // WebView does not like being called from anything but the UI thread
-        webView.post(new Runnable()
-        {
+        webView.post(new Runnable() {
             public void run() {
                 webView.loadUrl(javascriptUri);
             }

@@ -7,14 +7,16 @@ package com.codeplex.peerly.common;
 import java.io.IOException;
 
 /**
- *
  * @author yarong
- * This defines the methods that Javascript will expect to find on the HTTP
- * server object.
+ *         This defines the methods that Javascript will expect to find on the HTTP
+ *         server object.
  */
 public interface JsonNanonHTTPDJavascriptBridge {
     public boolean isHttpServerRunning();
+
     public void startHttpServer(int port, String requestHandlerCallBack);
+
     public void stopHttpServer();
+
     public void setResponse(String responseJsonString);
 }

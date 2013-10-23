@@ -10,7 +10,7 @@ function AddBlogEntry(blogText, dateTimeStamp) {
 }
 
 function UpdateBlogEntriesTable() {
-    db.allDocs({ include_docs: true }, function(err, response) {
+    db.allDocs({ include_docs: true }, function (err, response) {
         if (!err) {
             // TODO: DO SOMETHING USEFUL HERE!
         }
@@ -41,8 +41,7 @@ function MicroBlogStartSynchHandler(obj) {
     window.db.replicate.from(remoteURLValue, options);
 }
 
-function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext)
-{
+function RequestCallBack(method, uri, jsonQueryParams, jsonHeaders, requestBody, responseContext) {
     var queryParams = JSON.parse(jsonQueryParams);
     var headers = JSON.parse(jsonHeaders);
     var response = new Object();
@@ -60,7 +59,7 @@ function SetUp(obj) {
 
     window.db = new PouchDB('microblog');
     window.remoteCouch = false;
-    db.info(function(err, info) {
+    db.info(function (err, info) {
         db.changes({
             since: info.update_seq,
             continuous: true,
