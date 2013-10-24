@@ -1,7 +1,6 @@
 package com.codeplex.peerly.couchdbtest;
 
 import android.app.Activity;
-import android.app.ActionBar;
 import android.app.Fragment;
 import android.os.Bundle;
 import android.util.Log;
@@ -10,26 +9,15 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.os.Build;
-import com.couchbase.cblite.*;
-import com.couchbase.cblite.listener.CBLHTTPServer;
-import com.couchbase.cblite.listener.CBLListener;
 
-import org.ektorp.CouchDbConnector;
-import org.ektorp.CouchDbInstance;
-import org.ektorp.http.HttpClient;
-import org.ektorp.http.StdHttpClient;
-import org.ektorp.impl.StdCouchDbConnector;
-import org.ektorp.impl.StdCouchDbInstance;
+import com.couchbase.cblite.CBLServer;
+import com.couchbase.cblite.listener.CBLListener;
 
 import java.io.IOException;
 
-import javax.servlet.http.HttpServlet;
-
-import Acme.Serve.SSLAcceptor;
-import Acme.Serve.Serve;
-
 public class MainActivity extends Activity {
+    private CBLListener cblListener = null;
+    private int defaultCouchPort = 9898;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -42,51 +30,34 @@ public class MainActivity extends Activity {
                     .commit();
         }
 
-        CBLListener cblListener = null;
         String filesDir = getFilesDir().getAbsolutePath();
         try {
+            // Start the CouchDB Lite server
             CBLServer server = new CBLServer (filesDir);
-
-            cblListener = new CBLListener(server, 9898);
+            cblListener = new CBLListener(server, defaultCouchPort);
             cblListener.start();
 
-            int port = cblListener.getListenPort();
-
-            HttpClient httpClient = new StdHttpClient.Builder()
-                                        .url("http://localhost:" + port)
-                                        .build();
-            CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClient);
-            CouchDbConnector couchDbConnector = couchDbInstance.createConnector("test", true);
-
-            TestBlogClass testArticle = new TestBlogClass();
-            String blogArticleName = "foo";
-            String blogArticleContent = "AbcDef!";
-            testArticle.setBlogArticleName(blogArticleName);
-            testArticle.setBlogArticleContent(blogArticleContent);
-            couchDbConnector.create(testArticle);
-
-            String id = testArticle.getId();
-            String revision = testArticle.getRevision();
-
-            TestBlogClass checkArticle = couchDbConnector.get(TestBlogClass.class, id);
-
-            if (checkArticle.getId() != id || checkArticle.getRevision() != revision || checkArticle.getBlogArticleName() != blogArticleName
-                    || checkArticle.getBlogArticleContent() != blogArticleContent) {
-                Log.e ("MainActivity", "The article we got back didn't match the one we sent.");
-                throw new RuntimeException("oops");
+            if (cblListener.getStatus().equals("0") == false)
+            {
+                throw new RuntimeException("CouchDB Server didn't start up correctly, alas you will have to check the log to see why.");
             }
 
+            // Lets see if the server is running!
+            int port = cblListener.getListenPort();
+            //new TestAsynchCouchClient().execute(port);
 
         } catch (IOException e) {
             Log.e ("MainActivity", "Error starting TDServer", e);
-        } finally {
-            if (cblListener != null) {
-                cblListener.stop();
-            }
         }
 
-
         Log.d("MainActivity", "Got this far, woohoo!");
+    }
+
+    @Override
+    protected void onDestroy() {
+        if (cblListener != null) {
+            cblListener.stop();
+        }
     }
 
 
