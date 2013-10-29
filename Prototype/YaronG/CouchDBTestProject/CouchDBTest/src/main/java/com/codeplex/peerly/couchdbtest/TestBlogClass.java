@@ -1,6 +1,5 @@
 package com.codeplex.peerly.couchdbtest;
 
-import org.codehaus.jackson.annotate.JsonProperty;
 import org.ektorp.support.CouchDbDocument;
 
 /**

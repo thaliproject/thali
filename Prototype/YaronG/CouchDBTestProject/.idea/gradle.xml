@@ -4,7 +4,8 @@
     <option name="linkedExternalProjectsSettings">
       <GradleProjectSettings>
         <option name="distributionType" value="DEFAULT_WRAPPED" />
-        <option name="externalProjectPath" value="C:\Peerly\Prototype\YaronG\CouchDBTestProject" />
+        <option name="externalProjectPath" value="$PROJECT_DIR$" />
+        <option name="gradleHome" value="C:/gradle-1.8/bin" />
       </GradleProjectSettings>
     </option>
   </component>

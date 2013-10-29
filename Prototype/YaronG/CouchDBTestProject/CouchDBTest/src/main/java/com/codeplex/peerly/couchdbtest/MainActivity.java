@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import com.codeplex.peerly.couchdbserverandroid.R;
 import com.couchbase.cblite.CBLServer;
 import com.couchbase.cblite.listener.CBLListener;
 

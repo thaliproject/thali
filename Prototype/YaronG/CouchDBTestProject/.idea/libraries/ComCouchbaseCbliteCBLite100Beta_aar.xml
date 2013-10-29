@@ -5,8 +5,6 @@
       <root url="jar://$PROJECT_DIR$/CouchDBTest/build/exploded-bundles/ComCouchbaseCbliteCBLite100Beta.aar/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES>
-      <root url="file://C:/couchbase-lite-android-core/src/main/java" />
-    </SOURCES>
+    <SOURCES />
   </library>
 </component>
