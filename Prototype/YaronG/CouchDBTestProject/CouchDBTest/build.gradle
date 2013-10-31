@@ -33,4 +33,7 @@ dependencies {
     compile 'com.couchbase.cblite:CBLite:1.0.0-beta'
     compile 'com.android.support:support-v4:18.0.0'
     compile 'org.ektorp:org.ektorp.android:1.4.1'
+    compile 'org.bouncycastle:bcprov-jdk15on:1.49'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
+    compile 'org.slf4j:slf4j-android:1.6.1-RC1'
 }

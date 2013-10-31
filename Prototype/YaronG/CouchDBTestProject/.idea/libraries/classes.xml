@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/CouchDBTest/libs/classes.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://C:/yaronyg-couchbase-lite-android-listener/src/main/java" />
+    </SOURCES>
   </library>
 </component>

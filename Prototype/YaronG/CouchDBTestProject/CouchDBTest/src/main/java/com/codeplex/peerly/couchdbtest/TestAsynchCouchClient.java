@@ -16,6 +16,21 @@ import java.net.UnknownHostException;
  * Created by yarong on 10/23/13.
  */
 public class TestAsynchCouchClient extends AsyncTask<Integer, Void, Void> {
+
+    private final Boolean UseProxy = false;
+    private final String ProxyHost = "10.0.2.2";
+    private final int ProxyPort = 8888; // Fiddler2
+
+    private HttpClient getTestClient(String hostName, int port) {
+        AndroidHttpClient.Builder httpClientBuilder = new AndroidHttpClient.Builder().host(hostName).port(port).useExpectContinue(false);
+
+        if (UseProxy) {
+            httpClientBuilder = httpClientBuilder.proxy(ProxyHost).proxyPort(ProxyPort);
+        }
+
+        return httpClientBuilder.build();
+    }
+
     @Override
     protected Void doInBackground(Integer... port) {
         String hostName = null;
@@ -26,9 +41,9 @@ public class TestAsynchCouchClient extends AsyncTask<Integer, Void, Void> {
             throw new RuntimeException(e);
         }
 
-        HttpClient httpClient = new AndroidHttpClient.Builder().host(hostName).port(port[0]).build();
+        HttpClient httpClient = getTestClient(hostName, port[0]);
         CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClient);
-        CouchDbConnector couchDbConnector = couchDbInstance.createConnector("test", true);
+        CouchDbConnector couchDbConnector = couchDbInstance.createConnector("test", false);
 
         TestBlogClass testArticle = new TestBlogClass();
         String blogArticleName = "foo";
@@ -42,8 +57,7 @@ public class TestAsynchCouchClient extends AsyncTask<Integer, Void, Void> {
 
         TestBlogClass checkArticle = couchDbConnector.get(TestBlogClass.class, id);
 
-        if (checkArticle.getId() != id || checkArticle.getRevision() != revision || checkArticle.getBlogArticleName() != blogArticleName
-                || checkArticle.getBlogArticleContent() != blogArticleContent) {
+        if (checkArticle.equals(testArticle) == false) {
             Log.e("TestAsynchCouchClient", "The article we got back didn't match the one we sent.");
             throw new RuntimeException("oops");
         }

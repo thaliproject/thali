@@ -24,4 +24,11 @@ public class TestBlogClass extends CouchDbDocument {
     public void setBlogArticleContent(String blogArticleContent) {
         this.blogArticleContent = blogArticleContent;
     }
+
+    public boolean equals(TestBlogClass compareTo) {
+        return (this.getId().equals(compareTo.getId()) &&
+                this.getRevision().equals(compareTo.getRevision()) &&
+                this.getBlogArticleName().equals(compareTo.getBlogArticleName()) &&
+                this.getBlogArticleContent().equals(compareTo.getBlogArticleContent()));
+    }
 }

@@ -1,0 +1,36 @@
+<component name="libraryTable">
+  <library name="org.ektorp:org.ektorp:1.4.1" type="repository">
+    <properties maven-id="org.ektorp:org.ektorp:1.4.1" />
+    <CLASSES>
+      <root url="jar://$PROJECT_DIR$/lib/org.ektorp-1.4.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/httpclient-4.2.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/httpcore-4.2.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-logging-1.1.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-codec-1.6.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/httpclient-cache-4.2.5.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-io-2.0.1.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/slf4j-api-1.6.4.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-core-2.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-databind-2.2.2.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-annotations-2.2.2.jar!/" />
+    </CLASSES>
+    <JAVADOC>
+      <root url="jar://$PROJECT_DIR$/lib/org.ektorp-1.4.1-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/slf4j-api-1.6.4-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-core-2.2.2-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-databind-2.2.2-javadoc.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-annotations-2.2.2-javadoc.jar!/" />
+    </JAVADOC>
+    <SOURCES>
+      <root url="jar://$PROJECT_DIR$/lib/org.ektorp-1.4.1-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/commons-logging-1.1.1-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/slf4j-api-1.6.4-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-core-2.2.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-databind-2.2.2-sources.jar!/" />
+      <root url="jar://$PROJECT_DIR$/lib/jackson-annotations-2.2.2-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.ideaLibSources/httpclient-4.2.5-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.ideaLibSources/httpclient-cache-4.2.5-sources.jar!/" />
+      <root url="jar://$USER_HOME$/.ideaLibSources/httpcore-4.2.4-sources.jar!/" />
+    </SOURCES>
+  </library>
+</component>

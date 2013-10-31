@@ -4,6 +4,8 @@
       <root url="jar://$PROJECT_DIR$/CouchDBTest/libs/webserver.jar!/" />
     </CLASSES>
     <JAVADOC />
-    <SOURCES />
+    <SOURCES>
+      <root url="file://C:/Temp/WebServer/src" />
+    </SOURCES>
   </library>
 </component>
