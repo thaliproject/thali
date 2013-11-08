@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<root>
+  <setting name="task-tab">
+    <setting name="show-description" value="true"/>
+  </setting>
+  <setting name="favorites-tab"/>
+  <setting name="command_line-tab"/>
+  <setting name="setup-tab">
+    <setting name="setup">
+      <setting name="custom-gradle-executor"/>
+      <setting name="current-directory" value="c:\Peerly\Prototype\YaronG\CouchDBTestProject"/>
+      <setting name="log-level" value="INFO"/>
+      <setting name="stack-trace-level" value="ALWAYS_FULL"/>
+    </setting>
+  </setting>
+  <setting name="main_panel">
+    <setting name="current-tab" value="Task Tree"/>
+  </setting>
+  <setting name="SinglePaneUIInstance_splitter-id">
+    <setting name="divider_location" value="347"/>
+  </setting>
+  <setting name="Application_window-id">
+    <setting name="window_x" value="-8"/>
+    <setting name="window_y" value="-8"/>
+    <setting name="window_width" value="2576"/>
+    <setting name="window_height" value="1416"/>
+    <setting name="extended-state" value="6"/>
+  </setting>
+</root>

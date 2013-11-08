@@ -1,3 +1,4 @@
+package com.codeplex.peerly.couchdbtest;
 /*
     Note that this is a modification of the original SSLAceptor.java to handle issues
     peculiar to Android.
@@ -23,14 +24,13 @@
  *  LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY
  *  OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  *  SUCH DAMAGE.
- *  
+ *
  *  Visit http://tjws.sourceforge.net to get the latest information
- *  about Rogatkin's products.                                                        
- *  $Id: SSLAcceptor.java,v 1.10 2013/03/02 09:11:56 cvs Exp $                
+ *  about Rogatkin's products.
+ *  $Id: SSLAcceptor.java,v 1.10 2013/03/02 09:11:56 cvs Exp $
  *  Created on Feb 21, 2007
  *  @author dmitriy
  */
-package Acme.Serve;
 
 import java.io.File;
 import java.io.FileInputStream;
@@ -46,9 +46,26 @@ import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
 import javax.net.ssl.SSLServerSocket;
 
+import Acme.Serve.Serve;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.IOException;
+import java.net.InetAddress;
+import java.net.ServerSocket;
+import java.net.Socket;
+import java.security.KeyStore;
+import java.security.Security;
+import java.util.Map;
+import java.util.Properties;
+
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.SSLServerSocket;
+
 import Acme.Serve.Serve.Acceptor;
 
-public class SSLAcceptor implements Acceptor {
+public class TestSSLAcceptor implements Serve.Acceptor {
     public static final Boolean Android = System.getProperty("java.vm.name") != null && System.getProperty("java.vm.name").startsWith("Dalvik");
 
     public static final String ARG_ALGORITHM = "algorithm"; // SUNX509
@@ -104,8 +121,7 @@ public class SSLAcceptor implements Acceptor {
 
     /**
      * Storage type of the key store file to be used.
-     * Note that Desktop java has a default implementation using JKS but that Android doesn't
-     * support JKS, it's default implementation is BKS.
+     * Note that Android only supports BKS, not JKS
      */
     public final static String KEYSTORETYPE = Android ? "BKS" : "JKS";
 
@@ -212,14 +228,18 @@ public class SSLAcceptor implements Acceptor {
         }
 
         int port = PORT;
-        if (inProperties.get(ARG_PORT) != null)
-            try {
-                port = Integer.parseInt((String) inProperties.get(ARG_PORT));
-            } catch (NumberFormatException nfe) {
+        if (inProperties.get(ARG_PORT) != null) {
+            Object argPortValue = inProperties.get(ARG_PORT);
 
+            if (argPortValue instanceof String) {
+                port = Integer.parseInt((String)argPortValue);
+            } else if (argPortValue instanceof Integer) {
+                port = (Integer) argPortValue;
+            } else {
+                throw new RuntimeException("Value passed in for ARG_PORT could not be translated to integer: " + argPortValue);
             }
-        else if (inProperties.get(Serve.ARG_PORT) != null)
-            port = ((Integer) inProperties.get(Serve.ARG_PORT)).intValue();
+        }
+
         if (inProperties.get(ARG_BACKLOG) == null)
             if (inProperties.get(ARG_IFADDRESS) == null)
                 socket = sslSoc.createServerSocket(port);

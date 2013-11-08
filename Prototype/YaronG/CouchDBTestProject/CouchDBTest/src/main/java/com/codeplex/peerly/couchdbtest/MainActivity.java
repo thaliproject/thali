@@ -34,12 +34,11 @@ import Acme.Serve.Serve;
 
 public class MainActivity extends Activity {
     private CBLListener cblListener = null;
-    private int defaultCouchPort = 9898;
-    private String tjwsSslAcceptor = "Acme.Serve.SSLAcceptor";
-    private String deviceKeyAlias = "com.codeplex.peerly.names.devicealias";
-    private String keystoreFileName = "com.codeplex.peerly.names.keystore";
+    private final int defaultCouchPort = 9898;
+    private final String tjwsSslAcceptor = "com.couchbase.cblite.listener.CBLSSLAcceptor";
+    private final String deviceKeyAlias = "com.codeplex.peerly.names.devicealias";
+    private final String keystoreFileName = "com.codeplex.peerly.names.keystore";
     private final Logger Log = LoggerFactory.getLogger(MainActivity.class);
-
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -62,21 +61,16 @@ public class MainActivity extends Activity {
             Properties tjwsProperties = new Properties();
             tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, tjwsSslAcceptor);
             tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, KeyStoreManagement.PrivateKeyHolderFormat);
-            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, new File(getFilesDir(), keystoreFileName).getAbsolutePath());
-            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, KeyStoreManagement.DefaultPassPhrase.toString());
+            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, GetKeyStoreAbsolutePath());
+            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(KeyStoreManagement.DefaultPassPhrase));
 
             cblListener = new CBLListener(server, defaultCouchPort, tjwsProperties);
 
             cblListener.start();
 
-            if (cblListener.serverStatus() != 0)
-            {
-                throw new RuntimeException("CouchDB Server didn't start up correctly, alas you will have to check the log to see why.");
-            }
-
             // Lets see if the server is running!
             int port = cblListener.getListenPort();
-            new TestAsynchCouchClient().execute(port);
+            //new TestAsynchCouchClient().execute(port);
 
         } catch (IOException e) {
             Log.error("Error starting TDServer", e);
@@ -86,14 +80,26 @@ public class MainActivity extends Activity {
     }
 
     /**
+     * Return the absolute path of the Peerly device key store.
+     *
+     * I had wanted this to just be a property of the class but getFilesDir() doesn't seem to be
+     * initialized until onCreate is called so setting the value either as a property or via
+     * the constructor won't work. Hence this method.
+     * @return
+     */
+    private String GetKeyStoreAbsolutePath() {
+       return new File(getFilesDir(), keystoreFileName).getAbsolutePath();
+    }
+
+    /**
      * If no key store exists to hold the device's keying information than this method
      * will create on.
-     * TODO: We need to check if the device's cert is expired and renew it, but this will probably require getting a new root chain, so let's wait until that's figured out
      */
     private void MakeSureDeviceKeyStoreExists() {
-        String keyStoreFilePath = new File(getFilesDir(), keystoreFileName).getAbsolutePath();
+        File keyStoreFile = new File(GetKeyStoreAbsolutePath());
 
-        if (new File(keyStoreFilePath).exists()) {
+        if (keyStoreFile.exists()) {
+            // TODO: We need to check if the device's cert is expired and renew it, but this will probably require getting a new root chain, so let's wait until that's figured out
             return;
         }
 
@@ -101,8 +107,18 @@ public class MainActivity extends Activity {
                 KeyStoreManagement.CreatePKCS12KeyStoreWithNewPublicPrivateKeyPair(
                         KeyStoreManagement.GeneratePeerlyAcceptablePublicPrivateKeyPair(), deviceKeyAlias, KeyStoreManagement.DefaultPassPhrase);
 
+        // TODO: I really need to figure out if I can safely use Java 7 features like try with resources and Android, the fact that Android Studio defaults to not support Java 7 makes me very nervous
+        FileOutputStream fileOutputStream = null;
         try {
-            keyStore.store(new FileOutputStream(keyStoreFilePath), KeyStoreManagement.DefaultPassPhrase);
+            // Yes this can swallow exceptions (if you got an exception inside this try and then the finally has an exception, but given what I'm doing here I don't care.
+            try {
+                fileOutputStream =  new FileOutputStream(keyStoreFile);
+                keyStore.store(new FileOutputStream(keyStoreFile), KeyStoreManagement.DefaultPassPhrase);
+            } finally {
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
+                }
+            }
         } catch (Exception e) {
             Log.error(e.getMessage(), e);
             throw new RuntimeException(e.getMessage(), e);
