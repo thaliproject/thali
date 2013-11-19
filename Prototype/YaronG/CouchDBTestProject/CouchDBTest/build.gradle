@@ -10,11 +10,11 @@ buildscript {
 apply plugin: 'android'
 
 repositories {
+    mavenLocal()
     mavenCentral()
     maven {
         url "http://files.couchbase.com/maven2/"
     }
-    mavenLocal()
 }
 
 android {
@@ -22,18 +22,26 @@ android {
     buildToolsVersion "17.0.0"
 
     defaultConfig {
-        minSdkVersion 17
-        targetSdkVersion 18
+        minSdkVersion 11
+        targetSdkVersion 16
     }
 }
+
 
 dependencies {
     // hack to add .so objects (bit.ly/17pUlJ1)
     compile fileTree(dir: 'libs', include: '*.jar')
-    compile 'com.couchbase.cblite:CBLite:1.0.0-beta'
+    compile 'com.couchbase.cblite:CBListener:1.0.0-beta'
+
     compile 'com.android.support:support-v4:18.0.0'
+
     compile 'org.ektorp:org.ektorp.android:1.4.1'
+
     compile 'org.bouncycastle:bcprov-jdk15on:1.49'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
+
+    // There is a conflict when I include this
     //compile 'org.slf4j:slf4j-android:1.6.1-RC1'
+
+    compile 'com.codeplex.thali.utilities:ThaliUtilitiesAndroid:0.0.1'
 }

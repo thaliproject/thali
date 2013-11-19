@@ -5,6 +5,7 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpRoutedConnection;
+import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -15,18 +16,13 @@ import org.ektorp.http.HttpClient;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 import org.junit.Test;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
-import javax.net.ssl.SSLSocketFactory;
 import javax.net.ssl.TrustManager;
 import javax.net.ssl.X509TrustManager;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.NoSuchAlgorithmException;
-import java.security.PublicKey;
-import java.security.SecureRandom;
+import java.security.*;
 import java.security.cert.Certificate;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -54,10 +50,9 @@ public class TestCouchConnectivity {
 
     private Boolean UseProxy = false;
 
-    final Logger Log = LoggerFactory.getLogger(TestCouchConnectivity.class);
-
-    private StdHttpClient.Builder getEktorpHttpClientBuilder(String hostName, int port) {
-        StdHttpClient.Builder httpClientBuilder = new StdHttpClient.Builder().host(hostName).port(port).useExpectContinue(false).relaxedSSLSettings(true).enableSSL(true);
+    private StdHttpClient.Builder getEktorpHttpClientBuilder(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        SSLSocketFactory sslSocketFactory = new HttpKeySSLSocketFactory(clientKey, clientPassPhrase);
+        StdHttpClient.Builder httpClientBuilder = new StdHttpClient.Builder().host(hostName).port(port).useExpectContinue(false).relaxedSSLSettings(true).enableSSL(true);//.sslSocketFactory(sslSocketFactory);
 
         if (UseProxy) {
             httpClientBuilder = httpClientBuilder.proxy(ProxyHost).proxyPort(ProxyPort);
@@ -66,8 +61,8 @@ public class TestCouchConnectivity {
         return httpClientBuilder;
     }
 
-    private org.apache.http.client.HttpClient getApacheHttpClient(String hostName, int port) {
-        return getEktorpHttpClientBuilder(hostName, port).configureClient();
+    private org.apache.http.client.HttpClient getApacheHttpClient(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return getEktorpHttpClientBuilder(hostName, port, clientKey, clientPassPhrase).configureClient();
     }
 
     /**
@@ -76,15 +71,16 @@ public class TestCouchConnectivity {
      * @param port
      * @return
      */
-    private HttpClient getErktopHttpClient(String hostName, int port) {
-        return new StdHttpClient(getApacheHttpClient(hostName, port));
+    private HttpClient getErktopHttpClient(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return new StdHttpClient(getApacheHttpClient(hostName, port, clientKey, clientPassPhrase));
     }
 
     private boolean rsaPublicKeyComparer(RSAPublicKey key1, RSAPublicKey key2) {
         return key1.getPublicExponent().compareTo(key2.getPublicExponent()) == 0 && key1.getModulus().compareTo(key2.getModulus()) == 0;
     }
 
-    private HttpClient getErktopHttpKeyClient(final String hostName, final int port, final RSAPublicKey serverRSAPublicKey) throws NoSuchAlgorithmException, KeyManagementException {
+    private StdHttpClient.Builder getErktopHttpKeyClientBuilder(final String hostName, final int port, final RSAPublicKey serverRSAPublicKey, final KeyStore clientKeyStore, final char[] clientPassPhrase)
+            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, KeyStoreException {
         // Adapted from http://stackoverflow.com/questions/2703161/how-to-ignore-ssl-certificate-errors-in-apache-httpclient-4-0 and from configureScheme in StdHttpClient.java in Ektorp
         SSLContext sslContext = SSLContext.getInstance("TLS");
         TrustManager trustManager = new X509TrustManager() {
@@ -96,6 +92,9 @@ public class TestCouchConnectivity {
             @Override
             public void checkServerTrusted(X509Certificate[] x509Certificates, String authType) throws CertificateException {
                 //TODO: We actually need to restrict authTypes to known secure ones
+                if (serverRSAPublicKey == null) {
+                    return;
+                }
                 PublicKey rootPublicKey = x509Certificates[x509Certificates.length -1].getPublicKey();
                 if ((rootPublicKey instanceof RSAPublicKey) == false)
                 {
@@ -113,16 +112,38 @@ public class TestCouchConnectivity {
             }
         };
 
-        sslContext.init(null, new TrustManager[] { trustManager }, null);
+        KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(KeyManagerFactory.getDefaultAlgorithm());
+        keyManagerFactory.init(clientKeyStore, clientPassPhrase);
+
+        sslContext.init(keyManagerFactory.getKeyManagers(), new TrustManager[] { trustManager }, null);
         org.apache.http.conn.ssl.SSLSocketFactory sslSocketFactory = new org.apache.http.conn.ssl.SSLSocketFactory(sslContext, org.apache.http.conn.ssl.SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
 
-        StdHttpClient.Builder builder = getEktorpHttpClientBuilder(hostName, port);
+        StdHttpClient.Builder builder = getEktorpHttpClientBuilder(hostName, port, null, null);
         builder.sslSocketFactory(sslSocketFactory);
-        return builder.build();
+        return builder;
+    }
+
+    private HttpClient getErktopHttpKeyClient(final String hostName, final int port, final RSAPublicKey serverRSAPublicKey, final KeyStore clientKeyStore, final char[] clientPassPhrase)
+            throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, KeyStoreException {
+        return getErktopHttpKeyClientBuilder(hostName, port, serverRSAPublicKey, clientKeyStore, clientPassPhrase).build();
     }
 
     @Test
-    public void basicTest() throws IOException, NoSuchAlgorithmException, KeyManagementException {
+    public void basicTest() throws IOException, NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, KeyStoreException {
+        System.setProperty("org.apache.commons.logging.Log", "org.apache.commons.logging.impl.SimpleLog");
+
+        System.setProperty("org.apache.commons.logging.simplelog.showdatetime", "true");
+
+        System.setProperty("org.apache.commons.logging.simplelog.log.httpclient.wire.header", "debug");
+
+        System.setProperty("org.apache.commons.logging.simplelog.log.org.apache.commons.httpclient", "debug");
+
+        System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "all");
+
+//        System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "false");
+//
+//        System.setProperty("sun.security.ssl.allowLegacyHelloMessages", "false");
+
         //createRetrieveTest(ErlangHost, ErlangPort);
         createRetrieveTest(AndroidHost, AndroidPort);
     }
@@ -133,8 +154,8 @@ public class TestCouchConnectivity {
      * @param port
      * @return
      */
-    public PublicKey getServersRootPublicKey(String host, int port) throws IOException {
-        org.apache.http.client.HttpClient httpClient = getApacheHttpClient(host, port);
+    public PublicKey getServersRootPublicKey(String host, int port, KeyStore clientKeyStore, char[] clientPassPhrase) throws IOException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        org.apache.http.client.HttpClient httpClient = getErktopHttpKeyClientBuilder(host, port, null, clientKeyStore, clientPassPhrase).configureClient(); //getApacheHttpClient(host, port, clientKeyStore, clientPassPhrase);
         // Taken from http://stackoverflow.com/questions/13273305/apache-httpclient-get-server-certificate
         ((AbstractHttpClient) httpClient).addResponseInterceptor(new HttpResponseInterceptor() {
             @Override
@@ -155,10 +176,12 @@ public class TestCouchConnectivity {
         return certificates[certificates.length - 1].getPublicKey();
     }
 
-    public void createRetrieveTest(String host, int port) throws IOException, KeyManagementException, NoSuchAlgorithmException {
-        RSAPublicKey serverPublicKey = (RSAPublicKey) getServersRootPublicKey(host, port);
+    public void createRetrieveTest(String host, int port) throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+        KeyStore clientKeys = ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair(),"foo",ThaliCryptoUtilities.DefaultPassPhrase);
 
-        HttpClient httpClientToUpdate = getErktopHttpKeyClient(host, port, serverPublicKey);
+        RSAPublicKey serverPublicKey = (RSAPublicKey) getServersRootPublicKey(host, port, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase);
+
+        HttpClient httpClientToUpdate = getErktopHttpKeyClient(host, port, serverPublicKey, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase); // ThaliEktorpUtilities.getErktopHttpKeyClient(host, port, null, 0, serverPublicKey, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase);
         CouchDbInstance couchDbInstanceToUpdate = new StdCouchDbInstance(httpClientToUpdate);
         CouchDbConnector couchDbConnector = couchDbInstanceToUpdate.createConnector(TestDatabaseName, true);
         validateDatabaseState(couchDbConnector, setUpData(couchDbInstanceToUpdate, TestDatabaseName, 1, MaximumTestRecords));

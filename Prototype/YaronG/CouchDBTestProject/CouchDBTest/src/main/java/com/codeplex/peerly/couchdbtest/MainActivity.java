@@ -1,44 +1,41 @@
 package com.codeplex.peerly.couchdbtest;
 
+import Acme.Serve.SSLAcceptor;
+import Acme.Serve.Serve;
 import android.app.Activity;
 import android.app.Fragment;
-import android.content.Context;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.Menu;
-import android.view.MenuItem;
-import android.view.View;
-import android.view.ViewGroup;
-
-import com.codeplex.peerly.common.KeyStoreManagement;
+import android.view.*;
 import com.codeplex.peerly.couchdbserverandroid.R;
+import com.codeplex.thali.utilities.ThaliCryptoUtilities;
 import com.couchbase.cblite.CBLServer;
 import com.couchbase.cblite.listener.CBLListener;
-
+import com.couchbase.cblite.router.CBLRequestAuthorization;
+import com.couchbase.cblite.router.CBLURLConnection;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
-import java.security.KeyPair;
 import java.security.KeyStore;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.cert.CertificateException;
 import java.util.Properties;
-
-import Acme.Serve.SSLAcceptor;
-import Acme.Serve.Serve;
 
 public class MainActivity extends Activity {
     private CBLListener cblListener = null;
     private final int defaultCouchPort = 9898;
-    private final String tjwsSslAcceptor = "com.couchbase.cblite.listener.CBLSSLAcceptor";
+    private final String tjwsSslAcceptor = "com.codeplex.peerly.couchdbtest.ThaliSelfSignedMutualAuthSSLAcceptor"; // "com.couchbase.cblite.listener.ThaliSelfSignedMutualAuthSSLAcceptor";
     private final String deviceKeyAlias = "com.codeplex.peerly.names.devicealias";
     private final String keystoreFileName = "com.codeplex.peerly.names.keystore";
     private final Logger Log = LoggerFactory.getLogger(MainActivity.class);
+
+    private class Authorize implements CBLRequestAuthorization {
+
+        @Override
+        public boolean Authorize(CBLServer cblServer, CBLURLConnection cblurlConnection) {
+            return false;
+        }
+    }
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -60,18 +57,15 @@ public class MainActivity extends Activity {
 
             Properties tjwsProperties = new Properties();
             tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, tjwsSslAcceptor);
-            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, KeyStoreManagement.PrivateKeyHolderFormat);
+            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
             tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, GetKeyStoreAbsolutePath());
-            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(KeyStoreManagement.DefaultPassPhrase));
+            tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
 
-            cblListener = new CBLListener(server, defaultCouchPort, tjwsProperties);
+            tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
+
+            cblListener = new CBLListener(server, defaultCouchPort, tjwsProperties, null);
 
             cblListener.start();
-
-            // Lets see if the server is running!
-            int port = cblListener.getListenPort();
-            //new TestAsynchCouchClient().execute(port);
-
         } catch (IOException e) {
             Log.error("Error starting TDServer", e);
         }
@@ -104,8 +98,8 @@ public class MainActivity extends Activity {
         }
 
         KeyStore keyStore =
-                KeyStoreManagement.CreatePKCS12KeyStoreWithNewPublicPrivateKeyPair(
-                        KeyStoreManagement.GeneratePeerlyAcceptablePublicPrivateKeyPair(), deviceKeyAlias, KeyStoreManagement.DefaultPassPhrase);
+                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithNewPublicPrivateKeyPair(
+                        ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair(), deviceKeyAlias, ThaliCryptoUtilities.DefaultPassPhrase);
 
         // TODO: I really need to figure out if I can safely use Java 7 features like try with resources and Android, the fact that Android Studio defaults to not support Java 7 makes me very nervous
         FileOutputStream fileOutputStream = null;
@@ -113,7 +107,7 @@ public class MainActivity extends Activity {
             // Yes this can swallow exceptions (if you got an exception inside this try and then the finally has an exception, but given what I'm doing here I don't care.
             try {
                 fileOutputStream =  new FileOutputStream(keyStoreFile);
-                keyStore.store(new FileOutputStream(keyStoreFile), KeyStoreManagement.DefaultPassPhrase);
+                keyStore.store(fileOutputStream, ThaliCryptoUtilities.DefaultPassPhrase);
             } finally {
                 if (fileOutputStream != null) {
                     fileOutputStream.close();
@@ -131,7 +125,6 @@ public class MainActivity extends Activity {
             cblListener.stop();
         }
     }
-
 
     @Override
     public boolean onCreateOptionsMenu(Menu menu) {
