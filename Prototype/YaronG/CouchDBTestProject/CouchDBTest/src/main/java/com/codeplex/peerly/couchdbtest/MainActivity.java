@@ -7,35 +7,103 @@ import android.app.Fragment;
 import android.os.Bundle;
 import android.view.*;
 import com.codeplex.peerly.couchdbserverandroid.R;
-import com.codeplex.thali.utilities.ThaliCryptoUtilities;
-import com.couchbase.cblite.CBLServer;
+import com.codeplex.thali.utilities.universal.CouchDBDocumentKeyClassForTests;
+import com.codeplex.thali.utilities.universal.ThaliCryptoUtilities;
+import com.codeplex.thali.utilities.universal.ThaliPublicKeyComparer;
+import com.codeplex.thali.utilities.universal.ThaliTestEktorpClient;
+import com.couchbase.cblite.*;
 import com.couchbase.cblite.listener.CBLListener;
 import com.couchbase.cblite.router.CBLRequestAuthorization;
+import com.couchbase.cblite.router.CBLRouter;
 import com.couchbase.cblite.router.CBLURLConnection;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.net.ssl.SSLSession;
 import java.io.File;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.security.KeyStore;
+import java.util.EnumSet;
+import java.util.List;
 import java.util.Properties;
 
 public class MainActivity extends Activity {
     private CBLListener cblListener = null;
     private final int defaultCouchPort = 9898;
+    private final String defaultCouchAddress = "127.0.0.1";
     private final String tjwsSslAcceptor = "com.codeplex.peerly.couchdbtest.ThaliSelfSignedMutualAuthSSLAcceptor"; // "com.couchbase.cblite.listener.ThaliSelfSignedMutualAuthSSLAcceptor";
     private final String deviceKeyAlias = "com.codeplex.peerly.names.devicealias";
     private final String keystoreFileName = "com.codeplex.peerly.names.keystore";
     private final Logger Log = LoggerFactory.getLogger(MainActivity.class);
 
-    private class Authorize implements CBLRequestAuthorization {
-
+    public class Authorize implements CBLRequestAuthorization {
         @Override
         public boolean Authorize(CBLServer cblServer, CBLURLConnection cblurlConnection) {
-            return false;
+            List<String> pathSegments = CBLRouter.splitPath(cblurlConnection.getURL());
+
+            // For now all we really care about are attempts to access the data database.
+            if (pathSegments.size() == 0 || pathSegments.get(0).equals(ThaliTestEktorpClient.TestDatabaseName) == false) {
+                return true;
+            }
+
+            CBLDatabase keyDatabase = cblServer.getExistingDatabaseNamed(ThaliTestEktorpClient.KeyDatabaseName);
+
+            // No database? Then no one is authorized.
+            if (keyDatabase == null) {
+                InsecureConnection(cblurlConnection);
+                return false;
+            }
+
+            CBLRevisionList revisionList = keyDatabase.getAllRevisionsOfDocumentID(ThaliTestEktorpClient.KeyId, true);
+            EnumSet<CBLDatabase.TDContentOptions> tdContentOptionses = EnumSet.noneOf(CBLDatabase.TDContentOptions.class);
+            CBLRevision revision =
+                    keyDatabase.getDocumentWithIDAndRev(
+                            ThaliTestEktorpClient.KeyId,
+                            revisionList.getAllRevIds().get(revisionList.getAllRevIds().size() - 1),
+                            tdContentOptionses);
+
+            ObjectMapper mapper = new ObjectMapper();
+            try {
+                CouchDBDocumentKeyClassForTests keyClassForTests = mapper.readValue(revision.getJson(), CouchDBDocumentKeyClassForTests.class);
+                if (CouchDBDocumentKeyClassForTests.RSAKeyType.equals(keyClassForTests.getKeyType()) == false) {
+                    // A 500 would be more appropriate but we are just testing
+                    InsecureConnection(cblurlConnection);
+                    return false;
+                }
+
+                SSLSession sslSession = cblurlConnection.getSSLSession();
+                try {
+                    javax.security.cert.X509Certificate[] certChain = sslSession.getPeerCertificateChain();
+                    if (new ThaliPublicKeyComparer(certChain[certChain.length - 1]
+                            .getPublicKey())
+                            .KeysEqual(keyClassForTests.generatePublicKey()) == false) {
+                        InsecureConnection(cblurlConnection);
+                        return false;
+                    }
+                    return true;
+                } catch (Exception e) {
+                    // A 500 would be better
+                    InsecureConnection(cblurlConnection);
+                    return false;
+                }
+            } catch (IOException e) {
+                InsecureConnection(cblurlConnection);
+                return false;
+            }
+        }
+
+        private void InsecureConnection(CBLURLConnection cblurlConnection) {
+            cblurlConnection.setResponseCode(CBLStatus.FORBIDDEN);
+            try {
+                cblurlConnection.getResponseOutputStream().close();
+            } catch (IOException e) {
+                android.util.Log.e("ThaliTestServer", "Error closing empty output stream");
+            }
         }
     }
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -63,7 +131,11 @@ public class MainActivity extends Activity {
 
             tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
 
-            cblListener = new CBLListener(server, defaultCouchPort, tjwsProperties, null);
+            tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, defaultCouchAddress);
+
+            Authorize authorize = new Authorize();
+
+            cblListener = new CBLListener(server, defaultCouchPort, tjwsProperties, authorize);
 
             cblListener.start();
         } catch (IOException e) {
@@ -98,7 +170,7 @@ public class MainActivity extends Activity {
         }
 
         KeyStore keyStore =
-                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithNewPublicPrivateKeyPair(
+                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(
                         ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair(), deviceKeyAlias, ThaliCryptoUtilities.DefaultPassPhrase);
 
         // TODO: I really need to figure out if I can safely use Java 7 features like try with resources and Android, the fact that Android Studio defaults to not support Java 7 makes me very nervous

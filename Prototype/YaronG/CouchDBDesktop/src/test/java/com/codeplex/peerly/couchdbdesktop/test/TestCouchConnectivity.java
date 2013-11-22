@@ -5,7 +5,6 @@ import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.conn.HttpRoutedConnection;
-import org.apache.http.conn.ssl.SSLSocketFactory;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
@@ -15,6 +14,7 @@ import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
 import org.ektorp.http.StdHttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
+import org.ektorp.support.CouchDbDocument;
 import org.junit.Test;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -29,6 +29,7 @@ import java.security.cert.X509Certificate;
 import java.security.interfaces.RSAPublicKey;
 import java.util.List;
 import java.util.Random;
+import java.util.Stack;
 
 import static org.junit.Assert.assertTrue;
 
@@ -50,29 +51,16 @@ public class TestCouchConnectivity {
 
     private Boolean UseProxy = false;
 
+    private final String keyID = "key";
+
     private StdHttpClient.Builder getEktorpHttpClientBuilder(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        SSLSocketFactory sslSocketFactory = new HttpKeySSLSocketFactory(clientKey, clientPassPhrase);
-        StdHttpClient.Builder httpClientBuilder = new StdHttpClient.Builder().host(hostName).port(port).useExpectContinue(false).relaxedSSLSettings(true).enableSSL(true);//.sslSocketFactory(sslSocketFactory);
+        StdHttpClient.Builder httpClientBuilder = new StdHttpClient.Builder().host(hostName).port(port).useExpectContinue(false).relaxedSSLSettings(true).enableSSL(true).socketTimeout(1000000).connectionTimeout(1000000);//.sslSocketFactory(sslSocketFactory);
 
         if (UseProxy) {
             httpClientBuilder = httpClientBuilder.proxy(ProxyHost).proxyPort(ProxyPort);
         }
 
         return httpClientBuilder;
-    }
-
-    private org.apache.http.client.HttpClient getApacheHttpClient(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return getEktorpHttpClientBuilder(hostName, port, clientKey, clientPassPhrase).configureClient();
-    }
-
-    /**
-     * Allows us to configure common HTTP Client parameters like the use of a proxy in a single location.
-     * @param hostName
-     * @param port
-     * @return
-     */
-    private HttpClient getErktopHttpClient(String hostName, int port, KeyStore clientKey, char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        return new StdHttpClient(getApacheHttpClient(hostName, port, clientKey, clientPassPhrase));
     }
 
     private boolean rsaPublicKeyComparer(RSAPublicKey key1, RSAPublicKey key2) {
@@ -140,12 +128,9 @@ public class TestCouchConnectivity {
 
         System.setProperty("org.apache.commons.logging.simplelog.defaultlog", "all");
 
-//        System.setProperty("sun.security.ssl.allowUnsafeRenegotiation", "false");
-//
-//        System.setProperty("sun.security.ssl.allowLegacyHelloMessages", "false");
-
         //createRetrieveTest(ErlangHost, ErlangPort);
         createRetrieveTest(AndroidHost, AndroidPort);
+        //testNoSSL(AndroidHost, AndroidPort);
     }
 
     /**
@@ -177,14 +162,27 @@ public class TestCouchConnectivity {
     }
 
     public void createRetrieveTest(String host, int port) throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
-        KeyStore clientKeys = ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair(),"foo",ThaliCryptoUtilities.DefaultPassPhrase);
+        KeyPair clientKeys = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+        KeyStore clientKeyStore = ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(clientKeys,"foo",ThaliCryptoUtilities.DefaultPassPhrase);
 
-        RSAPublicKey serverPublicKey = (RSAPublicKey) getServersRootPublicKey(host, port, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase);
+        RSAPublicKey serverPublicKey = (RSAPublicKey) getServersRootPublicKey(host, port, clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
 
-        HttpClient httpClientToUpdate = getErktopHttpKeyClient(host, port, serverPublicKey, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase); // ThaliEktorpUtilities.getErktopHttpKeyClient(host, port, null, 0, serverPublicKey, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase);
+        HttpClient httpClientToUpdate = getErktopHttpKeyClient(host, port, serverPublicKey, clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase); // ThaliEktorpUtilities.getErktopHttpKeyClient(host, port, null, 0, serverPublicKey, clientKeys, ThaliCryptoUtilities.DefaultPassPhrase);
         CouchDbInstance couchDbInstanceToUpdate = new StdCouchDbInstance(httpClientToUpdate);
         CouchDbConnector couchDbConnector = couchDbInstanceToUpdate.createConnector(TestDatabaseName, true);
-        validateDatabaseState(couchDbConnector, setUpData(couchDbInstanceToUpdate, TestDatabaseName, 1, MaximumTestRecords));
+        validateDatabaseState(couchDbConnector, setUpData(couchDbInstanceToUpdate, TestDatabaseName, 1, MaximumTestRecords, (RSAPublicKey) clientKeys.getPublic()));
+    }
+
+    /**
+     * Used for regression testing
+     * @param hostName
+     * @param port
+     */
+    private void testNoSSL(String hostName, int port) {
+        HttpClient httpClient = new StdHttpClient.Builder().host(hostName).port(port).useExpectContinue(false).socketTimeout(1000000).connectionTimeout(1000000).build();
+        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClient);
+        setUpData(couchDbInstance, TestDatabaseName, 1, MaximumTestRecords, null);
+
     }
 
     /**
@@ -192,22 +190,41 @@ public class TestCouchConnectivity {
      * returns the records so they can be tested against. Note that it is possible for 0 docs to be
      * generated which can be useful for some kinds of tests and surprising for others.
      * @param couchDbInstance
+     * @param databaseName
+     * @param  minimumTestRecords
+     * @param maximumTestRecords
+     * @param clientPublicKey This can be null if we are doing regression testing of no SSL and SSL without client auth scenarios
      */
-    private TestBlogClass[] setUpData(CouchDbInstance couchDbInstance, String databaseName, int minimumRestRecords, int maximumTestRecords) {
+    private CouchDbDocument[] setUpData(CouchDbInstance couchDbInstance, String databaseName, int minimumTestRecords, int maximumTestRecords, RSAPublicKey clientPublicKey) {
+        String bigString = "bbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbbb";
+        String littleString = "1234567890";
         couchDbInstance.deleteDatabase(databaseName);
         couchDbInstance.createDatabase(databaseName);
         CouchDbConnector couchDbConnector = couchDbInstance.createConnector(databaseName, true);
 
-        Random random = new Random();
-        int numberOfDocuments = random.nextInt((maximumTestRecords - minimumRestRecords)+1) + minimumRestRecords;
-        TestBlogClass[] generatedDocs = new TestBlogClass[numberOfDocuments];
-        for(int i = 0; i < numberOfDocuments; ++i) {
-            generatedDocs[i] = new TestBlogClass();
-            generatedDocs[i].setBlogArticleName(String.valueOf(random.nextInt()));
-            generatedDocs[i].setBlogArticleContent(String.valueOf(random.nextInt()));
-            couchDbConnector.create(generatedDocs[i]);
+        Stack<CouchDbDocument> generatedDocs = new Stack<CouchDbDocument>();
+
+        // Set key for authorization - Authorization is set up to allow anyone to set the document with the ID keyID but all other requests have to have
+        // the key specified in the key document. This isn't meant to be secure, just to test if we are getting certs and validating them correctly.
+        if (clientPublicKey != null) {
+            TestRSAKeyClass testRSAKeyClass = new TestRSAKeyClass(clientPublicKey.getModulus().toString(), clientPublicKey.getPublicExponent().toString());
+            testRSAKeyClass.setId(keyID);
+            couchDbConnector.create(testRSAKeyClass);
+            generatedDocs.push(testRSAKeyClass);
         }
-        return generatedDocs;
+
+
+        Random random = new Random();
+        int numberOfDocuments = random.nextInt((maximumTestRecords - minimumTestRecords)+1) + minimumTestRecords;
+        for(int i = 0; i < numberOfDocuments; ++i) {
+            TestBlogClass testBlog = new TestBlogClass();
+            testBlog.setBlogArticleName(String.valueOf(random.nextBoolean() ? bigString : littleString));
+            testBlog.setBlogArticleContent(String.valueOf(random.nextBoolean() ? bigString : littleString));
+            couchDbConnector.create(testBlog);
+            generatedDocs.push(testBlog);
+        }
+
+        return generatedDocs.toArray(new CouchDbDocument[generatedDocs.size()]);
     }
 
     /**
@@ -216,14 +233,15 @@ public class TestCouchConnectivity {
      * @param couchDbConnector
      * @param docsToCheck
      */
-    private void validateDatabaseState(CouchDbConnector couchDbConnector, TestBlogClass[] docsToCheck) {
+    private void validateDatabaseState(CouchDbConnector couchDbConnector, CouchDbDocument[] docsToCheck) {
         List<String> docIds = couchDbConnector.getAllDocIds();
 
         assertTrue(docIds.size() == docsToCheck.length);
 
         for(int i = 0; i < docsToCheck.length; ++i) {
             assertTrue(docIds.contains(docsToCheck[i].getId()));
-            assertTrue(docsToCheck[i].equals(couchDbConnector.get(docsToCheck[i].getClass(), docsToCheck[i].getId())));
+            CouchDbDocument remoteDocument = couchDbConnector.get(docsToCheck[i].getClass(), docsToCheck[i].getId());
+            assertTrue(docsToCheck[i].equals(remoteDocument));
         }
     }
 }

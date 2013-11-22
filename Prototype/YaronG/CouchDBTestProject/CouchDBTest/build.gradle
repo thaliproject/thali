@@ -43,5 +43,10 @@ dependencies {
     // There is a conflict when I include this
     //compile 'org.slf4j:slf4j-android:1.6.1-RC1'
 
-    compile 'com.codeplex.thali.utilities:ThaliUtilitiesAndroid:0.0.1'
+    compile 'com.codeplex.thali:ThaliUtilitiesUniversal:0.0.1'
+}
+
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
 }

@@ -1,0 +1,56 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+dependencies {
+    compile 'com.codeplex.thali:ThaliUtilitiesUniversal:0.0.1'
+
+    testCompile 'junit:junit:4.11'
+}
+
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+
+            pom.version = "0.0.1"
+            pom.groupId = 'com.codeplex.thali'
+            pom.artifactId = 'ThaliUtilitiesJava'
+            pom.project {
+                licenses {
+                    license {
+                        name 'Apache 2.0'
+                        url 'https://peerly.codeplex.com/SourceControl/latest#license.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task installLocal(dependsOn: uploadArchives)
+
+task sourcesJar(type: Jar, dependsOn: classes) {
+    classifier = 'sources'
+    from sourceSets.main.java.srcDirs
+}
+
+task generateJavadocs(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    source = sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives sourcesJar
+    archives generateJavadocs
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
+}

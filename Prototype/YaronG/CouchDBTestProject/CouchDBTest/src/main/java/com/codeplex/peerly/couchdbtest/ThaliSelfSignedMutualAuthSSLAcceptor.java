@@ -41,10 +41,7 @@ import com.couchbase.cblite.listener.CBLAcceptor;
 import com.couchbase.cblite.listener.CBLSSLAcceptor;
 import com.couchbase.cblite.listener.CBLSocketStatus;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;

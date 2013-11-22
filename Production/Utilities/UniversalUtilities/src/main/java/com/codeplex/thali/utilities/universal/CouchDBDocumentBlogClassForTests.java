@@ -1,11 +1,11 @@
-package com.codeplex.peerly.couchdbdesktop.test;
+package com.codeplex.thali.utilities.universal;
 
 import org.ektorp.support.CouchDbDocument;
 
 /**
  * Created by yarong on 10/22/13.
  */
-public class TestBlogClass extends CouchDbDocument {
+public class CouchDBDocumentBlogClassForTests extends CouchDbDocument {
     private String blogArticleName;
     private String blogArticleContent;
 
@@ -27,10 +27,10 @@ public class TestBlogClass extends CouchDbDocument {
 
     @Override
     public boolean equals(Object object) {
-        if ((object instanceof  TestBlogClass) == false) {
+        if ((object instanceof CouchDBDocumentBlogClassForTests) == false) {
             return false;
         }
-        TestBlogClass compareTo = (TestBlogClass) object;
+        CouchDBDocumentBlogClassForTests compareTo = (CouchDBDocumentBlogClassForTests) object;
         return (this.getId().equals(compareTo.getId()) &&
                 this.getRevision().equals(compareTo.getRevision()) &&
                 this.getBlogArticleName().equals(compareTo.getBlogArticleName()) &&
