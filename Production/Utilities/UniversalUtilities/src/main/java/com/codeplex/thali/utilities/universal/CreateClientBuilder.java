@@ -1,5 +1,6 @@
 package com.codeplex.thali.utilities.universal;
 
+import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ssl.SSLSocketFactory;
 
 import javax.net.ssl.KeyManagerFactory;
@@ -11,9 +12,29 @@ import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
 
 /**
- * Created by yarong on 11/20/13.
+ * Ektorp using different client builders for Java and for Android, this class lets us abtract that away so we can
+ * build a common test base for both.
  */
-public class ThaliHttpClientUtilities {
+public abstract class CreateClientBuilder {
+    public static final int timeout = 2 * 60 * 1000;
+
+    /**
+     *
+     * @param host
+     * @param port
+     * @param serverPublicKey If null then the server won't be validated
+     * @param clientKeyStore
+     * @param clientKeyStorePassPhrase
+     * @return
+     */
+    abstract public HttpClient CreateApacheClient(String host, int port, PublicKey serverPublicKey, KeyStore clientKeyStore,
+                                         char[] clientKeyStorePassPhrase)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
+
+    abstract public org.ektorp.http.HttpClient CreateEktorpClient(String host, int port, PublicKey serverPublicKey,
+                                                         KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
+
     /**
      * Creates a SSL Socket Factory that will validate that the server presented a cert chain that roots with the
      * key serverPublicKey and will present to the server (if asked) the key stored in clientKeyStore
@@ -21,13 +42,13 @@ public class ThaliHttpClientUtilities {
      * @param clientKeyStore make sure there is just one public/private key pair
      * @param clientPassPhrase
      * @return
-     * @throws NoSuchAlgorithmException
-     * @throws KeyManagementException
-     * @throws UnrecoverableKeyException
-     * @throws KeyStoreException
+     * @throws java.security.NoSuchAlgorithmException
+     * @throws java.security.KeyManagementException
+     * @throws java.security.UnrecoverableKeyException
+     * @throws java.security.KeyStoreException
      */
     public static SSLSocketFactory getHttpKeySocketFactory(final PublicKey serverPublicKey,
-                                                     final KeyStore clientKeyStore, final char[] clientPassPhrase)
+                                                           final KeyStore clientKeyStore, final char[] clientPassPhrase)
             throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, KeyStoreException {
         // Adapted from http://stackoverflow.com/questions/2703161/how-to-ignore-ssl-certificate-errors-in-apache-httpclient-4-0 and from configureScheme in StdHttpClient.java in Ektorp
         SSLContext sslContext = SSLContext.getInstance("TLS");
@@ -64,5 +85,4 @@ public class ThaliHttpClientUtilities {
         sslContext.init(keyManagerFactory.getKeyManagers(), new TrustManager[] { trustManager }, null);
         return new SSLSocketFactory(sslContext, SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
-
 }

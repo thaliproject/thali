@@ -11,10 +11,12 @@ import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
+import org.ektorp.DbAccessException;
 import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 import org.ektorp.support.CouchDbDocument;
 
+import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
 import java.security.*;
 import java.util.List;
@@ -136,21 +138,75 @@ public class ThaliTestEktorpClient {
         return generatedDocs.toArray(new CouchDbDocument[generatedDocs.size()]);
     }
 
+    public static void runBadKeyTest(String host, int port, CreateClientBuilder createClientBuilder,
+                                     PublicKey actualServerPublicKey, KeyStore actualClientKeyStore,
+                                     char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+
+        KeyPair wrongKeys = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+
+        HttpClient httpClientWithWrongServerKeyAndRightClientKey =
+                createClientBuilder.CreateEktorpClient(host, port, wrongKeys.getPublic(), actualClientKeyStore, clientPassPhrase);
+
+        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClientWithWrongServerKeyAndRightClientKey);
+
+        try {
+            CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, true);
+            assert false;
+        } catch (Exception e) {
+            assert e.getCause() instanceof SSLPeerUnverifiedException;
+        }
+
+        KeyStore wrongClientKeyStore =
+                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(wrongKeys, "foo",
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        HttpClient httpClientWithRightServerKeyAndWrongClientKey =
+                createClientBuilder.CreateEktorpClient(host, port, actualServerPublicKey, wrongClientKeyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        couchDbInstance = new StdCouchDbInstance(httpClientWithRightServerKeyAndWrongClientKey);
+        try {
+            CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, true);
+            assert false;
+        } catch (DbAccessException e) {
+        }
+    }
+
 
     /**
      * Runs a test where we set a user key in one database and then post to another. If the clientPublicKey is
      * null then the key database won't be created.
-     * @param httpClient
-     * @param clientPublicKey
+     * @param host
+     * @param port
+     * @param createClientBuilder
      * @throws IOException
      * @throws KeyManagementException
      * @throws NoSuchAlgorithmException
      * @throws UnrecoverableKeyException
      * @throws KeyStoreException
      */
-    public static void runRetrieveTest(HttpClient httpClient, PublicKey clientPublicKey) throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
-        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClient);
+    public static void runRetrieveTest(String host, int port, CreateClientBuilder createClientBuilder) throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
+        KeyPair clientKeys = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+
+        KeyStore clientKeyStore =
+                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(clientKeys,"foo",
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        org.apache.http.client.HttpClient httpClientNoServerValidation =
+                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        PublicKey serverPublicKey =
+                ThaliTestEktorpClient.getServersRootPublicKey(host, port, clientKeyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase, httpClientNoServerValidation);
+
+        HttpClient httpClientWithServerValidation =
+                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClientWithServerValidation);
         CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, false);
-        validateDatabaseState(couchDbConnector, setUpData(couchDbInstance, 1, MaximumTestRecords, clientPublicKey));
+        validateDatabaseState(couchDbConnector, setUpData(couchDbInstance, 1, MaximumTestRecords, clientKeys.getPublic()));
+        runBadKeyTest(host, port, createClientBuilder, serverPublicKey, clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
     }
 }
