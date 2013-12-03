@@ -1,0 +1,31 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.6.+'
+    }
+}
+apply plugin: 'android-library'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 18
+    buildToolsVersion "18.1.1"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 18
+    }
+}
+
+dependencies {
+    compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
+    compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1'
+
+    instrumentTestCompile 'com.couchbase.cblite:CBListener:1.0.0-beta'
+}

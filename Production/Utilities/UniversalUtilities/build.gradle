@@ -1,6 +1,8 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 
+sourceCompatibility = '1.6'
+
 repositories {
     mavenLocal()
     mavenCentral()
@@ -22,7 +24,7 @@ uploadArchives {
             repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
 
             pom.version = "0.0.1"
-            pom.groupId = 'com.codeplex.thali'
+            pom.groupId = 'com.msopentech.thali'
             pom.artifactId = 'ThaliUtilitiesUniversal'
             pom.project {
                 licenses {

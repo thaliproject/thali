@@ -7,7 +7,7 @@ repositories {
 }
 
 dependencies {
-    compile 'com.codeplex.thali:ThaliUtilitiesUniversal:0.0.1'
+    compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1'
 
     testCompile 'junit:junit:4.11'
 }
@@ -19,7 +19,7 @@ uploadArchives {
             repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
 
             pom.version = "0.0.1"
-            pom.groupId = 'com.codeplex.thali'
+            pom.groupId = 'com.msopentech.thali'
             pom.artifactId = 'ThaliUtilitiesJava'
             pom.project {
                 licenses {

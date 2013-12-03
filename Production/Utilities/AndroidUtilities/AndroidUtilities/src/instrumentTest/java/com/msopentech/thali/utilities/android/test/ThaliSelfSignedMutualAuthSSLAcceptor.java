@@ -33,15 +33,17 @@
  *  to CouchBase Mobile but has not actually committed yet.
  */
 
-package com.codeplex.peerly.couchdbtest;
+package com.msopentech.thali.utilities.android.test;
 
 import Acme.Serve.Serve;
 import android.util.Log;
-import com.couchbase.cblite.listener.CBLAcceptor;
 import com.couchbase.cblite.listener.CBLSSLAcceptor;
 import com.couchbase.cblite.listener.CBLSocketStatus;
 
-import javax.net.ssl.*;
+import javax.net.ssl.KeyManagerFactory;
+import javax.net.ssl.SSLContext;
+import javax.net.ssl.TrustManager;
+import javax.net.ssl.X509TrustManager;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -53,9 +55,9 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 
 /**
- * Created by yarong on 11/1/13.
+ * Created by yarong on 11/26/13.
  */
-public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor implements CBLAcceptor {
+public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor {
 
     private static final String KEYSTOREPASS = "changeme";
 
@@ -200,7 +202,7 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor impleme
             try {
                 Thread.sleep(10);
             } catch (InterruptedException e) {
-                Log.e("ThaliSelfSignedMutualAuthSSLAcceptor","getPort sleep somehow got interrupted", e);
+                Log.e("ThaliSelfSignedMutualAuthSSLAcceptor", "getPort sleep somehow got interrupted", e);
                 throw new RuntimeException("getPort sleep somehow got interrupted", e);
             }
         }
