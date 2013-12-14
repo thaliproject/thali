@@ -1,11 +1,9 @@
 package com.msopentech.thali.utilities.universal;
 
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.params.HttpParams;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.IOException;
 import java.net.Socket;
 import java.security.*;
@@ -61,6 +59,17 @@ public class HttpKeySSLSocketFactory extends SSLSocketFactory {
         this.setHostnameVerifier(SSLSocketFactory.ALLOW_ALL_HOSTNAME_VERIFIER);
     }
 
+    // PAY ATTENTION - THIS PART IS GOING TO HURT.
+    // So as mentioned at the top of this class Google has decided to put an ancient version of Apache's HTTPClient
+    // into Android. That ancient version calls the first two createSocket calls below.
+    // Java, however, running a more modern version of Apache calls the third interface below. Of course if we
+    // were really writing for modern HttpClient this whole class wouldn't need to exist but that's another
+    // issue. But the fun part is that the third createsocket below doesn't exist in Android land. But it compiles
+    // (and runs) because the JAR is defined with a version of Apache that supports the interface but when
+    // running in Android a different version of the Apache HTTP Client is used which won't call the third
+    // method.
+    // And yes, this sucks.
+
     @Override
     public Socket createSocket(Socket socket, String host, int port, boolean autoClose) throws IOException {
         return sslContext.getSocketFactory().createSocket(socket, host, port, autoClose);
@@ -72,4 +81,10 @@ public class HttpKeySSLSocketFactory extends SSLSocketFactory {
          return sslContext.getSocketFactory().createSocket();
     }
 
+    @Override
+    public Socket createSocket(final HttpParams params) throws IOException {
+        SSLSocket sock = (SSLSocket) this.createSocket();
+        prepareSocket(sock);
+        return sock;
+    }
 }

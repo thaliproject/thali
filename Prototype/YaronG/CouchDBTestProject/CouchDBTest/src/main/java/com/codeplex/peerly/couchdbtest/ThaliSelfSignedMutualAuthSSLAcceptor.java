@@ -40,6 +40,7 @@ import android.util.Log;
 import com.couchbase.cblite.listener.CBLAcceptor;
 import com.couchbase.cblite.listener.CBLSSLAcceptor;
 import com.couchbase.cblite.listener.CBLSocketStatus;
+import com.couchbase.lite.listener.LiteAcceptor;
 
 import javax.net.ssl.*;
 import java.io.FileInputStream;
@@ -55,7 +56,7 @@ import java.util.Map;
 /**
  * Created by yarong on 11/1/13.
  */
-public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor implements CBLAcceptor {
+public class ThaliSelfSignedMutualAuthSSLAcceptor extends SSLAcceptor implements LiteAcceptor {
 
     private static final String KEYSTOREPASS = "changeme";
 

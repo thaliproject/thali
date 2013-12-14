@@ -2,9 +2,9 @@ package com.msopentech.thali.utilities.android.test;
 
 import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
-import com.couchbase.cblite.CBLServer;
-import com.couchbase.cblite.listener.CBLListener;
-import com.couchbase.cblite.listener.CBLSocketStatus;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.listener.LiteListener;
+import com.couchbase.lite.listener.SocketStatus;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 import org.slf4j.Logger;
@@ -12,7 +12,6 @@ import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.io.FileOutputStream;
-import java.io.IOException;
 import java.security.KeyStore;
 import java.security.KeyStoreException;
 import java.security.PublicKey;
@@ -27,7 +26,7 @@ public class ThaliTestServer {
     private static final String TjwsSslAcceptor = "com.msopentech.thali.utilities.android.test.ThaliSelfSignedMutualAuthSSLAcceptor";
     private static final String DefaultCouchAddress = "127.0.0.1";
 
-    private CBLListener cblListener = null;
+    private LiteListener cblListener = null;
     private boolean serverStarted = false;
     private final Logger Log = LoggerFactory.getLogger(ThaliTestServer.class);
     private KeyStore serverKeyStore;
@@ -94,28 +93,24 @@ public class ThaliTestServer {
 
         new Thread(new Runnable() {
             public void run() {
-                try {
-                    // Start the CouchDB Lite server
-                    CBLServer server = new CBLServer (filesDir.getAbsolutePath());
+                // Start the CouchDB Lite manager
+                Manager manager = new Manager (filesDir, null);
 
-                    Properties tjwsProperties = new Properties();
-                    tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, TjwsSslAcceptor);
-                    tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
-                    tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, getKeyStoreFileObject(filesDir).getAbsolutePath());
-                    tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
+                Properties tjwsProperties = new Properties();
+                tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, TjwsSslAcceptor);
+                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
+                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, getKeyStoreFileObject(filesDir).getAbsolutePath());
+                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
 
-                    tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
+                tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
 
-                    tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultCouchAddress);
+                tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultCouchAddress);
 
-                    ThaliTestServiceAuthorize authorize = new ThaliTestServiceAuthorize();
+                ThaliTestServiceAuthorize authorize = new ThaliTestServiceAuthorize();
 
-                    cblListener = new CBLListener(server, 0, tjwsProperties, authorize);
+                cblListener = new LiteListener(manager, 0, tjwsProperties, authorize);
 
-                    cblListener.start();
-                } catch (IOException e) {
-                    Log.error("Error starting TDServer", e);
-                }
+                cblListener.start();
             }
         }).start();
     }
@@ -127,7 +122,7 @@ public class ThaliTestServer {
         serverStarted = false;
     }
 
-    public CBLSocketStatus getCBLSocketStatus() throws InterruptedException {
+    public SocketStatus getSocketStatus() throws InterruptedException {
         waitTillServerStarts();
 
         return cblListener.getSocketStatus();

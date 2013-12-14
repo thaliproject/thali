@@ -37,8 +37,8 @@ package com.msopentech.thali.utilities.android.test;
 
 import Acme.Serve.Serve;
 import android.util.Log;
-import com.couchbase.cblite.listener.CBLSSLAcceptor;
-import com.couchbase.cblite.listener.CBLSocketStatus;
+import com.couchbase.lite.listener.LiteSSLAcceptor;
+import com.couchbase.lite.listener.SocketStatus;
 
 import javax.net.ssl.KeyManagerFactory;
 import javax.net.ssl.SSLContext;
@@ -57,7 +57,7 @@ import java.util.Map;
 /**
  * Created by yarong on 11/26/13.
  */
-public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor {
+public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
 
     private static final String KEYSTOREPASS = "changeme";
 
@@ -211,8 +211,8 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends CBLSSLAcceptor {
     }
 
     @Override
-    public CBLSocketStatus getCBLSocketStatus() {
-        return new CBLSocketStatus(getLocalSocket());
+    public SocketStatus getSocketStatus() {
+        return new SocketStatus(getLocalSocket());
     }
 
     protected String getWithDefault(Map args, String name, String defValue) {

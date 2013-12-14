@@ -32,6 +32,6 @@ public class JavaEktorpCreateClientBuilderTest {
     public void testClient()
             throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException {
-        ThaliTestEktorpClient.runRetrieveTest(AndroidHost, AndroidPort, new JavaEktorpCreateClientBuilder());
+        ThaliTestEktorpClient.runRetrieveTest(AndroidHost, AndroidPort, new JavaEktorpCreateClientBuilder(), null);
     }
 }

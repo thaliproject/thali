@@ -25,7 +25,7 @@ uploadArchives {
                 licenses {
                     license {
                         name 'Apache 2.0'
-                        url 'https://peerly.codeplex.com/SourceControl/latest#license.txt'
+                        url 'https://thali.codeplex.com/SourceControl/latest#license.txt'
                         distribution 'repo'
                     }
                 }

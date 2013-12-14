@@ -7,6 +7,7 @@ buildscript {
     }
 }
 apply plugin: 'android-library'
+apply plugin: 'maven'
 
 repositories {
     mavenLocal()
@@ -27,5 +28,42 @@ dependencies {
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1'
 
-    instrumentTestCompile 'com.couchbase.cblite:CBListener:1.0.0-beta'
+    instrumentTestCompile 'com.couchbase.lite:Listener:1.0.0-beta'
+    instrumentTestCompile fileTree(dir: 'libs', include: 'td_collator_so.jar')
+}
+
+uploadArchives {
+    repositories {
+        mavenDeployer {
+            repository url: 'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath
+
+            pom.version = "0.0.1"
+            pom.groupId = 'com.msopentech.thali'
+            pom.artifactId = 'ThaliUtilitiesJava'
+            pom.project {
+                licenses {
+                    license {
+                        name 'Apache 2.0'
+                        url 'https://peerly.codeplex.com/SourceControl/latest#license.txt'
+                        distribution 'repo'
+                    }
+                }
+            }
+        }
+    }
+}
+
+task installLocal(dependsOn: uploadArchives)
+
+task sourcesJar(type: Jar) {
+    classifier = 'sources'
+    from android.sourceSets.main.java.srcDirs
+}
+
+artifacts {
+    archives sourcesJar
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.8'
 }

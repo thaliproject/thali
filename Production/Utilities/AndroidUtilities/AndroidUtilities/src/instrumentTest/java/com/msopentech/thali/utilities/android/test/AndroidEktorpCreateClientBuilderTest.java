@@ -24,7 +24,7 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         ThaliTestServer thaliTestServer = new ThaliTestServer();
         thaliTestServer.startServer(getContext().getFilesDir());
 
-        int port = thaliTestServer.getCBLSocketStatus().getPort();
+        int port = thaliTestServer.getSocketStatus().getPort();
         ThaliTestEktorpClient.runRetrieveTest(
                 MachineHost, port, new AndroidEktorpCreateClientBuilder(), thaliTestServer.getServerPublicKey());
     }
