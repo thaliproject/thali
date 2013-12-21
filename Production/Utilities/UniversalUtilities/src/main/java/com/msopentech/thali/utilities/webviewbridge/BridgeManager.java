@@ -1,3 +1,17 @@
+/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
+
+
 package com.msopentech.thali.utilities.webviewbridge;
 
 import java.io.IOException;
@@ -10,6 +24,7 @@ import java.util.concurrent.ConcurrentHashMap;
  * This object is thread safe.
  */
 public abstract class BridgeManager implements Bridge {
+    protected String callbackManager = "window.thali_callback_manager";
     private String managerNameInJavascript = "ThaliBridgeManager0";
     private String pathToBridgeManagerJs = "/BridgeManager.js";
     private boolean javascriptLoaded = false;
@@ -38,27 +53,29 @@ public abstract class BridgeManager implements Bridge {
     }
 
     /**
-     * The manager will pass in the Javascript that controls the bridge on the browser side to this API and expect
-     * whatever binding is needed to be used to load that Javascript inside the browser instance. I am using
-     * a string because all the WebView frameworks support loading a string and the file is tiny so let's keep it
-     * simple.
+     * Executes the submitted Javascript string in the associated WebView. Note, the string is expected to be a
+     * .js file.
      * @param javascript
      */
-    public abstract void loadManagerJavascript(String javascript);
+    public abstract void executeJavascript(final String javascript);
 
     /**
      * However this method is implemented it MUST be thread safe.
      * @param handlerName
      *
      */
-    public abstract void callBack(String handlerName, String jsonString);
+    public void callBack(String handlerName, String jsonString) {
+        String functionCall = callbackManager + "[\"" + handlerName + "\"]('" + jsonString + "')";
+        this.executeJavascript(functionCall);
+    }
 
     public void register(BridgeHandler bridgeHandler) {
         if (javascriptLoaded == false) {
             // We do this here rather than in a constructor because otherwise we get unpleasant race conditions
             // between the constructor called by super() from the inherited constructor and from this call back to
             // that inherited object. Nasty.
-            loadManagerJavascript(turnUTF8InputStreamToString(getClass().getResourceAsStream(pathToBridgeManagerJs)));
+            executeJavascript(turnUTF8InputStreamToString(getClass().getResourceAsStream(pathToBridgeManagerJs)));
+            javascriptLoaded = true;
         }
 
         if (registeredHandlers.putIfAbsent(bridgeHandler.getName(), bridgeHandler) != null) {
@@ -66,6 +83,14 @@ public abstract class BridgeManager implements Bridge {
         }
     }
 
+    /**
+     * The method that will be called by the Bridge framework from Javascript. E.g. someone calls to the bridge in
+     * Javascript and the bridge then marshals the call and calls across the bridge to this method.
+     * @param handlerName
+     * @param jsonString
+     * @param successHandlerName
+     * @param failureHandlerName
+     */
     public void invokeHandler(String handlerName, String jsonString, String successHandlerName, String failureHandlerName) {
         BridgeCallBack bridgeCallBack = new BridgeCallBack(this, successHandlerName, failureHandlerName);
 

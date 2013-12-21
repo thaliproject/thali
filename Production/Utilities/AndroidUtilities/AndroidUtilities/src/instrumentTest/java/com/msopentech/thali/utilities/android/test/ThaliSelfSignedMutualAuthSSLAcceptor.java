@@ -28,10 +28,21 @@
  *  $Id: SSLAcceptor.java,v 1.10 2013/03/02 09:11:56 cvs Exp $
  *  Created on Feb 21, 2007
  *  @author dmitriy
- *
- *  It also includes code that Yaron Y. Goland on assignment to Open Tech intends to submit
- *  to CouchBase Mobile but has not actually committed yet.
  */
+
+/*
+Any changes to the code are covered under the following license:
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
 
 package com.msopentech.thali.utilities.android.test;
 
