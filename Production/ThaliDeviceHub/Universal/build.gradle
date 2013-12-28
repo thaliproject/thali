@@ -11,15 +11,7 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-buildscript {
-    repositories {
-        mavenCentral()
-    }
-    dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
-    }
-}
-apply plugin: 'android-library'
+apply plugin: 'java'
 apply plugin: 'maven'
 
 repositories {
@@ -27,24 +19,12 @@ repositories {
     mavenCentral()
 }
 
-android {
-    compileSdkVersion 18
-    buildToolsVersion "18.1.1"
-
-    defaultConfig {
-        minSdkVersion 18
-        targetSdkVersion 18
-    }
-}
-
 dependencies {
-    compile 'com.couchbase.lite:Listener:1.0.0-beta'
-    compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1'
 
-    instrumentTestCompile files('libs/td_collator_so.jar')  //
-    //fileTree(dir: 'libs', include: '*.jar')
+    testCompile 'junit:junit:4.11'
 }
+
 
 uploadArchives {
     repositories {
@@ -53,7 +33,7 @@ uploadArchives {
 
             pom.version = "0.0.1"
             pom.groupId = 'com.msopentech.thali'
-            pom.artifactId = 'ThaliUtilitiesAndroid'
+            pom.artifactId = 'ThaliTDHUniversal'
             pom.project {
                 licenses {
                     license {
@@ -63,20 +43,25 @@ uploadArchives {
                     }
                 }
             }
-
         }
     }
 }
 
 task installLocal(dependsOn: uploadArchives)
 
-task sourcesJar(type: Jar) {
+task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
-    from android.sourceSets.main.java.srcDirs
+    from sourceSets.main.java.srcDirs
+}
+
+task generateJavadocs(type: Jar, dependsOn: javadoc) {
+    classifier = 'javadoc'
+    source = sourceSets.main.java.srcDirs
 }
 
 artifacts {
     archives sourcesJar
+    archives generateJavadocs
 }
 
 task wrapper(type: Wrapper) {

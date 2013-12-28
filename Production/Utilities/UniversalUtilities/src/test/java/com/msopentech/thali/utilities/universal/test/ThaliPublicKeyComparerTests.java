@@ -35,8 +35,8 @@ public class ThaliPublicKeyComparerTests {
 
     @Test
     public void testRsaPublicKeyComparer() throws Exception {
-        PublicKey rsaKey1 = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair().getPublic();
-        PublicKey rsaKey2 = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair().getPublic();
+        PublicKey rsaKey1 = ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair().getPublic();
+        PublicKey rsaKey2 = ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair().getPublic();
         PublicKey ecdhKey1 = generateEllpticCurve().getPublic();
 
         try {

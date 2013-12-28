@@ -27,9 +27,9 @@ import static org.junit.Assert.*;
 
 public class ThaliCryptoUtilitiesTest {
     @Test
-    public void testGeneratePeerlyAcceptablePublicPrivateKeyPair() throws Exception {
+    public void testGenerateThaliAcceptablePublicPrivateKeyPair() throws Exception {
         // These tests are just to make sure we are passing in the right parameters
-        KeyPair keyPair = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+        KeyPair keyPair = ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair();
         assertTrue(keyPair != null && keyPair.getPrivate() != null & keyPair.getPublic() != null);
 
         assertEquals(keyPair.getPublic().getAlgorithm(), ThaliCryptoUtilities.KeyTypeIdentifier);
@@ -40,7 +40,7 @@ public class ThaliCryptoUtilitiesTest {
 
     @Test
     public void testCreatePKCS12KeyStoreWithPublicPrivateKeyPair() throws Exception {
-        KeyPair keyPair = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+        KeyPair keyPair = ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair();
         String keyAlias = "foo";
         KeyStore keyStore = ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(keyPair, keyAlias, ThaliCryptoUtilities.DefaultPassPhrase);
         List<String> aliases = Collections.list(keyStore.aliases());

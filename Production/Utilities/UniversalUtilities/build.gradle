@@ -23,6 +23,7 @@ repositories {
 }
 
 dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.5'
     compile 'org.bouncycastle:bcprov-jdk15on:1.49'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
     compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
@@ -44,7 +45,7 @@ uploadArchives {
                 licenses {
                     license {
                         name 'Apache 2.0'
-                        url 'https://peerly.codeplex.com/SourceControl/latest#license.txt'
+                        url 'https://thali.codeplex.com/SourceControl/latest#license.txt'
                         distribution 'repo'
                     }
                 }

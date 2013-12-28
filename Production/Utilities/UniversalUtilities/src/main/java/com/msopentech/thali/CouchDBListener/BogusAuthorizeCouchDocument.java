@@ -11,8 +11,7 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-
-package com.msopentech.thali.utilities.universal;
+package com.msopentech.thali.CouchDBListener;
 
 import org.ektorp.support.CouchDbDocument;
 
@@ -25,22 +24,20 @@ import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
 /**
- * Used to store the key of the client that should have access to the database. Unfortunately the Jackson
- * parser as configured in Couch doesn't tell the difference between an integer and a BigInteger so when
- * passing a really big integer we get an out of bounds exception. So we encode things as strings instead.
+ * Created by yarong on 12/25/13.
  */
-public class CouchDBDocumentKeyClassForTests extends CouchDbDocument {
-    public static final String RSAKeyType = "RSAKeyType";
+public class BogusAuthorizeCouchDocument extends CouchDbDocument {
+    public static final java.lang.String RSAKeyType = "RSAKeyType";
 
     private String modulus = null;
     private String exponent = null;
     private String keyType = RSAKeyType;
 
-    public CouchDBDocumentKeyClassForTests() {
+    public BogusAuthorizeCouchDocument() {
         this(null);
     }
 
-    public CouchDBDocumentKeyClassForTests(PublicKey publicKey) {
+    public BogusAuthorizeCouchDocument(PublicKey publicKey) {
         if (publicKey == null) {
             return;
         }
@@ -79,14 +76,18 @@ public class CouchDBDocumentKeyClassForTests extends CouchDbDocument {
 
     @Override
     public boolean equals(Object object) {
-        if ((object instanceof CouchDBDocumentKeyClassForTests) == false) {
+        if ((object instanceof BogusAuthorizeCouchDocument) == false) {
             return false;
         }
-        CouchDBDocumentKeyClassForTests compareTo = (CouchDBDocumentKeyClassForTests) object;
+        BogusAuthorizeCouchDocument compareTo = (BogusAuthorizeCouchDocument) object;
         return (this.getId().equals(compareTo.getId()) &&
                 this.getRevision().equals(compareTo.getRevision()) &&
                 this.getKeyType().equals(compareTo.getKeyType()) &&
                 this.getModulus().equals(compareTo.getModulus()) &&
                 this.getExponent().equals(compareTo.getExponent()));
+    }
+
+    public static String generateRsaKeyId(java.security.interfaces.RSAPublicKey rsaPublicKey) {
+        return RSAKeyType + ":" + rsaPublicKey.getModulus().toString() + rsaPublicKey.getPublicExponent().toString();
     }
 }

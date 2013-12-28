@@ -22,29 +22,185 @@ import org.bouncycastle.cert.X509v1CertificateBuilder;
 import org.bouncycastle.cert.jcajce.JcaX509CertificateConverter;
 import org.bouncycastle.operator.ContentSigner;
 import org.bouncycastle.operator.jcajce.JcaContentSignerBuilder;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
+import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
+import java.security.cert.*;
 import java.security.cert.Certificate;
-import java.security.cert.X509Certificate;
+import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
 /**
  * Created by yarong on 11/12/13.
  */
 public class ThaliCryptoUtilities {
+    public final static String ThaliKeyAlias = "thaliKeyAlias";
     public final static String PrivateKeyHolderFormat = "PKCS12";
     public final static char[] DefaultPassPhrase = "Encrypting key files on a device with a password that is also stored on the device is security theater".toCharArray();
     public final static String KeyTypeIdentifier = "RSA";
     public final static int KeySizeInBits = 2048;
     public final static String SignerAlgorithm = "SHA256withRSA"; // TODO: Need to validate if that's a good choice
     public final static long ExpirationPeriodForCertsInDays = 365;
+    private static final String KeystoreFileName = "com.msopentech.thali.name.keystore";
+    private static Logger logger = LoggerFactory.getLogger(ThaliCryptoUtilities.class);
 
     /**
-     * Generates a public/private key pair that meets Peerly's security requirements
+     * Retrieves the Thali related keystore from the specified directory.
+     * @param filesDir
      * @return
      */
-    public static KeyPair GeneratePeerlyAcceptablePublicPrivateKeyPair() {
+    public static File getThaliKeyStoreFileObject(File filesDir) {
+        return new File(filesDir, KeystoreFileName).getAbsoluteFile();
+    }
+
+    /**
+     * Returns null if there are any problems with the keystore, it's cert or the keys it contains. Generally if this
+     * returns null then the only thing to do is to delete the keystore (if it even exists) and start over. Note however
+     * that right now we treat cert expiration as a failure condition. In the long run that doesn't make sense but
+     * this is not final code and it's actually good to freak out with any keys generated with this generation of code.
+     * They shouldn't last long enough to expire.
+     * @param filesDir
+     * @return
+     */
+    public static KeyStore validateThaliKeyStore(File filesDir) {
+        assert filesDir != null && filesDir.exists();
+        File keyStoreFile = getThaliKeyStoreFileObject(filesDir);
+        if (keyStoreFile.exists() == false) {
+            return null;
+        }
+
+        FileInputStream keyStoreFileStream = null;
+        try {
+            KeyStore keyStore = KeyStore.getInstance(PrivateKeyHolderFormat);
+            keyStoreFileStream = new FileInputStream(keyStoreFile);
+            keyStore.load(keyStoreFileStream, DefaultPassPhrase);
+            KeyStore.Entry thaliKeystoreEntry = keyStore.getEntry(ThaliKeyAlias, new KeyStore.PasswordProtection(DefaultPassPhrase));
+
+            if (thaliKeystoreEntry == null) {
+                logger.debug("Could not find key in keystore under alias " + ThaliKeyAlias);
+                return null;
+            }
+
+            if ((thaliKeystoreEntry instanceof KeyStore.PrivateKeyEntry) == false) {
+                logger.debug("Entry is not a PrivateKeyEntry");
+                return null;
+            }
+
+            KeyStore.PrivateKeyEntry privateThaliKeystoreEntry = (KeyStore.PrivateKeyEntry) thaliKeystoreEntry;
+            Certificate[] certificates = privateThaliKeystoreEntry.getCertificateChain();
+
+            if (certificates == null) {
+                logger.debug("No certs in cert chain.");
+                return null;
+            }
+
+            if (certificates.length != 1) {
+                logger.debug("More than one cert in chain, someday we will support that but not right now. Actual length was " + certificates.length );
+                return null;
+            }
+
+            if ((certificates[0] instanceof X509Certificate) == false) {
+                logger.debug("Cert is not a X509Cert!");
+                return null;
+            }
+
+            X509Certificate x509Certificate = (X509Certificate) certificates[0];
+            x509Certificate.checkValidity();
+
+            // We don't check the cert name because we just don't care, it doesn't matter for Thali
+
+            if ((certificates[0].getPublicKey() instanceof RSAPublicKey) == false) {
+                logger.debug("Public key is not a RSA Public Key!");
+                return null;
+            }
+
+            RSAPublicKey rsaPublicKey = (RSAPublicKey) certificates[0].getPublicKey();
+
+            if (rsaPublicKey.getModulus().bitLength() < KeySizeInBits) {
+                logger.debug("Public key size is less than required minimum, required size is " + KeySizeInBits + ", actual size is " + rsaPublicKey.getModulus().bitLength());
+                return null;
+            }
+
+            return keyStore;
+        } catch (FileNotFoundException e) {
+            logger.debug("Could not get a stream from a keyStoreFile we had previously validated existed.", e);
+            return null;
+        } catch (KeyStoreException e) {
+            logger.debug("Could not create a keystore of type " + PrivateKeyHolderFormat, e);
+            return null;
+        } catch (CertificateExpiredException e) {
+            logger.debug("Failure on checkValidity", e);
+            return null;
+        } catch (CertificateNotYetValidException e) {
+            logger.debug("Failure on checkValidity", e);
+            return null;
+        } catch (CertificateException e) {
+            logger.debug("Failure on keyStore.load", e);
+            return null;
+        } catch (NoSuchAlgorithmException e) {
+            logger.debug("Failure on keyStore.load", e);
+            return null;
+        } catch (IOException e) {
+            logger.debug("Failure on keyStore.load", e);
+            return null;
+        } catch (UnrecoverableEntryException e) {
+            logger.debug("Failure on keyStore.getEntry", e);
+            return null;
+        } finally {
+            if (keyStoreFileStream != null) {
+                try {
+                    keyStoreFileStream.close();
+                } catch (IOException e) {
+                    logger.debug("Attempt to close keyStoreFileStream failed", e);
+                }
+            }
+        }
+    }
+
+    /**
+     * Creates a new keystore file with a validate Thali public/private key pair and returns the KeyStore object.
+     * @param filesDir
+     * @return
+     */
+    public static KeyStore createNewThaliKeyInKeyStore(File filesDir) {
+        File keyStoreFile = getThaliKeyStoreFileObject(filesDir);
+
+        if (keyStoreFile.exists()) {
+            throw new RuntimeException("A keystore already exists!");
+        }
+
+        KeyStore keyStore =
+                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(
+                        ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair(), ThaliKeyAlias, ThaliCryptoUtilities.DefaultPassPhrase);
+
+        FileOutputStream fileOutputStream = null;
+        try {
+            // Yes this can swallow exceptions (if you got an exception inside this try and then the finally has an exception, but given what I'm doing here I don't care.
+            try {
+                fileOutputStream =  new FileOutputStream(keyStoreFile);
+                keyStore.store(fileOutputStream, ThaliCryptoUtilities.DefaultPassPhrase);
+            } finally {
+                if (fileOutputStream != null) {
+                    fileOutputStream.close();
+                }
+            }
+        } catch (Exception e) {
+            logger.error("Ooops", e);
+            throw new RuntimeException(e.getMessage(), e);
+        }
+
+        return keyStore;
+    }
+
+
+    /**
+     * Generates a public/private key pair that meets Thali's security requirements
+     * @return
+     */
+    public static KeyPair GenerateThaliAcceptablePublicPrivateKeyPair() {
         KeyPairGenerator keyPairGenerator = null;
         try {
             keyPairGenerator = KeyPairGenerator.getInstance(KeyTypeIdentifier);
@@ -80,10 +236,10 @@ public class ThaliCryptoUtilities {
             Date startDate = new Date(System.currentTimeMillis() - 24 * 60 * 60 * 1000);
             Date endDate = new Date(System.currentTimeMillis() + (ExpirationPeriodForCertsInDays * 24L * 60L * 60L * 1000L));
 
-            // Peerly security is based on keys NOT on cert values. That is we are not trying to bind a name (like a DNS
+            // Thali security is based on keys NOT on cert values. That is we are not trying to bind a name (like a DNS
             // address) to a key. The key IS the identity. But the X509 standard requires names so we stick something
             // in.
-            X500Name x500Name = new X500Name("CN=Peerly");
+            X500Name x500Name = new X500Name("CN=Thali");
 
             SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(ASN1Sequence.getInstance(publicKeyAsByteArray));
 

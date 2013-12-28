@@ -44,17 +44,13 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-package com.msopentech.thali.utilities.android.test;
+package com.msopentech.thali.CouchDBListener;
 
+import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
-import android.util.Log;
 import com.couchbase.lite.listener.LiteSSLAcceptor;
-import com.couchbase.lite.listener.SocketStatus;
 
-import javax.net.ssl.KeyManagerFactory;
-import javax.net.ssl.SSLContext;
-import javax.net.ssl.TrustManager;
-import javax.net.ssl.X509TrustManager;
+import javax.net.ssl.*;
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.net.InetAddress;
@@ -66,15 +62,23 @@ import java.security.cert.X509Certificate;
 import java.util.Map;
 
 /**
- * Created by yarong on 11/26/13.
+ *
+ * This class creates a SSL socket that requests that client certs be used and will accept any 'internally valid'
+ * (e.g. not expired, chain validates within itself, etc.) client cert if presented.
+ *
+ * The reason why there are two copyrights on this code is that unfortunately the hooks needed to enable this code
+ * do not exist in SSLAcceptor. Specifically we needed a way to configure the key manager in the SSL context
+ * init and we needed a way to setWantClientAuth. Since neither is supported by SSLAcceptor we had to override
+ * init and initServerSocket, copy in the existing code and make small changes to put in support for the two
+ * requested features.
  */
-public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
-
+public class AcceptAllClientCertsSSLAcceptor extends LiteSSLAcceptor {
     private static final String KEYSTOREPASS = "changeme";
 
     /**
-     * This class is based on CBLSSLAcceptor and in addition to the changes it makes it also puts in
-     * place a trust store for validating client certs that accepts everything.
+     * This class is based on LiteSSLAcceptor and in addition to the changes it makes it also puts in
+     * place a trust store for validating client certs that accepts everything and requests all connectors
+     * send a client cert.
      * @param inProperties
      * @param outProperties
      * @throws java.io.IOException
@@ -108,15 +112,15 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
         KeyStore keyStore = null;
         FileInputStream istream = null;
         String keystorePass = null;
-        android = System.getProperty("java.vm.name") != null && System.getProperty("java.vm.name").startsWith("Dalvik");
+        android = java.lang.System.getProperty("java.vm.name") != null && System.getProperty("java.vm.name").startsWith("Dalvik");
         try {
-            String keystoreType = getWithDefault(inProperties, ARG_KEYSTORETYPE, KEYSTORETYPE);
+            String keystoreType = getWithDefault(inProperties, SSLAcceptor.ARG_KEYSTORETYPE, SSLAcceptor.KEYSTORETYPE);
             keyStore = KeyStore.getInstance(keystoreType);
-            String keystoreFile = (String) inProperties.get(ARG_KEYSTOREFILE);
+            String keystoreFile = (String) inProperties.get(SSLAcceptor.ARG_KEYSTOREFILE);
             if (keystoreFile == null)
                 keystoreFile = getKeystoreFile();
             istream = new FileInputStream(keystoreFile);
-            keystorePass = getWithDefault(inProperties, ARG_KEYSTOREPASS, KEYSTOREPASS);
+            keystorePass = getWithDefault(inProperties, SSLAcceptor.ARG_KEYSTOREPASS, KEYSTOREPASS);
             keyStore.load(istream, keystorePass.toCharArray());
         } catch (Exception e) {
             throw (IOException)new IOException(e.toString()).initCause(e);
@@ -139,18 +143,19 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
                 }
 
             // Create an SSL context used to create an SSL socket factory
-            String protocol = getWithDefault(inProperties, ARG_PROTOCOL, TLS);
+            String protocol = getWithDefault(inProperties, SSLAcceptor.ARG_PROTOCOL, SSLAcceptor.TLS);
             SSLContext context = SSLContext.getInstance(protocol);
 
             // Create the key manager factory used to extract the server key
-            String algorithm = getWithDefault(inProperties, ARG_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
+            String algorithm = getWithDefault(inProperties, SSLAcceptor.ARG_ALGORITHM, KeyManagerFactory.getDefaultAlgorithm());
             KeyManagerFactory keyManagerFactory = KeyManagerFactory.getInstance(algorithm);
 
-            String keyPass = getWithDefault(inProperties, ARG_KEYPASS, keystorePass);
+            String keyPass = getWithDefault(inProperties, SSLAcceptor.ARG_KEYPASS, keystorePass);
 
             keyManagerFactory.init(keyStore, keyPass.toCharArray());
 
-            // Initialize the context with the key managers and trust managers
+            // Initialize the context with the key managers and trust managers - NOte that only the declaration of TrustManager
+            // and it's use in context.init are the only changes made from the original code for this section.
             TrustManager trustManager = new X509TrustManager() {
                 @Override
                 public void checkClientTrusted(X509Certificate[] x509Certificates, String authType) throws CertificateException {
@@ -179,51 +184,30 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
             throw (IOException)new IOException(e.toString()).initCause(e);
         }
 
-        int port = PORT;
-        if (inProperties.get(ARG_PORT) != null)
+        int port = SSLAcceptor.PORT;
+        if (inProperties.get(SSLAcceptor.ARG_PORT) != null)
             try {
-                port = Integer.parseInt((String) inProperties.get(ARG_PORT));
+                port = Integer.parseInt((String) inProperties.get(SSLAcceptor.ARG_PORT));
             } catch (NumberFormatException nfe) {
 
             }
         else if (inProperties.get(Serve.ARG_PORT) != null)
             port = ((Integer) inProperties.get(Serve.ARG_PORT)).intValue();
-        if (inProperties.get(ARG_BACKLOG) == null)
-            if (inProperties.get(ARG_IFADDRESS) == null)
+        if (inProperties.get(SSLAcceptor.ARG_BACKLOG) == null)
+            if (inProperties.get(SSLAcceptor.ARG_IFADDRESS) == null)
                 socket = sslSoc.createServerSocket(port);
             else
-                socket = sslSoc.createServerSocket(port, BACKLOG,
-                        InetAddress.getByName((String) inProperties.get(ARG_IFADDRESS)));
-        else if (inProperties.get(ARG_IFADDRESS) == null)
-            socket = sslSoc.createServerSocket(port, new Integer((String) inProperties.get(ARG_BACKLOG)).intValue());
+                socket = sslSoc.createServerSocket(port, SSLAcceptor.BACKLOG,
+                        InetAddress.getByName((String) inProperties.get(SSLAcceptor.ARG_IFADDRESS)));
+        else if (inProperties.get(SSLAcceptor.ARG_IFADDRESS) == null)
+            socket = sslSoc.createServerSocket(port, Integer.parseInt((String) inProperties.get(SSLAcceptor.ARG_BACKLOG)));
         else
-            socket = sslSoc.createServerSocket(port, new Integer((String) inProperties.get(ARG_BACKLOG)).intValue(),
-                    InetAddress.getByName((String) inProperties.get(ARG_IFADDRESS)));
+            socket = sslSoc.createServerSocket(port, Integer.parseInt((String) inProperties.get(SSLAcceptor.ARG_BACKLOG)),
+                    InetAddress.getByName((String) inProperties.get(SSLAcceptor.ARG_IFADDRESS)));
 
-        initServerSocket(socket, "true".equals(inProperties.get(ARG_CLIENTAUTH)));
+        initServerSocket(socket, "true".equals(inProperties.get(SSLAcceptor.ARG_CLIENTAUTH)));
         if (outProperties != null)
             outProperties.put(Serve.ARG_BINDADDRESS, socket.getInetAddress().getHostName());
-    }
-
-    private ServerSocket getLocalSocket() {
-        // There are race conditions where the server is being initialized on one thread while a
-        // caller is on another thread. In that case we can end up with the acceptor having been
-        // initialized but not the socket.
-        while(this.socket == null) {
-            try {
-                Thread.sleep(10);
-            } catch (InterruptedException e) {
-                Log.e("ThaliSelfSignedMutualAuthSSLAcceptor", "getPort sleep somehow got interrupted", e);
-                throw new RuntimeException("getPort sleep somehow got interrupted", e);
-            }
-        }
-
-        return this.socket;
-    }
-
-    @Override
-    public SocketStatus getSocketStatus() {
-        return new SocketStatus(getLocalSocket());
     }
 
     protected String getWithDefault(Map args, String name, String defValue) {
@@ -231,6 +215,21 @@ public class ThaliSelfSignedMutualAuthSSLAcceptor extends LiteSSLAcceptor {
         if (result == null)
             return defValue;
         return result;
+    }
+
+    @Override
+    /**
+     * In the override we completely ignore clientAuth's value.
+     */
+    protected void initServerSocket(ServerSocket ssocket, boolean clientAuth) {
+        SSLServerSocket socket = (SSLServerSocket) ssocket;
+
+        // Enable all available cipher suites when the socket is connected
+        String cipherSuites[] = socket.getSupportedCipherSuites();
+        socket.setEnabledCipherSuites(cipherSuites);
+
+        // In the original this said socket.setNeedClientAuth
+        socket.setWantClientAuth(true);
     }
 
     private String getKeystoreFile() {

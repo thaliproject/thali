@@ -14,28 +14,38 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
+import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
+import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
 import com.msopentech.thali.utilities.universal.ThaliTestUtilities;
 
+import java.io.File;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableKeyException;
+import java.security.UnrecoverableEntryException;
 
 public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
     private final String MachineHost = "127.0.0.1";
 
-    public void testClient() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException,
+    public void testClient() throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
             KeyStoreException, IOException, InterruptedException {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
-        ThaliTestServer thaliTestServer = new ThaliTestServer();
-        thaliTestServer.startServer(getContext().getFilesDir());
+        AndroidThaliListener thaliTestServer = new AndroidThaliListener();
+        File filesDir = getContext().getFilesDir();
+        File keyStore = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
+
+        // We want to start with a clean state
+        if (keyStore.exists()) {
+            keyStore.delete();
+        }
+        thaliTestServer.startServer(getContext().getFilesDir(), 0);
 
         int port = thaliTestServer.getSocketStatus().getPort();
         ThaliTestEktorpClient.runRetrieveTest(
-                MachineHost, port, new AndroidEktorpCreateClientBuilder(), thaliTestServer.getServerPublicKey());
+                MachineHost, port, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
     }
 }

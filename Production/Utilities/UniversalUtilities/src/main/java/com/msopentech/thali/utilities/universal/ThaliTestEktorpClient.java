@@ -14,15 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal;
 
-import org.apache.http.HttpException;
-import org.apache.http.HttpResponseInterceptor;
-import org.apache.http.client.methods.HttpGet;
-import org.apache.http.client.methods.HttpUriRequest;
-import org.apache.http.conn.HttpRoutedConnection;
-import org.apache.http.impl.client.AbstractHttpClient;
-import org.apache.http.protocol.BasicHttpContext;
-import org.apache.http.protocol.ExecutionContext;
-import org.apache.http.protocol.HttpContext;
+import com.msopentech.thali.CouchDBListener.BogusAuthorizeCouchDocument;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.DbAccessException;
@@ -31,6 +23,7 @@ import org.ektorp.impl.StdCouchDbInstance;
 import org.ektorp.support.CouchDbDocument;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
+import java.io.File;
 import java.io.IOException;
 import java.security.*;
 import java.util.List;
@@ -46,47 +39,7 @@ public class ThaliTestEktorpClient {
     public static final String KeyId = "key";
     public static final String TestDatabaseName = "test";
 
-    private static final String PEER_CERT_ATTRIBUTE = "com.codeplex.thali.peerCertAttribute";
     private static final int MaximumTestRecords = 10;
-
-    /**
-     * This is primarily used as a utility where we need to get the key for a server without knowing it first. We will issue
-     * a GET request to "/" and see what key comes back.
-     * @param host
-     * @param port
-     * @param clientKeyStore
-     * @param clientPassPhrase
-     * @return
-     * @throws IOException
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
-     * @throws KeyManagementException
-     */
-    public static PublicKey getServersRootPublicKey(String host, int port, KeyStore clientKeyStore,
-                                                    char[] clientPassPhrase, org.apache.http.client.HttpClient httpClient)
-            throws IOException, UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
-            KeyManagementException {
-        // Taken from http://stackoverflow.com/questions/13273305/apache-httpclient-get-server-certificate
-        // And yes we should do this with a request interceptor since it would work in all cases where we get a SSL
-        // connection even if the HTTP request fails and I'm too lazy to rewrite it.
-        ((AbstractHttpClient) httpClient).addResponseInterceptor(new HttpResponseInterceptor() {
-            @Override
-            public void process(org.apache.http.HttpResponse response, HttpContext context) throws HttpException, IOException {
-                HttpRoutedConnection routedConnection = (HttpRoutedConnection) context.getAttribute(ExecutionContext.HTTP_CONNECTION);
-                if (routedConnection.isSecure()) {
-                    java.security.cert.Certificate[] certificates = routedConnection.getSSLSession().getPeerCertificates();
-                    context.setAttribute(PEER_CERT_ATTRIBUTE, certificates);
-                }
-            }
-        });
-        HttpContext httpContext = new BasicHttpContext();
-        HttpUriRequest httpUriRequest = new HttpGet("/");
-        org.apache.http.HttpResponse apacheHttpResponse = httpClient.execute(httpUriRequest, httpContext);
-        java.security.cert.Certificate[] certificates = (java.security.cert.Certificate[]) httpContext.getAttribute(PEER_CERT_ATTRIBUTE);
-        // TODO: Where is it written that the last cert is the server's root cert? Are certs guaranteed to be returned in order from leaf to root?
-        return certificates[certificates.length - 1].getPublicKey();
-    }
 
     /**
      * Checks if the docs exist in the database. Note that the DocType implements an overload for equals that
@@ -126,8 +79,8 @@ public class ThaliTestEktorpClient {
         if (clientPublicKey != null) {
             couchDbInstance.deleteDatabase(KeyDatabaseName);
             couchDbInstance.createDatabase(KeyDatabaseName);
-            CouchDBDocumentKeyClassForTests testRSAKeyClass =
-                    new CouchDBDocumentKeyClassForTests(clientPublicKey);
+            BogusAuthorizeCouchDocument testRSAKeyClass =
+                    new BogusAuthorizeCouchDocument(clientPublicKey);
             testRSAKeyClass.setId(KeyId);
             CouchDbConnector keyDbConnector = couchDbInstance.createConnector(KeyDatabaseName, false);
             keyDbConnector.create(testRSAKeyClass);
@@ -156,7 +109,7 @@ public class ThaliTestEktorpClient {
                                      PublicKey actualServerPublicKey, KeyStore actualClientKeyStore,
                                      char[] clientPassPhrase) throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
 
-        KeyPair wrongKeys = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+        KeyPair wrongKeys = ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair();
 
         HttpClient httpClientWithWrongServerKeyAndRightClientKey =
                 createClientBuilder.CreateEktorpClient(host, port, wrongKeys.getPublic(), actualClientKeyStore, clientPassPhrase);
@@ -193,38 +146,37 @@ public class ThaliTestEktorpClient {
      * @param host
      * @param port
      * @param createClientBuilder
-     * @param serverPublicKey If set to null then we will do a GET on the root and see what key is presented
+     * @param filesDir
      * @throws IOException
      * @throws KeyManagementException
      * @throws NoSuchAlgorithmException
      * @throws UnrecoverableKeyException
      * @throws KeyStoreException
      */
-    public static void runRetrieveTest(String host, int port, CreateClientBuilder createClientBuilder, PublicKey serverPublicKey)
-            throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableKeyException, KeyStoreException {
-        KeyPair clientKeys = ThaliCryptoUtilities.GeneratePeerlyAcceptablePublicPrivateKeyPair();
+    public static void runRetrieveTest(String host, int port, CreateClientBuilder createClientBuilder, File filesDir)
+            throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException {
+        CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder);
 
-        KeyStore clientKeyStore =
-                ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(clientKeys,"foo",
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+        // Clean up the key database
+        CouchDbConnector keyDatabase = couchDbInstance.createConnector()
 
-        if (serverPublicKey == null) {
-            org.apache.http.client.HttpClient httpClientNoServerValidation =
-                    createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore,
-                            ThaliCryptoUtilities.DefaultPassPhrase);
-
-            serverPublicKey =
-                    ThaliTestEktorpClient.getServersRootPublicKey(host, port, clientKeyStore,
-                            ThaliCryptoUtilities.DefaultPassPhrase, httpClientNoServerValidation);
-        }
-
-        HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
-
-        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClientWithServerValidation);
         CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, false);
-        validateDatabaseState(couchDbConnector, setUpData(couchDbInstance, 1, MaximumTestRecords, clientKeys.getPublic()));
+
+        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+
+        org.apache.http.client.HttpClient httpClientNoServerValidation =
+                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase);
+
+        PublicKey serverPublicKey =
+                ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
+                        httpClientNoServerValidation);
+
+        KeyStore.PrivateKeyEntry clientPrivateKeyEntry = (KeyStore.PrivateKeyEntry) clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(ThaliCryptoUtilities.DefaultPassPhrase));
+
+        PublicKey clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
+
+        validateDatabaseState(couchDbConnector, setUpData(couchDbInstance, 1, MaximumTestRecords, clientPublicKey));
         runBadKeyTest(host, port, createClientBuilder, serverPublicKey, clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
     }
 }

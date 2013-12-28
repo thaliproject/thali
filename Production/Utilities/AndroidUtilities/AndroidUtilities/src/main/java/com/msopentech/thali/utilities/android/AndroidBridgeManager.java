@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.android;
 
+import android.annotation.SuppressLint;
 import android.app.Activity;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
@@ -25,6 +26,7 @@ public class AndroidBridgeManager extends BridgeManager implements Bridge {
     protected static String mimeTypeForScript = "text/javascript";
     protected static String encodingTypeForScript = "utf-8";
 
+    @SuppressLint("SetJavaScriptEnabled")
     public AndroidBridgeManager(Activity activity, WebView webView) {
         assert activity != null && webView != null;
         this.activity = activity;
