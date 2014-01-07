@@ -16,6 +16,7 @@ package com.msopentech.thali.devicehub.android;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 
 /**
@@ -43,14 +44,12 @@ import com.msopentech.thali.CouchDBListener.ThaliListener;
  * claim the foreground service role.
  */
 public class ThaliDeviceHubService extends Service {
-    public static final int defaultPort = 9898; //WARNING: THIS WILL BE CHANGED TO A DYNAMIC PORT WITH A DISCOVERY MECHANISM
-
     protected ThaliListener thaliListener = null;
 
     @Override
     public void onCreate() {
-        thaliListener = new ThaliListener();
-        thaliListener.startServer(getFilesDir().getAbsoluteFile(), defaultPort);
+        thaliListener = new AndroidThaliListener();
+        thaliListener.startServer(getFilesDir().getAbsoluteFile(), ThaliListener.DefaultThaliDeviceHubPort);
     }
 
     @Override

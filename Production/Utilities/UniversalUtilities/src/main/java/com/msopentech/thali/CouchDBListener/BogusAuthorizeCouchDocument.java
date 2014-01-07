@@ -49,6 +49,7 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
         RSAPublicKey rsaPublicKey = (RSAPublicKey) publicKey;
         this.modulus = rsaPublicKey.getModulus().toString();
         this.exponent = rsaPublicKey.getPublicExponent().toString();
+        this.setId(generateRsaKeyId(rsaPublicKey));
     }
 
     public String getKeyType() { return keyType; }
@@ -88,6 +89,6 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
     }
 
     public static String generateRsaKeyId(java.security.interfaces.RSAPublicKey rsaPublicKey) {
-        return RSAKeyType + ":" + rsaPublicKey.getModulus().toString() + rsaPublicKey.getPublicExponent().toString();
+        return RSAKeyType + ":" + rsaPublicKey.getModulus().toString() + ":" + rsaPublicKey.getPublicExponent().toString();
     }
 }

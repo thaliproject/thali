@@ -55,6 +55,4 @@ public class MainActivity extends Activity {
         }
         return super.onOptionsItemSelected(item);
     }
-
-    // TODO: Hook into the destructor so we can close down the service, it should happen automatically but lets be tidy
 }

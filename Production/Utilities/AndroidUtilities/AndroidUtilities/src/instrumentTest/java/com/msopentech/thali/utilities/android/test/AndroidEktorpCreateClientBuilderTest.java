@@ -15,6 +15,7 @@ package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
 import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
+import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
@@ -26,12 +27,11 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
+import java.security.spec.InvalidKeySpecException;
 
 public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
-    private final String MachineHost = "127.0.0.1";
-
     public void testClient() throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
-            KeyStoreException, IOException, InterruptedException {
+            KeyStoreException, IOException, InterruptedException, InvalidKeySpecException {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
         AndroidThaliListener thaliTestServer = new AndroidThaliListener();
@@ -42,10 +42,13 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         if (keyStore.exists()) {
             keyStore.delete();
         }
+
+        // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
+        // with the 'real' Thali Device Hub if it's running.
         thaliTestServer.startServer(getContext().getFilesDir(), 0);
 
         int port = thaliTestServer.getSocketStatus().getPort();
         ThaliTestEktorpClient.runRetrieveTest(
-                MachineHost, port, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
+                ThaliListener.DefaultThaliDeviceHubAddress, port, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
     }
 }

@@ -3,13 +3,19 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.6.+'
+        classpath 'com.android.tools.build:gradle:0.7.+'
     }
 }
 apply plugin: 'android'
 
 repositories {
-    mavenLocal()
+    // Gradle 1.9 has a bug that doesn't honor mavenLocal. Gradle 1.10 (the current release) has a bug that doesn't
+    // support Android. So the following is a temporary work around for the 1.9 bug until we get a release of Gradle
+    // that both supports Android and mavenLocal(). Fix taken from: https://plus.google.com/+XavierDucrohet/posts/hF7W59uZ7rX
+    // Note that the fix used System.env.HOME but for some reason that didn't work so I switched it to System.getProperty('user.home') which
+    // does work.
+    //mavenLocal()
+    maven { url "${System.getProperty('user.home')}/.m2/repository" }
     mavenCentral()
 }
 
@@ -21,9 +27,24 @@ android {
         minSdkVersion 18
         targetSdkVersion 18
     }
+
+    // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/ASL2.0'
+    }
 }
 
 dependencies {
-    compile 'com.msopentech.thali:ThaliUtilitiesAndroid:0.0.1'
     compile 'com.msopentech.thali:ThaliTDHUniversal:0.0.1'
+    compile 'com.msopentech.thali:ThaliUtilitiesAndroid:0.0.1'
+    // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
+    // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
+    compile 'org.slf4j:slf4j-android:1.7.2'
+    compile files('libs/td_collator_so.jar')
+}
+
+task wrapper(type: Wrapper) {
+    gradleVersion = '1.9'
 }

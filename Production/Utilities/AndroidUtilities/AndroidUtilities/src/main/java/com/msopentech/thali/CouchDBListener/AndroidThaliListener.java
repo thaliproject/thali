@@ -88,7 +88,7 @@ public class AndroidThaliListener extends ThaliListener {
 
                 tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
 
-                tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultCouchAddress);
+                tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultThaliDeviceHubAddress);
 
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
 

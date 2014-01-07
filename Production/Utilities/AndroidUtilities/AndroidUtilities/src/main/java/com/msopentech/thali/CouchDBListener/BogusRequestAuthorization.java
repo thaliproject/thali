@@ -24,7 +24,6 @@ import com.couchbase.lite.router.Router;
 import com.couchbase.lite.router.URLConnection;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.utilities.universal.ThaliPublicKeyComparer;
-import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
 import java.io.IOException;
@@ -56,7 +55,7 @@ public class BogusRequestAuthorization implements RequestAuthorization {
         List<String> pathSegments = Router.splitPath(urlConnection.getURL());
 
         // Everything is legal with the key database, gives you the warm fuzzies, doesn't it?
-        if (pathSegments.size() == 0 || pathSegments.get(0).equals(KeyDatabaseName) == false) {
+        if (pathSegments.size() == 0 || pathSegments.get(0).equals(KeyDatabaseName)) {
             return true;
         }
 
@@ -92,10 +91,16 @@ public class BogusRequestAuthorization implements RequestAuthorization {
         String keyId = BogusAuthorizeCouchDocument.generateRsaKeyId(rsaPublicKey);
 
         RevisionList revisionList = keyDatabase.getAllRevisionsOfDocumentID(keyId, true);
+
+        if (revisionList.size() != 1) {
+            insecureConnection(urlConnection);
+            return false;
+        }
+
         EnumSet<Database.TDContentOptions> tdContentOptions = EnumSet.noneOf(Database.TDContentOptions.class);
         RevisionInternal revision =
                 keyDatabase.getDocumentWithIDAndRev(
-                        ThaliTestEktorpClient.KeyId,
+                        keyId,
                         revisionList.getAllRevIds().get(revisionList.getAllRevIds().size() - 1),
                         tdContentOptions);
 

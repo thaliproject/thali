@@ -15,10 +15,17 @@ See the Apache 2 License for the specific language governing permissions and lim
 apply plugin: 'java'
 apply plugin: 'maven'
 
+// Needed to keep Android happy
 sourceCompatibility = '1.6'
 
 repositories {
-    mavenLocal()
+    // Gradle 1.9 has a bug that doesn't honor mavenLocal. Gradle 1.10 (the current release) has a bug that doesn't
+    // support Android. So the following is a temporary work around for the 1.9 bug until we get a release of Gradle
+    // that both supports Android and mavenLocal(). Fix taken from: https://plus.google.com/+XavierDucrohet/posts/hF7W59uZ7rX
+    // Note that the fix used System.env.HOME but for some reason that didn't work so I switched it to System.getProperty('user.home') which
+    // does work.
+    //mavenLocal()
+    maven { url "${System.getProperty('user.home')}/.m2/repository" }
     mavenCentral()
 }
 
@@ -27,7 +34,7 @@ dependencies {
     compile 'org.bouncycastle:bcprov-jdk15on:1.49'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
     compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
-    compile 'org.ektorp:org.ektorp:1.4.1'
+    compile 'org.ektorp:org.ektorp:1.4.2-SNAPSHOT'
 
     testCompile 'junit:junit:4.11'
 }
@@ -72,5 +79,5 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '1.9'
 }

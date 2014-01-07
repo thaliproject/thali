@@ -16,7 +16,13 @@ apply plugin: 'maven'
 apply from: "http://dl.bintray.com/content/shemnon/javafx-gradle/0.3.0/javafx.plugin"
 
 repositories {
-    mavenLocal()
+    // Gradle 1.9 has a bug that doesn't honor mavenLocal. Gradle 1.10 (the current release) has a bug that doesn't
+    // support Android. So the following is a temporary work around for the 1.9 bug until we get a release of Gradle
+    // that both supports Android and mavenLocal(). Fix taken from: https://plus.google.com/+XavierDucrohet/posts/hF7W59uZ7rX
+    // Note that the fix used System.env.HOME but for some reason that didn't work so I switched it to System.getProperty('user.home') which
+    // does work.
+    //mavenLocal()
+    maven { url "${System.getProperty('user.home')}/.m2/repository" }
     mavenCentral()
 }
 
@@ -28,6 +34,7 @@ dependencies {
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1'
 
     testCompile 'junit:junit:4.11'
+    testCompile 'org.slf4j:slf4j-simple:1.7.5'
 }
 
 
@@ -68,7 +75,7 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.8'
+    gradleVersion = '1.9'
 }
 
 task installLocal(dependsOn: uploadArchives)

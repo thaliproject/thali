@@ -52,6 +52,7 @@ import org.apache.http.HttpException;
 import org.apache.http.HttpResponseInterceptor;
 import org.apache.http.client.methods.HttpGet;
 import org.apache.http.client.methods.HttpUriRequest;
+import org.apache.http.conn.HttpRoutedConnection;
 import org.apache.http.impl.client.AbstractHttpClient;
 import org.apache.http.impl.conn.tsccm.BasicPooledConnAdapter;
 import org.apache.http.protocol.BasicHttpContext;
@@ -146,12 +147,30 @@ public class ThaliClientToDeviceHubUtilities {
         ((AbstractHttpClient) httpClient).addResponseInterceptor(new HttpResponseInterceptor() {
             @Override
             public void process(org.apache.http.HttpResponse response, HttpContext context) throws HttpException, IOException {
-                // Alas Android doesn't support the newer HttpRoutedConnection interface
-                BasicPooledConnAdapter basicPooledConnAdapter = (BasicPooledConnAdapter) context.getAttribute(ExecutionContext.HTTP_CONNECTION);
-                if (basicPooledConnAdapter.isSecure()) {
-                    java.security.cert.Certificate[] certificates = basicPooledConnAdapter.getSSLSession().getPeerCertificates();
-                    context.setAttribute(PEER_CERT_ATTRIBUTE, certificates);
+                Object unTypedHttpConnection = context.getAttribute(ExecutionContext.HTTP_CONNECTION);
+
+                // Android doesn't return an object that supports the HttpRoutedConnection interface which makes no sense!
+                // What it does return is BasicPooledConnAdapter but that is supposed to support HttpRoutedConnection! But doesn't.
+                if (unTypedHttpConnection instanceof BasicPooledConnAdapter)
+                {
+                    BasicPooledConnAdapter basicPooledConnAdapter = (BasicPooledConnAdapter) unTypedHttpConnection;
+                    if (basicPooledConnAdapter.isSecure()) {
+                        java.security.cert.Certificate[] certificates = basicPooledConnAdapter.getSSLSession().getPeerCertificates();
+                        context.setAttribute(PEER_CERT_ATTRIBUTE, certificates);
+                    }
+                    return;
                 }
+
+                if (unTypedHttpConnection instanceof HttpRoutedConnection) {
+                    HttpRoutedConnection httpRoutedConnection = (HttpRoutedConnection) unTypedHttpConnection;
+                    if (httpRoutedConnection.isSecure()) {
+                        java.security.cert.Certificate[] certificates = httpRoutedConnection.getSSLSession().getPeerCertificates();
+                        context.setAttribute(PEER_CERT_ATTRIBUTE, certificates);
+                    }
+                    return;
+                }
+
+                throw new RuntimeException("Unexpected HTTP_CONNECTION: " + unTypedHttpConnection.toString());
             }
         });
         HttpContext httpContext = new BasicHttpContext();

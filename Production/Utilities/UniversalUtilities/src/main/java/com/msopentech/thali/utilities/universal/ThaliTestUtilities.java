@@ -26,7 +26,7 @@ public class ThaliTestUtilities {
      */
     public static void configuringLoggingApacheClient() {
         // According to http://stackoverflow.com/questions/3246792/how-to-enable-logging-for-apache-commons-httpclient-on-android
-        // the following two lines are needed on Android. They weren't need in general Java.
+        // the following two lines are needed on Android. They aren't needed in general Java.
         Logger.getLogger("org.apache.http.wire").setLevel(Level.FINEST);
         Logger.getLogger("org.apache.http/headers").setLevel(Level.FINEST);
 
