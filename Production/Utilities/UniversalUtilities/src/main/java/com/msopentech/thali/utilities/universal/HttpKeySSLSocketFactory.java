@@ -28,7 +28,7 @@ import java.security.cert.X509Certificate;
  * Unfortunately Android uses an outdated version of the Apache HTTPClient interfaces and equally unfortunately
  * Ektorp depends on HTTP Client so we have to create our own SSLSocketFactory in order to get the hooks we need.
  * If we were using a modern version of Apache HTTP Client we could have just created the SSLSocketFactory
- * directory from the SSLContext.
+ * directly from the SSLContext.
  */
 public class HttpKeySSLSocketFactory extends SSLSocketFactory {
     protected SSLContext sslContext;

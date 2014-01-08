@@ -17,7 +17,7 @@ package com.msopentech.thali.utilities.java.test;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
+import com.msopentech.thali.utilities.universal.ThaliTestUrlConnection;
 import com.msopentech.thali.utilities.universal.ThaliTestUtilities;
 import org.junit.Before;
 import org.junit.Test;
@@ -31,7 +31,7 @@ import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
 
-public class JavaEktorpCreateClientBuilderTest {
+public class JavaThaliUrlConnectionTest {
     private final boolean debugApache = true;
 
     @Before
@@ -44,9 +44,9 @@ public class JavaEktorpCreateClientBuilderTest {
     @Test
     public void testClient()
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
-            IOException, InvalidKeySpecException {
+            IOException, InvalidKeySpecException, InterruptedException {
         File localDirectory = Files.createTempDirectory(null).toFile();
         localDirectory.deleteOnExit();
-        ThaliTestEktorpClient.runRetrieveTest(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
+        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
     }
 }

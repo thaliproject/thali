@@ -154,29 +154,28 @@ public class ThaliTestEktorpClient {
      * @throws UnrecoverableKeyException
      * @throws KeyStoreException
      */
-    public static void runRetrieveTest(String host, int port, CreateClientBuilder createClientBuilder, File filesDir)
+    public static void runRetrieveTest(String host, int port, char[] passPhrase, CreateClientBuilder createClientBuilder, File filesDir)
             throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableEntryException, KeyStoreException, InvalidKeySpecException {
-        CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder);
-
-        // Clean up the key database
+        CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder, host, port, passPhrase);
 
         CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, false);
 
         KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);
 
         PublicKey serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
-        KeyStore.PrivateKeyEntry clientPrivateKeyEntry = (KeyStore.PrivateKeyEntry) clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(ThaliCryptoUtilities.DefaultPassPhrase));
+        KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
+                (KeyStore.PrivateKeyEntry)
+                        clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(passPhrase));
 
         PublicKey clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
         validateDatabaseState(couchDbConnector, setUpData(couchDbInstance, 1, MaximumTestRecords, clientPublicKey));
-        runBadKeyTest(host, port, createClientBuilder, serverPublicKey, clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+        runBadKeyTest(host, port, createClientBuilder, serverPublicKey, clientKeyStore, passPhrase);
     }
 }

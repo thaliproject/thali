@@ -18,7 +18,7 @@ import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
+import com.msopentech.thali.utilities.universal.ThaliTestUrlConnection;
 import com.msopentech.thali.utilities.universal.ThaliTestUtilities;
 
 import java.io.File;
@@ -27,11 +27,12 @@ import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.security.spec.InvalidKeySpecException;
 
-public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
-    public void testClient() throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
-            KeyStoreException, IOException, InterruptedException, InvalidKeySpecException {
+/**
+ * Created by yarong on 1/7/14.
+ */
+public class AndroidThaliUrlConnectionTest extends AndroidTestCase {
+    public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
         AndroidThaliListener thaliTestServer = new AndroidThaliListener();
@@ -48,7 +49,8 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         thaliTestServer.startServer(getContext().getFilesDir(), 0);
 
         int port = thaliTestServer.getSocketStatus().getPort();
-        ThaliTestEktorpClient.runRetrieveTest(
-                ThaliListener.DefaultThaliDeviceHubAddress, port, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
+
+        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, port, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
     }
+
 }

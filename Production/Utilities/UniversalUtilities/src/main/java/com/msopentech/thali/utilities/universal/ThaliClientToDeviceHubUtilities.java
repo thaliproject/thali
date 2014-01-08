@@ -79,7 +79,7 @@ public class ThaliClientToDeviceHubUtilities {
      * create a new key and register it with the Thali Device Hub.
      * @return
      */
-    public static CouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder)
+    public static CouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder, String host, int port, char[] passPhrase)
             throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         assert filesDir != null && filesDir.exists();
 
@@ -96,23 +96,21 @@ public class ThaliClientToDeviceHubUtilities {
         }
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, null, clientKeyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);
 
         PublicKey serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
         HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, serverPublicKey, clientKeyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore, passPhrase);
 
         CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClientWithServerValidation);
 
         // Set up client key in permission database
         KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
                 (KeyStore.PrivateKeyEntry) clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias,
-                        new KeyStore.PasswordProtection(ThaliCryptoUtilities.DefaultPassPhrase));
+                        new KeyStore.PasswordProtection(passPhrase));
 
         PublicKey clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
