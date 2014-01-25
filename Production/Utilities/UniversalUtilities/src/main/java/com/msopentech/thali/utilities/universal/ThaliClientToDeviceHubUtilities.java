@@ -59,9 +59,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.ektorp.CouchDbConnector;
-import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
-import org.ektorp.impl.StdCouchDbInstance;
 
 import java.io.File;
 import java.io.IOException;
@@ -79,7 +77,7 @@ public class ThaliClientToDeviceHubUtilities {
      * create a new key and register it with the Thali Device Hub.
      * @return
      */
-    public static CouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder, String host, int port, char[] passPhrase)
+    public static ThaliCouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder, String host, int port, char[] passPhrase)
             throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
         assert filesDir != null && filesDir.exists();
 
@@ -105,7 +103,7 @@ public class ThaliClientToDeviceHubUtilities {
         HttpClient httpClientWithServerValidation =
                 createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore, passPhrase);
 
-        CouchDbInstance couchDbInstance = new StdCouchDbInstance(httpClientWithServerValidation);
+        ThaliCouchDbInstance thaliCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerValidation);
 
         // Set up client key in permission database
         KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
@@ -116,13 +114,13 @@ public class ThaliClientToDeviceHubUtilities {
 
         BogusAuthorizeCouchDocument authDoc = new BogusAuthorizeCouchDocument(clientPublicKey);
 
-        CouchDbConnector keyDatabaseConnector = couchDbInstance.createConnector(ThaliListener.KeyDatabaseName, true);
+        CouchDbConnector keyDatabaseConnector = thaliCouchDbInstance.createConnector(ThaliListener.KeyDatabaseName, true);
 
         if (keyDatabaseConnector.contains(authDoc.getId()) == false) {
             keyDatabaseConnector.create(authDoc);
         }
 
-        return couchDbInstance;
+        return thaliCouchDbInstance;
     }
 
     /**

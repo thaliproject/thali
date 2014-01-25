@@ -12,7 +12,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 */
 
 
-package com.msopentech.thali.utilities.universal;
+package com.msopentech.thali.utilities.universal.test;
 
 import java.util.logging.Level;
 import java.util.logging.Logger;

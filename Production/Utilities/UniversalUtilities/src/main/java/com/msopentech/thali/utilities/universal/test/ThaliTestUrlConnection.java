@@ -11,8 +11,12 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-package com.msopentech.thali.utilities.universal;
+package com.msopentech.thali.utilities.universal.test;
 
+import com.msopentech.thali.utilities.universal.CreateClientBuilder;
+import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
+import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
+import com.msopentech.thali.utilities.universal.ThaliUrlConnection;
 import org.ektorp.CouchDbInstance;
 
 import javax.net.ssl.HttpsURLConnection;

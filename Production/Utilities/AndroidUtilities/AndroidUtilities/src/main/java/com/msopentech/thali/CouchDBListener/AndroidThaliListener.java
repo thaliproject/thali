@@ -15,9 +15,14 @@ package com.msopentech.thali.CouchDBListener;
 
 import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Manager;
+import com.couchbase.lite.ManagerOptions;
+import com.couchbase.lite.auth.AuthorizerFactory;
+import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
+import com.couchbase.lite.replicator.Replication;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 import org.slf4j.Logger;
@@ -26,6 +31,7 @@ import org.slf4j.LoggerFactory;
 import java.io.File;
 import java.io.IOException;
 import java.security.KeyStore;
+import java.util.ArrayList;
 import java.util.Properties;
 
 /**
@@ -33,10 +39,18 @@ import java.util.Properties;
  * such as dealing with life cycle events in Android.
  */
 public class AndroidThaliListener extends ThaliListener {
+    private class ThaliChangeListener implements Replication.ChangeListener {
+
+        @Override
+        public void changed(Replication.ChangeEvent event) {
+            Log.debug(event.toString());
+        }
+    }
+
     private LiteListener cblListener = null;
     private boolean serverStarted = false;
     private final Logger Log = LoggerFactory.getLogger(AndroidThaliListener.class);
-    private KeyStore serverKeyStore;
+    private Manager manager = null;
 
     private void waitTillServerStarts() throws InterruptedException {
         while (cblListener == null && serverStarted) {
@@ -60,22 +74,36 @@ public class AndroidThaliListener extends ThaliListener {
             throw new RuntimeException();
         }
 
-        if (ThaliCryptoUtilities.validateThaliKeyStore(filesDir) == null) {
+        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+        if (clientKeyStore == null) {
             if (ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir).exists() == false) {
-                ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
+                clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
             } else {
                 Log.error("Device key store came up as invalid.");
                 throw new RuntimeException("Device key store came up as invalid.");
             }
         }
 
+        final KeyStore finalClientKeyStore = clientKeyStore;
+
         new Thread(new Runnable() {
             public void run() {
                 // Start the CouchDB Lite manager
-                Manager manager = null;
                 try {
-                    manager = new Manager(filesDir, null);
+                    ArrayList<AuthorizerFactory> authorizerFactoryArrayList = new ArrayList<AuthorizerFactory>();
+                    BogusThaliAuthorizerFactory bogusThaliAuthorizerFactory = new BogusThaliAuthorizerFactory(finalClientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                    authorizerFactoryArrayList.add(bogusThaliAuthorizerFactory);
+                    AuthorizerFactoryManager authorizerFactoryManager = new AuthorizerFactoryManager(authorizerFactoryArrayList);
+                    ManagerOptions managerOptions =
+                            new ManagerOptions(authorizerFactoryManager);
+                    manager = new Manager(filesDir, managerOptions);
+                    // This creates the database used to store the keys of remote applications that are authorized to use
+                    // the system in case it doesn't already exist.
+                    manager.getDatabase(KeyDatabaseName);
                 } catch (IOException e) {
+                    Log.error("Manager failed to start", e);
+                    return;
+                } catch (CouchbaseLiteException e) {
                     Log.error("Manager failed to start", e);
                     return;
                 }
@@ -110,5 +138,11 @@ public class AndroidThaliListener extends ThaliListener {
         waitTillServerStarts();
 
         return cblListener.getSocketStatus();
+    }
+
+    public Manager getManager() throws InterruptedException {
+        waitTillServerStarts();
+
+        return manager;
     }
 }

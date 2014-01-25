@@ -16,6 +16,8 @@ repositories {
     // does work.
     //mavenLocal()
     maven { url "${System.getProperty('user.home')}/.m2/repository" }
+    maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
+    maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
     mavenCentral()
 }
 
@@ -36,9 +38,14 @@ android {
     }
 }
 
+// This is dorky but I wanted to keep the 'shape' of commands we use everywhere else in our build.gradle files without
+// requiring the folks who are building this project to have a gradle.properties. For those wonder what's going on
+// the expression below normally tests a value in gradle.properties to determine if this is a snapshot build or not.
+def mavenVersionSnapshot() { true ? "-SNAPSHOT" : ""}
+
 dependencies {
-    compile 'com.msopentech.thali:ThaliTDHUniversal:0.0.1'
-    compile 'com.msopentech.thali:ThaliUtilitiesAndroid:0.0.1'
+    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.1${mavenVersionSnapshot()}"
+    compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.1${mavenVersionSnapshot()}"
     // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
     compile 'org.slf4j:slf4j-android:1.7.2'

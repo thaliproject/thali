@@ -14,10 +14,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.CouchDBListener;
 
-import com.couchbase.lite.Database;
-import com.couchbase.lite.Manager;
-import com.couchbase.lite.RevisionList;
-import com.couchbase.lite.Status;
+import android.util.Log;
+import com.couchbase.lite.*;
 import com.couchbase.lite.internal.RevisionInternal;
 import com.couchbase.lite.router.RequestAuthorization;
 import com.couchbase.lite.router.Router;
@@ -44,6 +42,7 @@ import java.util.List;
  */
 public class BogusRequestAuthorization implements RequestAuthorization {
     protected final String KeyDatabaseName;
+    protected final String tag = "BogusRequestAuthorization";
 
     public BogusRequestAuthorization(String keyDatabaseName) {
         assert keyDatabaseName != null && false == "".equals(keyDatabaseName);
@@ -59,7 +58,12 @@ public class BogusRequestAuthorization implements RequestAuthorization {
             return true;
         }
 
-        Database keyDatabase = manager.getExistingDatabase(KeyDatabaseName);
+        Database keyDatabase = null;
+        try {
+            keyDatabase = manager.getExistingDatabase(KeyDatabaseName);
+        } catch (CouchbaseLiteException e) {
+            Log.e(tag, "If the DB doesn't exist we should have gotten null, not an exception. So something went wrong.", e);
+        }
 
         // No database? Then no one is authorized.
         if (keyDatabase == null) {
