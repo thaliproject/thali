@@ -102,14 +102,19 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         }
     }
 
-    public void testPullReplication() {
+    public void testPullReplication() throws InvalidKeySpecException, NoSuchAlgorithmException,
+            InterruptedException, MalformedURLException, CouchbaseLiteException, URISyntaxException {
         String localName = ThaliTestEktorpClient.TestDatabaseName;
         String remoteName = ThaliTestEktorpClient.ReplicationTestDatabaseName;
         final CouchDbConnector localConnector = configureRequestObjects.testDatabaseConnector;
         final CouchDbConnector remoteConnector = configureRequestObjects.replicationDatabaseConnector;
         configureRequestObjects.thaliCouchDbInstance.deleteDatabase(remoteName);
 
-        // Set up docs in target and th
+        // Set up docs in target and then pull from full 'local' to empty 'remote'
+        ThaliTestEktorpClient.setUpData(configureRequestObjects.thaliCouchDbInstance, 1,
+                ThaliTestEktorpClient.MaximumTestRecords, configureRequestObjects.clientPublicKey);
+        PullReplicateAndTest(localName, remoteName, false);
+
     }
 
     public void testPushReplication() throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
@@ -194,24 +199,35 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         ThaliTestEktorpClient.validateDatabaseEquality(sourceConnector, targetConnector);
     }
 
+    private ReplicationChangeListener PullReplicateAndTest(String local, String remote, boolean continuous)
+            throws InterruptedException, MalformedURLException, CouchbaseLiteException, URISyntaxException {
+        return ReplicateAndTest(local, remote, false, continuous);
+    }
+
+    private ReplicationChangeListener PushReplicateAndTest(String source, String target, boolean continuous)
+            throws InterruptedException, MalformedURLException, CouchbaseLiteException, URISyntaxException {
+        return ReplicateAndTest(source, target, true, continuous);
+    }
+
     /**
      * Executes a push replication from the source to the target and once the replication is done tests if the
      * two databases are equal.
      * @param source
      * @param target
+     * @param push
      * @param continuous
      * @throws InterruptedException
      * @throws MalformedURLException
      * @throws URISyntaxException
      * @return
      */
-    private ReplicationChangeListener PushReplicateAndTest(String source, String target, boolean continuous)
+    private ReplicationChangeListener ReplicateAndTest(String source, String target, boolean push, boolean continuous)
             throws InterruptedException, MalformedURLException, URISyntaxException, CouchbaseLiteException {
-        HttpKeyURL targetUrl = new HttpKeyURL(configureRequestObjects.serverPublicKey, host, port, "/" + target, null, null);
+        HttpKeyURL remoteUrl = new HttpKeyURL(configureRequestObjects.serverPublicKey, host, port, "/" + (push ? target : source), null, null);
         ThaliReplicationCommand thaliReplicationCommand =
                 new ThaliReplicationCommand.Builder()
-                        .source(source)
-                        .target(targetUrl.toString())
+                        .source(push ? source : remoteUrl.toString())
+                        .target(push ? remoteUrl.toString() : source)
                         .createTarget(true)
                         .continuous(continuous)
                         .build();
@@ -222,7 +238,7 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
 
         Manager manager = thaliTestServer.getManager();
         Database database = manager.getDatabase(source);
-        URL url = new URL(targetUrl.createHttpsUrl());
+        URL url = new URL(remoteUrl.createHttpsUrl());
         Replication replication = database.getActiveReplicator(url, true);
         ReplicationChangeListener replicationChangeListener =
                 new ReplicationChangeListener(
