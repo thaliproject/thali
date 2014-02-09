@@ -75,7 +75,7 @@ namespace DotNetUtilitiesTests
             fragment = "###???///???";
             HttpKeyUri escapedChars = HttpKeyUri.BuildHttpKeyUri(serverPublicKey, Host, Port, path, query + fragment);
 
-            expectedHttpsURL = "https://" + Host + ":" + Port + "/ick%20%20%3F" + "??????%20%20%20%20" + fragment;
+            expectedHttpsURL = "https://" + Host + ":" + Port + "/ick%20%20%3F" + "??????%20%20%20%20" + "#%23%23???///???";
             Assert.IsTrue(expectedHttpsURL.Equals(escapedChars.CreateHttpsUrl(), StringComparison.Ordinal));
         }
     }

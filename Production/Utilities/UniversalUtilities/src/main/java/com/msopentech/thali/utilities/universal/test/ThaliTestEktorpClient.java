@@ -32,7 +32,10 @@ import java.io.File;
 import java.io.IOException;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
-import java.util.*;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
+import java.util.Random;
 
 /**
  * This class contains all the generic parts of exercising a Ektorp client against a server. But the actual binding
@@ -146,6 +149,10 @@ public class ThaliTestEktorpClient {
      */
     public static void GenerateDoc(CouchDbConnector couchDbConnector, Collection<CouchDbDocument> generatedDocs) {
         generatedDocs.add(GenerateDoc(couchDbConnector));
+    }
+
+    public static void AttachToRandomDoc(CouchDbConnector couchDbConnector) {
+        throw new RuntimeException();
     }
 
     /**

@@ -1,0 +1,15 @@
+﻿{
+    "name": "Thali XMLHTTPRequest Bridge",
+    "version": "1",
+    "manifest_version": 2,
+    "background": {
+        "scripts": ["background.js"]
+    },
+    "content_scripts": [{
+        "matches": ["file:///C:/Thali/Production/Utilities/DotNetUtilities/DotNetUtilities/ChromeNativeMessagingHost/ChromeExtension/*"],
+        "js": ["contentscript.js"],
+        "all_frames": true,
+        "run_at": "document_start"
+    }],
+    "permissions": ["nativeMessaging"]
+}

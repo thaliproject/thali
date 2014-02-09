@@ -15,8 +15,6 @@ namespace DotNetUtilities
 {
     using System;
     using System.Diagnostics;
-    using System.Net;
-    using System.Net.Security;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
 

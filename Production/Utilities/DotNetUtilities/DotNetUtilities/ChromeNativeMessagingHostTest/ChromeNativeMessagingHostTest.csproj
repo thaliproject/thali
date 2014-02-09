@@ -3,11 +3,11 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <ProjectGuid>{ABCC1C9C-81D9-4A11-A19C-942C28FF6E15}</ProjectGuid>
+    <ProjectGuid>{A4AA65BE-6611-4F45-8D41-937B1075E400}</ProjectGuid>
     <OutputType>Library</OutputType>
     <AppDesignerFolder>Properties</AppDesignerFolder>
-    <RootNamespace>DotNetUtilitiesTests</RootNamespace>
-    <AssemblyName>DotNetUtilitiesTests</AssemblyName>
+    <RootNamespace>ChromeNativeMessagingHostTest</RootNamespace>
+    <AssemblyName>ChromeNativeMessagingHostTest</AssemblyName>
     <TargetFrameworkVersion>v4.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <ProjectTypeGuids>{3AC096D0-A1C2-E12C-1390-A8335801FDAB};{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}</ProjectTypeGuids>
@@ -35,24 +35,7 @@
     <WarningLevel>4</WarningLevel>
   </PropertyGroup>
   <ItemGroup>
-    <Reference Include="BouncyCastle.Crypto, Version=1.7.4137.9688, Culture=neutral, PublicKeyToken=a4292a325f69b123, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
-    </Reference>
-    <Reference Include="LoveSeat">
-      <HintPath>..\..\..\..\..\..\yaronyg-LoveSeat\LoveSeat\bin\Debug\LoveSeat.dll</HintPath>
-    </Reference>
-    <Reference Include="LoveSeat.Interfaces, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\yaronyg-LoveSeat\LoveSeat\bin\Debug\LoveSeat.Interfaces.dll</HintPath>
-    </Reference>
-    <Reference Include="Newtonsoft.Json, Version=6.0.0.0, Culture=neutral, PublicKeyToken=30ad4fe6b2a6aeed, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>
-    </Reference>
     <Reference Include="System" />
-    <Reference Include="System.Configuration" />
-    <Reference Include="System.Net.Http" />
   </ItemGroup>
   <Choose>
     <When Condition="('$(VisualStudioVersion)' == '10.0' or '$(VisualStudioVersion)' == '') and '$(TargetFrameworkVersion)' == 'v3.5'">
@@ -67,20 +50,8 @@
     </Otherwise>
   </Choose>
   <ItemGroup>
-    <Compile Include="HttpKeyUriTest.cs" />
+    <Compile Include="XmlHttpRequestProxyTest.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
-    <Compile Include="ThaliCryptoUtilitiesTest.cs" />
-    <Compile Include="ThaliClientToDeviceHubUtilitiesTest.cs" />
-  </ItemGroup>
-  <ItemGroup>
-    <ProjectReference Include="..\DotNetUtilities\DotNetUtilities.csproj">
-      <Project>{005f8935-6998-4cf4-bd97-c61a532c9b17}</Project>
-      <Name>DotNetUtilities</Name>
-    </ProjectReference>
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="app.config" />
-    <None Include="packages.config" />
   </ItemGroup>
   <Choose>
     <When Condition="'$(VisualStudioVersion)' == '10.0' And '$(IsCodedUITest)' == 'True'">

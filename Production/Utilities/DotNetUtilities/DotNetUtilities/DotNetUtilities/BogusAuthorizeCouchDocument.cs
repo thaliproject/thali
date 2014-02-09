@@ -1,31 +1,42 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
+
+/* Note: This code is copied verbatum from MyCouch (which has a MIT license) and we have just made small changes to
+ * support specifying a HttpMessageHandler. Our hope is that the MyCouch folks will take this file as a pull request
+ * and we can then get rid of it.
+ */
 
 namespace DotNetUtilities
 {
     using System.Diagnostics.CodeAnalysis;
-    using System.Security.Cryptography;
 
-    using MyCouch.Extensions;
+    using LoveSeat.Interfaces;
 
-    public class BogusAuthorizeCouchDocument
+    public class BogusAuthorizeCouchDocument : IBaseObject
     {
         public const string RSAKeyType = "RSAKeyType";
 
+        public BogusAuthorizeCouchDocument()
+        {
+        }
+
         public BogusAuthorizeCouchDocument(BigIntegerRSAPublicKey publicKey)
         {
-            _id = GenerateRsaKeyId(publicKey);
+            Id = GenerateRsaKeyId(publicKey);
             modulus = publicKey.Modulus.ToString();
             exponent = publicKey.Exponent.ToString();
             keyType = RSAKeyType;
         }
-
-        public string _id { get; set; }
-
-        public string _rev { get; set; }
 
         [SuppressMessage("StyleCop.CSharp.NamingRules", "SA1300:ElementMustBeginWithUpperCaseLetter", Justification = "The element's name will be used to generate the JSON name which is lowercase")]
         public string modulus { get; set; }
@@ -47,5 +58,11 @@ namespace DotNetUtilities
         {
             return RSAKeyType + ":" + publicKey.Modulus + ":" + publicKey.Exponent;
         }
+
+        public string Id { get; set; }
+
+        public string Rev { get; set; }
+
+        public string Type { get; private set; }
     }
 }

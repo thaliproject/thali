@@ -28,8 +28,8 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.math.BigInteger;
 import java.security.*;
-import java.security.cert.*;
 import java.security.cert.Certificate;
+import java.security.cert.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.Date;
 
@@ -44,6 +44,7 @@ public class ThaliCryptoUtilities {
     public final static int KeySizeInBits = 2048;
     public final static String SignerAlgorithm = "SHA256withRSA"; // TODO: Need to validate if that's a good choice
     public final static long ExpirationPeriodForCertsInDays = 365;
+    public final static String X500Name = "CN=Thali";
     private static final String KeystoreFileName = "com.msopentech.thali.name.keystore";
     private static Logger logger = LoggerFactory.getLogger(ThaliCryptoUtilities.class);
 
@@ -222,7 +223,7 @@ public class ThaliCryptoUtilities {
      * Right now we only generate large RSA keys because I'm paranoid that the curves used in
      * Elliptic Curve crypto may have been designed by folks for whom security was not the paramount
      * concern. Once this issue is put to rest I would expect to switch to Elliptic Curve because
-     * it is considere (with appropriate curves) to be more secure and is certainly faster.
+     * it is considered (with appropriate curves) to be more secure and is certainly faster.
      * @param keyPair
      * @param keyAlias
      * @param passphrase
@@ -239,7 +240,7 @@ public class ThaliCryptoUtilities {
             // Thali security is based on keys NOT on cert values. That is we are not trying to bind a name (like a DNS
             // address) to a key. The key IS the identity. But the X509 standard requires names so we stick something
             // in.
-            X500Name x500Name = new X500Name("CN=Thali");
+            X500Name x500Name = new X500Name(X500Name);
 
             SubjectPublicKeyInfo subjectPublicKeyInfo = new SubjectPublicKeyInfo(ASN1Sequence.getInstance(publicKeyAsByteArray));
 
@@ -250,7 +251,7 @@ public class ThaliCryptoUtilities {
             X509v1CertificateBuilder x509v1CertificateBuilder = new X509v1CertificateBuilder(x500Name, BigInteger.ONE, startDate, endDate, x500Name, subjectPublicKeyInfo);
             X509CertificateHolder x509CertificateHolder = x509v1CertificateBuilder.build(contentSigner);
             JcaX509CertificateConverter jcaX509CertificateConverter = new JcaX509CertificateConverter();
-            X509Certificate x509Certificate = jcaX509CertificateConverter.getCertificate(x509CertificateHolder);
+            X509Certificate x509Certificate =    jcaX509CertificateConverter.getCertificate(x509CertificateHolder);
 
             // Store the private key and the cert in the keystore
             KeyStore.PrivateKeyEntry privateKeyEntry = new KeyStore.PrivateKeyEntry(keyPair.getPrivate(), new Certificate[]{x509Certificate});

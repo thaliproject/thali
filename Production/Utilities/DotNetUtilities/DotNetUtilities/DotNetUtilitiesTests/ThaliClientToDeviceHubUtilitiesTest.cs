@@ -27,6 +27,8 @@ namespace DotNetUtilitiesTests
 
         private const int Port = 9898;
 
+        private DirectoryInfo tempDirectory;
+
         /// <summary>
         /// This 'test' is more bogus than usual since we aren't putting in place the right machinery to 
         /// actually launch a Thali Device Hub and then pull its key. Heck for this test I could just set up
@@ -56,8 +58,7 @@ namespace DotNetUtilitiesTests
                 ThaliCryptoUtilities.DefaultPassPhrase);
             var cert = ThaliCryptoUtilities.GetX509Certificate(pkcs12Stream, ThaliCryptoUtilities.DefaultPassPhrase);
             var serverKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(Host, Port, cert);
-            Debug.Assert(serverKey != null, "serverKey != null");
-            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey.Value, Host, Port, null, null);
+            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey, Host, Port, null, null);
             var thaliWebRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(serverHttpKeyUri, cert);
             thaliWebRequest.Method = "GET";
             thaliWebRequest.GetResponse().Close();
@@ -66,15 +67,26 @@ namespace DotNetUtilitiesTests
         [TestMethod]
         public void ProvisionThaliClient()
         {
-            var tempDirectoryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
-            var tempDirectory = Directory.CreateDirectory(tempDirectoryPath);
             var clientCert = ThaliClientToDeviceHubUtilities.ProvisionThaliClient(Host, Port, tempDirectory);
+            var serverKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(Host, Port, clientCert);
+            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey, Host, Port, null, null);
+            var couchClient = ThaliClientToDeviceHubUtilities.GetCouchClient(serverHttpKeyUri, clientCert);
+            var myPrincipalDatabase = couchClient.GetDatabase(ThaliCryptoUtilities.KeyDatabaseName);
+            var keyId = BogusAuthorizeCouchDocument.GenerateRsaKeyId(new BigIntegerRSAPublicKey(clientCert));
+            var clientKeyDoc = myPrincipalDatabase.GetDocument<BogusAuthorizeCouchDocument>(keyId);
+        }
 
-            // Check that the client cert is at the server
+        [TestInitialize]
+        public void Setup()
+        {
+            var tempDirectoryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
+            tempDirectory = Directory.CreateDirectory(tempDirectoryPath);    
+        }
 
-            // Now get a new client cert and see if it matches the old one 
-
-            // See if cert is still right at server
+        [TestCleanup]
+        public void Teardown()
+        {
+            tempDirectory.Delete(true);
         }
     }
 }

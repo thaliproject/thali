@@ -41,7 +41,7 @@ android {
 // This is dorky but I wanted to keep the 'shape' of commands we use everywhere else in our build.gradle files without
 // requiring the folks who are building this project to have a gradle.properties. For those wonder what's going on
 // the expression below normally tests a value in gradle.properties to determine if this is a snapshot build or not.
-def mavenVersionSnapshot() { true ? "-SNAPSHOT" : ""}
+def mavenVersionSnapshot() { false ? "-SNAPSHOT" : ""}
 
 dependencies {
     compile "com.msopentech.thali:ThaliTDHUniversal:0.0.1${mavenVersionSnapshot()}"

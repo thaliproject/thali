@@ -18,13 +18,12 @@ namespace DotNetUtilities
     using System.IO;
     using System.Linq;
     using System.Net;
-    using System.Net.Http;
     using System.Net.Security;
     using System.Security.Cryptography;
     using System.Security.Cryptography.X509Certificates;
 
-    using MyCouch;
-    using MyCouch.Extensions;
+    using LoveSeat;
+    using LoveSeat.Interfaces;
 
     public static class ThaliClientToDeviceHubUtilities
     {
@@ -39,13 +38,13 @@ namespace DotNetUtilities
         /// <param name="host">Server's host, an IP or DNS address</param>
         /// <param name="port">Server's port</param>
         /// <param name="clientCertificate">A, possibly null, cert to use to authenticate the client</param>
-        /// <returns>Returns the server key if it can be retrieved, otherwise null</returns>
-        public static BigIntegerRSAPublicKey? GetServersRootPublicKey(string host, int port, X509Certificate2 clientCertificate)
+        /// <returns>Returns the server key if it can be retrieved, otherwise throw an exception</returns>
+        public static BigIntegerRSAPublicKey GetServersRootPublicKey(string host, int port, X509Certificate2 clientCertificate)
         {
             Debug.Assert(string.IsNullOrWhiteSpace(host) == false && port >= MinimumTCPPortValue && port <= MaximumTCPPortValue);
             var serverUri = new UriBuilder(HttpsScheme, host, port).Uri;
             var httpWebRequest = WebRequest.CreateHttp(serverUri);
-            BigIntegerRSAPublicKey? serverRsaPublicKey = null; 
+            BigIntegerRSAPublicKey serverRsaPublicKey = new BigIntegerRSAPublicKey();
             httpWebRequest.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
                 {
                     serverRsaPublicKey = ThaliServerCertificateValidationCallback(certificate, chain, sslPolicyErrors);
@@ -102,33 +101,11 @@ namespace DotNetUtilities
             return cert;
         }
 
-        /// <summary>
-        /// Get a MyCouchClient object for the URL (which has to be a couch URL) or null if no connection can be made.
-        /// </summary>
-        /// <param name="serverUri">
-        /// This is a HTTPS URI pointing at the resource to be manipulated. No, we aren't actually using HTTPS but whatever.
-        /// </param>
-        /// <param name="clientCert">
-        /// </param>
-        /// <returns>
-        /// </returns>
-        public static MyCouchClient GetMyCouchClient(Uri serverUri, X509Certificate2 clientCert)
+        public static CouchClient GetCouchClient(HttpKeyUri serverHttpKeyUri, X509Certificate2 clientCert)
         {
-            Debug.Assert(serverUri != null && clientCert != null && clientCert.HasPrivateKey);
-            var serverRootKey = GetServersRootPublicKey(serverUri.Authority, serverUri.Port, clientCert);
-            if (serverRootKey.HasValue == false)
-            {
-                // TODO: We desperately need logging here
-                return null;
-            }
-            var webRequestHandler = new WebRequestHandler();
-            webRequestHandler.ServerCertificateValidationCallback =
-                ServerCertificateValidationCallbackGenerator(serverRootKey.Value);
-            webRequestHandler.ClientCertificates.Add(clientCert);
-            webRequestHandler.ClientCertificateOptions = ClientCertificateOption.Manual;
-            var thaliHttpClientConnection = new BasicHttpClientConnection(serverUri);
-            var myCouchClient = new MyCouchClient(thaliHttpClientConnection);
-            return myCouchClient;
+            var configWebRequest = new ThaliConfigWebRequest(serverHttpKeyUri.ServerPublicKey, clientCert);
+            return new CouchClient(
+                serverHttpKeyUri.Host, serverHttpKeyUri.Port, null, null, true, AuthenticationType.Cookie, configWebRequest);
         }
 
         /// <summary>
@@ -144,31 +121,35 @@ namespace DotNetUtilities
         {
             Debug.Assert(string.IsNullOrWhiteSpace(host) == false && port > 0 && directoryInfo != null && directoryInfo.Exists);
             var clientCert = GetLocalClientCertificate(directoryInfo);
+            var serverKey = GetServersRootPublicKey(host, port, clientCert);
+            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey, host, port, null, null);
+            ProvisionThaliClient(serverHttpKeyUri, clientCert);
+            return clientCert;
+        }
+
+        public static void ProvisionThaliClient(HttpKeyUri serverHttpKeyUri, X509Certificate2 clientCert)
+        {
             var clientPublicKey = new BigIntegerRSAPublicKey(clientCert);
 
             var aclDatabaseEntity = new BogusAuthorizeCouchDocument(clientPublicKey);
 
-            var serverUri = new UriBuilder("https", host, port, "/" + ThaliCryptoUtilities.KeyDatabaseName).Uri;
-            using (var myCouchClient = GetMyCouchClient(serverUri, clientCert))
+            var couchClient = GetCouchClient(serverHttpKeyUri, clientCert);
+            var principalDatabase = couchClient.GetDatabase(ThaliCryptoUtilities.KeyDatabaseName);
+            var result = principalDatabase.CreateDocument(aclDatabaseEntity);
+            if (result.StatusCode < 200 || result.StatusCode > 299)
             {
-                var response = myCouchClient.Entities.PutAsync(aclDatabaseEntity).GetAwaiter().GetResult();
-                if (response.IsSuccess == false)
-                {
-                    throw new ApplicationException("attempt to put user's cert into server's principal store failed: " + response.ToStringDebugVersion());
-                }
-            }
-
-            return clientCert;
+                throw new ApplicationException("Could not successfully put client's credentials in ACL Store: " + result.StatusCode);
+            }          
         }
 
-        private static BigIntegerRSAPublicKey? ThaliServerCertificateValidationCallback(
+        private static BigIntegerRSAPublicKey ThaliServerCertificateValidationCallback(
             X509Certificate certificate,
             X509Chain chain,
             SslPolicyErrors sslPolicyErrors)
         {
             if (certificate == null || (sslPolicyErrors & SslPolicyErrors.RemoteCertificateNotAvailable) != 0)
             {
-                return null;
+                throw new ApplicationException();
             }
 
             if ((sslPolicyErrors & SslPolicyErrors.RemoteCertificateChainErrors) != 0)
@@ -181,7 +162,7 @@ namespace DotNetUtilities
                     chain.ChainStatus.Any(
                         chainStatus => (chainStatus.Status | AcceptableCertChainErrors) != AcceptableCertChainErrors))
                 {
-                    return null;
+                    throw new ApplicationException();
                 }
             }
 
@@ -198,7 +179,8 @@ namespace DotNetUtilities
         /// </summary>
         /// <param name="expectedServerRsaKey"></param>
         /// <returns></returns>
-        private static RemoteCertificateValidationCallback ServerCertificateValidationCallbackGenerator(BigIntegerRSAPublicKey expectedServerRsaKey)
+        private static RemoteCertificateValidationCallback ServerCertificateValidationCallbackGenerator(
+            BigIntegerRSAPublicKey expectedServerRsaKey)
         {
             return (sender, certificate, chain, sslPolicyErrors) =>
             {
@@ -207,8 +189,32 @@ namespace DotNetUtilities
                                       chain,
                                       sslPolicyErrors);
 
-                return serverPresentedRsaKey.HasValue && serverPresentedRsaKey.Equals(expectedServerRsaKey);
+                return serverPresentedRsaKey.Equals(expectedServerRsaKey);
             };
+        }
+
+        private class ThaliConfigWebRequest : IConfigWebRequest
+        {
+            private readonly X509Certificate2 clientCert;
+
+            private readonly BigIntegerRSAPublicKey serverKey;
+
+            public ThaliConfigWebRequest(BigIntegerRSAPublicKey serverKey, X509Certificate2 clientCert)
+            {
+                Debug.Assert(clientCert != null);
+                this.serverKey = serverKey;
+                this.clientCert = clientCert;
+            }
+
+            public void ConfigWebRequest(HttpWebRequest webRequest)
+            {
+                // There is a bug in TJWS used by the Java Thali Device Hub that doesn't properly support expect: 100-continues
+                webRequest.ServicePoint.Expect100Continue = false;
+
+                webRequest.ServerCertificateValidationCallback =
+                    ServerCertificateValidationCallbackGenerator(serverKey);
+                webRequest.ClientCertificates.Add(clientCert);
+            }
         }
     }
 }

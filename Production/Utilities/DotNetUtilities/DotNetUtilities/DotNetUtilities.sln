@@ -1,11 +1,15 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio 2013
-VisualStudioVersion = 12.0.21005.1
+VisualStudioVersion = 12.0.30110.0
 MinimumVisualStudioVersion = 10.0.40219.1
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetUtilities", "DotNetUtilities\DotNetUtilities.csproj", "{005F8935-6998-4CF4-BD97-C61A532C9B17}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "DotNetUtilitiesTests", "DotNetUtilitiesTests\DotNetUtilitiesTests.csproj", "{ABCC1C9C-81D9-4A11-A19C-942C28FF6E15}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeNativeMessagingHost", "ChromeNativeMessagingHost\ChromeNativeMessagingHost.csproj", "{8C7C8767-BDFC-4425-934E-6F381AA5F054}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ChromeNativeMessagingHostTest", "ChromeNativeMessagingHostTest\ChromeNativeMessagingHostTest.csproj", "{A4AA65BE-6611-4F45-8D41-937B1075E400}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -21,6 +25,14 @@ Global
 		{ABCC1C9C-81D9-4A11-A19C-942C28FF6E15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{ABCC1C9C-81D9-4A11-A19C-942C28FF6E15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{ABCC1C9C-81D9-4A11-A19C-942C28FF6E15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{8C7C8767-BDFC-4425-934E-6F381AA5F054}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{8C7C8767-BDFC-4425-934E-6F381AA5F054}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{8C7C8767-BDFC-4425-934E-6F381AA5F054}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{8C7C8767-BDFC-4425-934E-6F381AA5F054}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A4AA65BE-6611-4F45-8D41-937B1075E400}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A4AA65BE-6611-4F45-8D41-937B1075E400}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A4AA65BE-6611-4F45-8D41-937B1075E400}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A4AA65BE-6611-4F45-8D41-937B1075E400}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

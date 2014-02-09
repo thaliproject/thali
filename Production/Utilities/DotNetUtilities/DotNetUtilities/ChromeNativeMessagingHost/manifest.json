@@ -1,0 +1,9 @@
+﻿{
+    "name": "com.msopentech.thali.chromebridge",
+    "description": "The native messaging host for the Thali Chrome Bridge",
+    "path": "ChromeNativeMessagingHost.exe",
+    "type": "stdio",
+    "allowed_origins": [
+        "chrome-extension://pannbpigebfhengcodmameeoiopphllf/"
+    ]
+}

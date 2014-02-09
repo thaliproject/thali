@@ -115,6 +115,12 @@ public class HttpKeyURL {
         return rsaKeyType + ":" + publicKey.getPublicExponent().toString() + "." + publicKey.getModulus().toString();
     }
 
+    /**
+     * Takes the part of the httpkey url that encodes the server's public key and turns it into a RSAPublicKey object.
+     * @param rsaKeyValue
+     * @return
+     * @throws IllegalArgumentException
+     */
     public static RSAPublicKey rsaKeyStringToRsaPublicKey(String rsaKeyValue) throws IllegalArgumentException {
         assert rsaKeyValue != null && rsaKeyValue.length() > 1 && rsaKeyValue.startsWith(rsaKeyType + ":");
 
