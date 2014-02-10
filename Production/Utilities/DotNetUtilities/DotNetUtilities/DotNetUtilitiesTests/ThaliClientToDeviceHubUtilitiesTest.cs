@@ -13,7 +13,6 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 namespace DotNetUtilitiesTests
 {
-    using System.Diagnostics;
     using System.IO;
 
     using DotNetUtilities;
@@ -69,8 +68,7 @@ namespace DotNetUtilitiesTests
         {
             var clientCert = ThaliClientToDeviceHubUtilities.ProvisionThaliClient(Host, Port, tempDirectory);
             var serverKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(Host, Port, clientCert);
-            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey, Host, Port, null, null);
-            var couchClient = ThaliClientToDeviceHubUtilities.GetCouchClient(serverHttpKeyUri, clientCert);
+            var couchClient = ThaliClientToDeviceHubUtilities.GetCouchClient(serverKey, Host, Port, clientCert);
             var myPrincipalDatabase = couchClient.GetDatabase(ThaliCryptoUtilities.KeyDatabaseName);
             var keyId = BogusAuthorizeCouchDocument.GenerateRsaKeyId(new BigIntegerRSAPublicKey(clientCert));
             var clientKeyDoc = myPrincipalDatabase.GetDocument<BogusAuthorizeCouchDocument>(keyId);

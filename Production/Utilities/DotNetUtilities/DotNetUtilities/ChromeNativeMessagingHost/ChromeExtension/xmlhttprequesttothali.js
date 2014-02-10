@@ -47,7 +47,7 @@ function ThaliXMLHttpRequestObject() {
  * @constructor
  */
 function ThaliXMLHttpResponseObject() {
-    this.type = "RESPONSE_XMLHTTP"
+    this.type = "RESPONSE_XMLHTTP";
     this.transactionId = "";
     this.status = "";
     this.headers = {};
@@ -64,7 +64,7 @@ function ThaliXMLHttpResponseObject() {
 function ThaliXMLHttpRequestManager(globalCallBackName) {
     this._globalCallBackName = globalCallBackName;
     this._xmlHTTPObjects = {};
-    this._currentTransactionId = 0;
+    this._transactionIdSuffix = 0;
 
     if (typeof window[globalCallBackName] !== 'undefined') {
         throw "The globalCallBackName has already been defined so we have to assume someone else is using it.";
@@ -93,12 +93,13 @@ function ThaliXMLHttpRequestManager(globalCallBackName) {
  * @public
  */
 ThaliXMLHttpRequestManager.prototype.send = function (xmlHttpRequestObject, thaliXMLHttpRequestArguments) {
-    this._currentTransactionId += 1;
-    this._xmlHTTPObjects[this._currentTransactionId] = xmlHttpRequestObject;
-    thaliXMLHttpRequestArguments.transactionId = this._currentTransactionId;
+    this._transactionIdSuffix += 1;
+    var transactionId = this._globalCallBackName + this._transactionIdSuffix;
+    this._xmlHTTPObjects[transactionId] = xmlHttpRequestObject;
+    thaliXMLHttpRequestArguments.transactionId = transactionId;
     // TODO: We MUST figure out how to tighten up the "*" below
     window.postMessage(thaliXMLHttpRequestArguments, "*");
-    return this._currentTransactionId;
+    return transactionId;
 };
 
 /**
@@ -240,6 +241,17 @@ ThaliXMLHttpRequest.prototype.open = function (method, url) {
     this._setReadyState(1);
 };
 
+// pouchdb-1.1.10 sets onprogress, but none of these are actually implemented.
+ThaliXMLHttpRequest.prototype.upload = {
+    onloadstart: null,
+    onprogress: null,
+    onabort: null,
+    onerror: null,
+    onload: null,
+    ontimeout: null,
+    onloadend: null
+};
+
 /**
  * Add a HTTP request header. Note that if a header with the specified name has already been set then the value
  * will be appended after a comma.
@@ -297,7 +309,7 @@ ThaliXMLHttpRequest.prototype.send = function (data) {
 };
 
 window.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
-window.thaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager("thaliXMLHTTPRequestManager");
+window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager("thaliXMLHTTPRequestManager");
 
 window.XMLHttpRequest = function () {
     return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);

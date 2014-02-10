@@ -1,15 +1,26 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
 
 namespace ChromeNativeMessagingHost
 {
+    using System;
+    using System.Collections.Generic;
     using System.Diagnostics;
     using System.IO;
+    using System.Linq;
     using System.Net;
     using System.Security.Cryptography.X509Certificates;
+    using System.Text;
 
     using DotNetUtilities;
 
@@ -17,8 +28,6 @@ namespace ChromeNativeMessagingHost
 
     public static class XmlHttpRequestProxy
     {
-        private static X509Certificate2 clientCert;
-
         /// <summary>
         /// We support allowing the client to specify 0 for the modulus and exponent in a HttpKeyUrl, in that case
         /// we will (insecurely as hell) look up the server's key ourselves and then cache it here because otherwise
@@ -26,8 +35,8 @@ namespace ChromeNativeMessagingHost
         /// TODO: This thing could theoretically grow without limit and anyway it's insecure as heck, we need to fix it. Oh
         /// and if the server should change its key for any number of good reasons this will blow up. Bad. Bad. Bad.
         /// </summary>
-        private static readonly Dictionary<Tuple<string, int>, HttpKeyUri> HttpKeyStore = 
-            new Dictionary<Tuple<string, int>, HttpKeyUri>();
+        private static readonly Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey> HttpKeyStore = 
+            new Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
 
         /// <summary>
         /// When we provision the client's identity at a Thali Device Hub we record the address and the associated
@@ -53,11 +62,11 @@ namespace ChromeNativeMessagingHost
                     try
                     {
                         var workingDirectory = new DirectoryInfo(Environment.CurrentDirectory);
-                        clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(workingDirectory);
+                        var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(workingDirectory);
                         ChromeNativeHostUtilities.SynchronousRequestResponseMessageEngine<XmlHttpRequest>(
                             inStream,
                             outStream,
-                            ProcessMessage,
+                            inMessage => ProcessMessage(inMessage, clientCert),
                             ProcessHostError);
                     }
                     catch (Exception e)
@@ -78,41 +87,56 @@ namespace ChromeNativeMessagingHost
             }
         }
 
-        public static object ProcessMessage(XmlHttpRequest xmlHttpRequest)
+        public static object ProcessMessage(XmlHttpRequest xmlHttpRequest, X509Certificate2 clientCert)
         {
-            Debug.Assert(xmlHttpRequest != null);
+            Debug.Assert(xmlHttpRequest != null && clientCert != null);
             if (xmlHttpRequest.type != XmlHttpRequest.typeValue)
             {
                 throw new ApplicationException("The type of the incoming request was " + xmlHttpRequest.type + 
                     " and not " + XmlHttpRequest.typeValue + " as required.");
             }
 
-            // Pouch gets unhappy if you give it a httpkey URL, so instead we give it a https
-            lskjfas;
-            lkjf;
-            lkasdjf;
-            lkasdjf;
-            lkasdjf;
-            lksajdf;lkjsad
-            var httpKeyUri = HttpKeyUri.BuildHttpKeyUri(xmlHttpRequest.url);
+            // Pouch gets unhappy if you give it a httpkey URL, so instead we give it a https URL
+            // that is really a httpkey URL. So we check here.
+            if (xmlHttpRequest.url.StartsWith("https://", StringComparison.Ordinal) == false)
+            {
+                throw new ApplicationException("Incoming URL had to be a httpkey URL masquerading as a https URL but instead it was: "
+                    + xmlHttpRequest.url);
+            }
 
-            httpKeyUri = DiscoverRootCertIfNeeded(httpKeyUri);
+            var testHttpKeyUrlString = HttpKeyUri.HttpKeySchemeName + xmlHttpRequest.url.Substring("https".Length);
+            var httpKeyUri = HttpKeyUri.BuildHttpKeyUri(testHttpKeyUrlString);
+
+            httpKeyUri = DiscoverRootCertIfNeeded(httpKeyUri, clientCert);
 
             var hostPortTuple = new Tuple<string, int>(httpKeyUri.Host, httpKeyUri.Port);
 
             if (ProvisionedList.ContainsKey(hostPortTuple) == false ||
-                httpKeyUri.ServerPublicKey.Equals(ProvisionedList[hostPortTuple]) == false)
+                ProvisionedList[hostPortTuple].Equals(httpKeyUri.ServerPublicKey) == false)
             {
-                ThaliClientToDeviceHubUtilities.ProvisionThaliClient(httpKeyUri, clientCert);
+                ThaliClientToDeviceHubUtilities.ProvisionThaliClient(httpKeyUri.ServerPublicKey, httpKeyUri.Host, httpKeyUri.Port, clientCert);
                 ProvisionedList[hostPortTuple] = httpKeyUri.ServerPublicKey;
             }
 
             var webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
             webRequest.Method = xmlHttpRequest.method;
 
+            // There are multiple headers that cannot be set directly via webRequest.Headers. I only catch
+            // two below that seem of some reasonable use.
             foreach (var headerNameValue in xmlHttpRequest.headers)
             {
-                webRequest.Headers.Add(headerNameValue.Key, headerNameValue.Value);    
+                if (headerNameValue.Key.Equals("Accept", StringComparison.OrdinalIgnoreCase))
+                {
+                    webRequest.Accept = headerNameValue.Value;
+                }
+                else if (headerNameValue.Key.Equals("Content-Type", StringComparison.OrdinalIgnoreCase))
+                {
+                    webRequest.ContentType = headerNameValue.Value;
+                }
+                else
+                {
+                    webRequest.Headers.Add(headerNameValue.Key, headerNameValue.Value);    
+                }
             }
 
             if (string.IsNullOrWhiteSpace(xmlHttpRequest.requestText) == false)
@@ -141,7 +165,14 @@ namespace ChromeNativeMessagingHost
             return xmlHttpResponse;
         }
 
-        private static HttpKeyUri DiscoverRootCertIfNeeded(HttpKeyUri httpKeyUri)
+        /// <summary>
+        /// TODO: This whole method is just wrong, what happens if the server at the address changes its key?!?!?!
+        /// Once we have a real discovery framework this whole 0.0 mechanism needs to go away.
+        /// </summary>
+        /// <param name="httpKeyUri"></param>
+        /// <param name="clientCert"></param>
+        /// <returns></returns>
+        private static HttpKeyUri DiscoverRootCertIfNeeded(HttpKeyUri httpKeyUri, X509Certificate2 clientCert)
         {
             if (httpKeyUri.ServerPublicKey.Exponent.Equals(BigInteger.Zero)
                 && httpKeyUri.ServerPublicKey.Modulus.Equals(BigInteger.Zero))
@@ -149,22 +180,27 @@ namespace ChromeNativeMessagingHost
                 var host = httpKeyUri.Host;
                 var port = httpKeyUri.Port;
                 var hostPortTuple = new Tuple<string, int>(host, port);
+                BigIntegerRSAPublicKey serverPublicKey;
 
                 if (HttpKeyStore.ContainsKey(hostPortTuple))
                 {
-                    httpKeyUri = HttpKeyStore[hostPortTuple];
+                    serverPublicKey = HttpKeyStore[hostPortTuple];
                 }
                 else
                 {
-                    var serversRootPublicKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(host, port, clientCert);
-                    httpKeyUri = HttpKeyUri.BuildHttpKeyUri(
-                        serversRootPublicKey,
-                        host,
-                        port,
-                        httpKeyUri.AbsolutePath,
-                        httpKeyUri.Query);
+                    serverPublicKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(host, port, clientCert);
+                    HttpKeyStore[hostPortTuple] = serverPublicKey;
                 }
+
+                var serverHttpKey = HttpKeyUri.BuildHttpKeyUri(
+                    serverPublicKey,
+                    host,
+                    port,
+                    httpKeyUri.PathWithoutPublicKey,
+                    httpKeyUri.Query);
+                return serverHttpKey;
             }
+
             return httpKeyUri;
         }
 
@@ -190,14 +226,15 @@ namespace ChromeNativeMessagingHost
 
             foreach (var headerName in webResponse.Headers.AllKeys)
             {
-                if (xmlHttpResponse.headers.ContainsKey(headerName))
+                var lowerHeaderName = headerName.ToLowerInvariant();
+                if (xmlHttpResponse.headers.ContainsKey(lowerHeaderName))
                 {
-                    xmlHttpResponse.headers[headerName] = xmlHttpResponse.headers[headerName] + ","
+                    xmlHttpResponse.headers[lowerHeaderName] = xmlHttpResponse.headers[lowerHeaderName] + ","
                                                           + webResponse.Headers[headerName];
                 }
                 else
                 {
-                    xmlHttpResponse.headers[headerName] = webResponse.Headers[headerName];
+                    xmlHttpResponse.headers[lowerHeaderName] = webResponse.Headers[headerName];
                 }
             }
 
@@ -223,6 +260,7 @@ namespace ChromeNativeMessagingHost
                     }
                 }
             }
+
             return xmlHttpResponse;
         }
     }

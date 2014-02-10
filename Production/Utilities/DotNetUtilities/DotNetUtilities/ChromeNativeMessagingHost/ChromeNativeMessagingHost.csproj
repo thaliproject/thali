@@ -60,6 +60,7 @@
     <None Include="ChromeExtension\manifest.json">
       <CopyToOutputDirectory>Always</CopyToOutputDirectory>
     </None>
+    <Content Include="ChromeExtension\pouchdb-1.1.0.js" />
     <Content Include="ChromeExtension\pouchdb-1.1.0.min.js" />
     <Content Include="ChromeExtension\test.js" />
     <Content Include="manifest.json">

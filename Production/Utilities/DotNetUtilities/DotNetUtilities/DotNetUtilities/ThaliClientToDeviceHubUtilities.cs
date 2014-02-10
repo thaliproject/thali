@@ -101,11 +101,11 @@ namespace DotNetUtilities
             return cert;
         }
 
-        public static CouchClient GetCouchClient(HttpKeyUri serverHttpKeyUri, X509Certificate2 clientCert)
+        public static CouchClient GetCouchClient(BigIntegerRSAPublicKey serverPublicKey, string host, int port, X509Certificate2 clientCert)
         {
-            var configWebRequest = new ThaliConfigWebRequest(serverHttpKeyUri.ServerPublicKey, clientCert);
+            var configWebRequest = new ThaliConfigWebRequest(serverPublicKey, clientCert);
             return new CouchClient(
-                serverHttpKeyUri.Host, serverHttpKeyUri.Port, null, null, true, AuthenticationType.Cookie, configWebRequest);
+                host, port, null, null, true, AuthenticationType.Cookie, configWebRequest);
         }
 
         /// <summary>
@@ -122,24 +122,30 @@ namespace DotNetUtilities
             Debug.Assert(string.IsNullOrWhiteSpace(host) == false && port > 0 && directoryInfo != null && directoryInfo.Exists);
             var clientCert = GetLocalClientCertificate(directoryInfo);
             var serverKey = GetServersRootPublicKey(host, port, clientCert);
-            var serverHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(serverKey, host, port, null, null);
-            ProvisionThaliClient(serverHttpKeyUri, clientCert);
+            ProvisionThaliClient(serverKey, host, port, clientCert);
             return clientCert;
         }
 
-        public static void ProvisionThaliClient(HttpKeyUri serverHttpKeyUri, X509Certificate2 clientCert)
+        public static void ProvisionThaliClient(BigIntegerRSAPublicKey serverPublicKey, string host, int port, X509Certificate2 clientCert)
         {
             var clientPublicKey = new BigIntegerRSAPublicKey(clientCert);
 
             var aclDatabaseEntity = new BogusAuthorizeCouchDocument(clientPublicKey);
 
-            var couchClient = GetCouchClient(serverHttpKeyUri, clientCert);
+            var couchClient = GetCouchClient(serverPublicKey, host, port, clientCert);
             var principalDatabase = couchClient.GetDatabase(ThaliCryptoUtilities.KeyDatabaseName);
-            var result = principalDatabase.CreateDocument(aclDatabaseEntity);
-            if (result.StatusCode < 200 || result.StatusCode > 299)
+            var getResult =
+                principalDatabase.GetDocument(
+                    BogusAuthorizeCouchDocument.GenerateRsaKeyId(clientPublicKey));
+            if (getResult == null)
             {
-                throw new ApplicationException("Could not successfully put client's credentials in ACL Store: " + result.StatusCode);
-            }          
+                var createResult = principalDatabase.CreateDocument(aclDatabaseEntity);
+
+                if (createResult.StatusCode < 200 || createResult.StatusCode > 299)
+                {
+                    throw new ApplicationException("Could not successfully put client's credentials in ACL Store: " + createResult.StatusCode);
+                }    
+            }
         }
 
         private static BigIntegerRSAPublicKey ThaliServerCertificateValidationCallback(

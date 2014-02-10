@@ -23,7 +23,6 @@ namespace DotNetUtilities
         public const string RsaKeyType = "rsapublickey";
 
         public readonly BigIntegerRSAPublicKey ServerPublicKey;
-        private readonly string pathWithoutPublicKey;
 
         protected HttpKeyUri(string httpKeyUrlString)
             : base(httpKeyUrlString)
@@ -35,8 +34,16 @@ namespace DotNetUtilities
 
             var publicKeyAndPath = ExtractKeyAndPath(this.AbsolutePath);
             this.ServerPublicKey = GenerateServerPublicKey(publicKeyAndPath.Item1);
-            this.pathWithoutPublicKey = publicKeyAndPath.Item2;
+            this.PathWithoutPublicKey = publicKeyAndPath.Item2;
         }
+
+        /// <summary>
+        /// Gets the path for httpkey without the public key information.
+        /// The underlying Uri object thinks the AbsolutePath includes the public key information. I couldn't find a good way to change that
+        /// behavior and using 'new' to override it just at this level in the inheritance hierarchy seemed like begging for trouble.
+        /// So instead I introduced this method to get the path without the public key.
+        /// </summary>
+        public string PathWithoutPublicKey { get; private set; }
 
         public static HttpKeyUri BuildHttpKeyUri(string httpKeyUri)
         {
@@ -61,7 +68,7 @@ namespace DotNetUtilities
 
         public string CreateHttpsUrl()
         {
-            return new UriBuilder("https", this.Host, this.Port, pathWithoutPublicKey, Query + Fragment).ToString();
+            return new UriBuilder("https", this.Host, this.Port, this.PathWithoutPublicKey, Query + Fragment).ToString();
         }
 
         /// <summary>

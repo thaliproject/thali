@@ -13,8 +13,6 @@
 
 "use strict";
 
-//var callBackObjects = {};
-
 // TODO: THIS IS HORRIFICALLY INSECURE AND WORSE, JUST BROKEN, IF TWO AUTHORIZED PAGES RUN AT ONCE THEIR IDS WILL COLLIDE!
 // I suspect that https://developer.mozilla.org/en-US/docs/Web/API/window.crypto.getRandomValues, which apparently
 // is supported by Chrome can get us out of this by creating a cryptographically secure port ID. Note that the
@@ -29,19 +27,9 @@ var contentPorts = {};
 var nativePort = chrome.runtime.connectNative('com.msopentech.thali.chromebridge');
 
 nativePort.onMessage.addListener(function(msg) {
-//    callBackObjects[msg.transactionId](msg);
-//    delete callBackObjects[msg.transactionId];
-    contentPorts[msg.transactionId].postMessage(msg);
+    contentPorts[msg.transactionId].postMessage(FixMissingErrors(msg));
     delete contentPorts[msg.transactionId];
 });
-
-//chrome.runtime.onMessage.addListener(
-//    function(request, sender, sendResponse) {
-//        var transactionId = guid();
-//        callBackObjects[transactionId] = sendResponse;
-//        port.postMessage({ transactionId: transactionId, requestBody: request.requestBody });
-//    }
-//);
 
 chrome.runtime.onConnect.addListener(function(contentPort) {
     contentPorts[contentPort.name] = contentPort;
@@ -49,3 +37,31 @@ chrome.runtime.onConnect.addListener(function(contentPort) {
         nativePort.postMessage(request);
     });
 });
+
+/**
+ * CouchBase Lite doesn't return the same error information that CouchDB Erlang does which is a problem
+ * because PouchDB depends on this error data. I have raised this issue with the CouchDB Lite folks
+ * but until it's fixed we need to add in some hacks. This code is the start of that hacking. It tries
+ * to add in the fields that PouchDB is expecting that CouchBase Lite isn't sending.
+ * @param {ThaliXMLHttpResponseObject} xmlHttpResponse
+ * @constructor
+ */
+var FixMissingErrors = function (xmlHttpResponse) {
+    if (xmlHttpResponse.headers["content-type"].toLowerCase() == "application/json") {
+        if (xmlHttpResponse.status == 404) { SetErrorValue("not_found", xmlHttpResponse); }
+        if (xmlHttpResponse.status == 412) { SetErrorValue("missing_id", xmlHttpResponse); }
+    }
+    return xmlHttpResponse;
+};
+
+/**
+ *
+ * @param {string} errorValue
+ * @param {ThaliXMLHttpResponseObject} xmlHttpResponse
+ * @constructor
+ */
+var SetErrorValue = function(errorValue, xmlHttpResponse) {
+    var responseBody = JSON.parse(xmlHttpResponse.responseText);
+    responseBody.error = errorValue;
+    xmlHttpResponse.responseText = JSON.stringify(responseBody);
+}

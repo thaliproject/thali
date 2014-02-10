@@ -49,10 +49,7 @@ window.addEventListener("message", function(event) {
             delete ports[portId];
         });
 
-        ports[portId].postMessage({
-            type: 'page',
-            requestBody: event.data.requestBody
-        });
+        ports[portId].postMessage(event.data);
     }
 });
 

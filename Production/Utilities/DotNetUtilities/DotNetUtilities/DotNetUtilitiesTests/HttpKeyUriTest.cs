@@ -45,6 +45,7 @@ namespace DotNetUtilitiesTests
             Assert.IsTrue(serverPublicKey.Exponent.Equals(httpKeyURL.ServerPublicKey.Exponent));
             Assert.IsTrue(query.Equals(httpKeyURL.Query, StringComparison.Ordinal));
             Assert.IsTrue(fragment.Equals(httpKeyURL.Fragment, StringComparison.Ordinal));
+            Assert.IsTrue(httpKeyURL.PathWithoutPublicKey.Equals(path, StringComparison.Ordinal));
 
             string expectedURL = HttpKeyUri.HttpKeySchemeName + "://" + Host + ":" + Port + "/" +
                     HttpKeyUri.RsaKeyType + ":" + serverPublicKey.Exponent + "." + serverPublicKey.Modulus +
@@ -77,6 +78,13 @@ namespace DotNetUtilitiesTests
 
             expectedHttpsURL = "https://" + Host + ":" + Port + "/ick%20%20%3F" + "??????%20%20%20%20" + "#%23%23???///???";
             Assert.IsTrue(expectedHttpsURL.Equals(escapedChars.CreateHttpsUrl(), StringComparison.Ordinal));
+
+            path = "/ick/bick/bark/ark/mark/hark";
+            httpKeyURL = HttpKeyUri.BuildHttpKeyUri(serverPublicKey, Host, Port, path, extraValue);
+            Assert.IsTrue(httpKeyURL.PathWithoutPublicKey.Equals(path, StringComparison.Ordinal));
+
+            httpKeyURL = HttpKeyUri.BuildHttpKeyUri(httpKeyURL.ToString());
+            Assert.IsTrue(httpKeyURL.PathWithoutPublicKey.Equals(path, StringComparison.Ordinal));
         }
     }
 }
