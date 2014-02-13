@@ -5,10 +5,11 @@
     using System.IO;
     using System.Linq;
     using System.Text;
+    using System.Threading;
 
     using Newtonsoft.Json;
 
-    public class ChromeNativeHostUtilities
+    public static class ChromeNativeHostUtilities
     {
         private const int NativeMessagingHeaderLengthInBytes = 4;
 
@@ -49,6 +50,57 @@
             }
         }
 
+        public static void AsynchronousRequestResponseMessageEngine<InMessageType>(
+            Stream inStream,
+            Stream outStream,
+            Func<InMessageType, object> parallelProcessorFunc,
+            Func<string, InMessageType, object> createResponseForHostError) where InMessageType : class
+        {
+            try
+            {
+                while (true)
+                {
+                    var inMessageAsBytes = ReadNextMessageBytes(inStream);
+
+                    if (inMessageAsBytes == null)
+                    {
+                        return;
+                    }
+
+                    var thread = new Thread(
+                        () =>
+                            {
+                                var inMessage = ReadNextMessage<InMessageType>(inMessageAsBytes);
+
+                                var outMessage = parallelProcessorFunc(inMessage);
+
+                                ParallelSendMessage(outMessage, outStream);
+                            });
+
+                    thread.Start();
+                }
+            }
+            catch (Exception e)
+            {
+                // TODO: We should do some handling here, but whatever
+                throw e; 
+            }
+        }
+
+        public static void ParallelSendMessage(object message, Stream outStream)
+        {
+            Debug.Assert(message != null && outStream != null);
+            var jsonAsString = JsonConvert.SerializeObject(message);
+            var lengthAsBytes = BitConverter.GetBytes(jsonAsString.Length);
+            Debug.Assert(lengthAsBytes.Count() == 4);
+            var jsonAsUTF8Binary = Encoding.UTF8.GetBytes(jsonAsString);
+            lock (outStream)
+            {
+                outStream.Write(lengthAsBytes, 0, lengthAsBytes.Count());
+                outStream.Write(jsonAsUTF8Binary, 0, jsonAsUTF8Binary.Count());                
+            }
+        }
+
         public static void SendMessage(object message, Stream outStream)
         {
             Debug.Assert(message != null && outStream != null);
@@ -60,7 +112,7 @@
             outStream.Write(jsonAsUTF8Binary, 0, jsonAsUTF8Binary.Count());
         }
 
-        public static T ReadNextMessage<T>(Stream inStream) where T : class
+        public static byte[] ReadNextMessageBytes(Stream inStream)
         {
             var lengthBuffer = new byte[NativeMessagingHeaderLengthInBytes];
 
@@ -77,8 +129,18 @@
             }
 
             var jsonByteCount = BitConverter.ToInt32(lengthBuffer, 0);
-            var jsonAsString = Encoding.UTF8.GetString(ReadNumberOfBytes(inStream, jsonByteCount));
-            return JsonConvert.DeserializeObject<T>(jsonAsString);
+            return ReadNumberOfBytes(inStream, jsonByteCount);
+        }
+
+        public static T ReadNextMessage<T>(Stream inStream) where T : class
+        {
+            return ReadNextMessage<T>(ReadNextMessageBytes(inStream));
+        }
+
+        public static T ReadNextMessage<T>(byte[] jsonAsBytes) where T : class
+        {
+            var jsonAsString = Encoding.UTF8.GetString(jsonAsBytes);
+            return JsonConvert.DeserializeObject<T>(jsonAsString);            
         }
 
         public static byte[] ReadNumberOfBytes(Stream inStream, int bytesToReturn)

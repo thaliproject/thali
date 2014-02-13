@@ -14,7 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 namespace ChromeNativeMessagingHost
 {
     using System;
-    using System.Collections.Generic;
+    using System.Collections.Concurrent;
     using System.Diagnostics;
     using System.IO;
     using System.Linq;
@@ -35,18 +35,18 @@ namespace ChromeNativeMessagingHost
         /// TODO: This thing could theoretically grow without limit and anyway it's insecure as heck, we need to fix it. Oh
         /// and if the server should change its key for any number of good reasons this will blow up. Bad. Bad. Bad.
         /// </summary>
-        private static readonly Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey> HttpKeyStore = 
-            new Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
+        private static readonly ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey> HttpKeyStore = 
+            new ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
 
         /// <summary>
         /// When we provision the client's identity at a Thali Device Hub we record the address and the associated
         /// server's key in this list.
         /// TODO: This assumes there is just one client identity, which in a real Thali system wouldn't be true. Fix.
         /// </summary>
-        private static readonly Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey> ProvisionedList =
-            new Dictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
+        private static readonly ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey> ProvisionedList =
+            new ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
 
-        public static void MainLoop()
+        public static void MainLoop(bool synchronous)
         {
             Stream outStream = null;
 
@@ -61,19 +61,31 @@ namespace ChromeNativeMessagingHost
                 {
                     try
                     {
+                        ServicePointManager.DefaultConnectionLimit = 100;
                         var workingDirectory = new DirectoryInfo(Environment.CurrentDirectory);
                         var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(workingDirectory);
-                        ChromeNativeHostUtilities.SynchronousRequestResponseMessageEngine<XmlHttpRequest>(
-                            inStream,
-                            outStream,
-                            inMessage => ProcessMessage(inMessage, clientCert),
-                            ProcessHostError);
+                        if (synchronous)
+                        {
+                            ChromeNativeHostUtilities.SynchronousRequestResponseMessageEngine<XmlHttpRequest>(
+                                inStream,
+                                outStream,
+                                inMessage => ProcessMessage(inMessage, clientCert),
+                                ProcessHostError);
+                        }
+                        else
+                        {
+                            ChromeNativeHostUtilities.AsynchronousRequestResponseMessageEngine<XmlHttpRequest>(
+                                inStream,
+                                outStream,
+                                inMessage => ProcessMessage(inMessage, clientCert),
+                                ProcessHostError);
+                        }
                     }
                     catch (Exception e)
                     {
                         if (outStream != null)
                         {
-                            ChromeNativeHostUtilities.SendMessage(ProcessHostError("oops! " + e.Message, null), outStream);
+                            ChromeNativeHostUtilities.ParallelSendMessage(ProcessHostError("oops! " + e.Message, null), outStream);
                         }                        
                     }
                 }
@@ -111,12 +123,29 @@ namespace ChromeNativeMessagingHost
 
             var hostPortTuple = new Tuple<string, int>(httpKeyUri.Host, httpKeyUri.Port);
 
-            if (ProvisionedList.ContainsKey(hostPortTuple) == false ||
-                ProvisionedList[hostPortTuple].Equals(httpKeyUri.ServerPublicKey) == false)
-            {
-                ThaliClientToDeviceHubUtilities.ProvisionThaliClient(httpKeyUri.ServerPublicKey, httpKeyUri.Host, httpKeyUri.Port, clientCert);
-                ProvisionedList[hostPortTuple] = httpKeyUri.ServerPublicKey;
-            }
+            ProvisionedList.AddOrUpdate(
+                hostPortTuple,
+                tuple =>
+                    {
+                        ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
+                            httpKeyUri.ServerPublicKey,
+                            httpKeyUri.Host,
+                            httpKeyUri.Port,
+                            clientCert);
+                        return httpKeyUri.ServerPublicKey;
+                    },
+                (tuple, value) =>
+                    {
+                        if (value.Equals(httpKeyUri.ServerPublicKey) == false)
+                        {
+                            ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
+                                httpKeyUri.ServerPublicKey,
+                                httpKeyUri.Host,
+                                httpKeyUri.Port,
+                                clientCert);
+                        }
+                        return httpKeyUri.ServerPublicKey;
+                    });
 
             var webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
             webRequest.Method = xmlHttpRequest.method;
@@ -180,17 +209,10 @@ namespace ChromeNativeMessagingHost
                 var host = httpKeyUri.Host;
                 var port = httpKeyUri.Port;
                 var hostPortTuple = new Tuple<string, int>(host, port);
-                BigIntegerRSAPublicKey serverPublicKey;
 
-                if (HttpKeyStore.ContainsKey(hostPortTuple))
-                {
-                    serverPublicKey = HttpKeyStore[hostPortTuple];
-                }
-                else
-                {
-                    serverPublicKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(host, port, clientCert);
-                    HttpKeyStore[hostPortTuple] = serverPublicKey;
-                }
+                var serverPublicKey = HttpKeyStore.GetOrAdd(
+                    hostPortTuple,
+                    keyTuple => ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(host, port, clientCert));
 
                 var serverHttpKey = HttpKeyUri.BuildHttpKeyUri(
                     serverPublicKey,

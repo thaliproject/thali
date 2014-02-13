@@ -24,6 +24,7 @@ function errorOrDoNext(doNext) {
         if (err != null) {
             window.alert("oy!");
         } else {
+            console.timeStamp("About to start function " + doNext.name);
             doNext();
         }
     }
@@ -41,17 +42,17 @@ function handleRespThenDoNext(handleResponse, doNext) {
         if (err != null) {
             window.alert("oy!");
         } else {
+            console.timeStamp("About to start function " + handleResponse.name);
             handleResponse(resp);
-            if (doNext != null) { doNext(); }
+            if (doNext != null) {
+                console.timeStamp("About to start function " + doNext.name);
+                doNext();
+            }
         }
     }
 }
 
 // Clean up state a little
-var testDbUrl = 'https://127.0.0.1:9898/rsapublickey:0.0/test';
-
-startTest();
-
 function startTest() {
     PouchDB.destroy(testDbUrl, errorOrDoNext(destroyLocal));
 }
@@ -72,7 +73,16 @@ function createLocalAndPutDoc1() {
 }
 
 function putDoc2() {
-    localCouch.put({_id: 'blah', foo: "blah"}, errorOrDoNext(replicateTo));
+    localCouch.put({_id: 'blah', foo: "blah"}, errorOrDoNext(postATonOfDocs));
+}
+
+function postATonOfDocs() {
+    var docBag = [];
+    var baseGuid = guid();
+    for(var i = 0; i < 10000; ++i) {
+        docBag = docBag.concat({silly: baseGuid + 1});
+    }
+    localCouch.bulkDocs({docs: docBag}, errorOrDoNext(replicateTo));
 }
 
 var thaliDeviceHub;
@@ -97,6 +107,14 @@ function getAllLocalDocs() {
 
 function seeIfItWorked() {
     for(var localDoc in allLocalDocs.rows) {
-        localFromThali.get(allLocalDocs.rows[localDoc].id, handleRespThenDoNext(function(doc) {}));
+        localFromThali.get(allLocalDocs.rows[localDoc].id, handleRespThenDoNext(function(doc) {
+            var div = document.createElement("div");
+            div.innerHTML = "A Doc! ";
+            console.timeStamp("A doc has completed.");
+        }));
     }
 }
+
+var testDbUrl = 'https://10.82.119.41:9898/rsapublickey:0.0/test'; // 'https://127.0.0.1:9898/rsapublickey:0.0/test';
+
+window.onload = startTest();

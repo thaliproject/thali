@@ -44,7 +44,7 @@ namespace DotNetUtilities
             Debug.Assert(string.IsNullOrWhiteSpace(host) == false && port >= MinimumTCPPortValue && port <= MaximumTCPPortValue);
             var serverUri = new UriBuilder(HttpsScheme, host, port).Uri;
             var httpWebRequest = WebRequest.CreateHttp(serverUri);
-            BigIntegerRSAPublicKey serverRsaPublicKey = new BigIntegerRSAPublicKey();
+            BigIntegerRSAPublicKey serverRsaPublicKey = null;
             httpWebRequest.ServerCertificateValidationCallback = (sender, certificate, chain, sslPolicyErrors) =>
                 {
                     serverRsaPublicKey = ThaliServerCertificateValidationCallback(certificate, chain, sslPolicyErrors);
@@ -54,6 +54,7 @@ namespace DotNetUtilities
             {
                 httpWebRequest.ClientCertificates.Add(clientCertificate);    
             }
+
             httpWebRequest.Method = "GET";
             httpWebRequest.GetResponse().Close();
             return serverRsaPublicKey;

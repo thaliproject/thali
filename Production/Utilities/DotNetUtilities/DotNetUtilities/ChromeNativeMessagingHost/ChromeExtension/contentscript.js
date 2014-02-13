@@ -35,13 +35,6 @@ window.addEventListener("message", function(event) {
     }
 
     if (event.data.type && (event.data.type == "REQUEST_XMLHTTP")) {
-//        chrome.extension.sendMessage({
-//            type: 'page',
-//            requestBody: event.data.requestBody
-//        }, function(response) {
-//            window.postMessage({ type: "RESPONSE_XMLHTTP", responseBody: response.responseBody }, "*");
-//        });
-
         var portId = event.data.transactionId;
         ports[portId] = chrome.runtime.connect({name: portId});
         ports[portId].onMessage.addListener(function(response) {

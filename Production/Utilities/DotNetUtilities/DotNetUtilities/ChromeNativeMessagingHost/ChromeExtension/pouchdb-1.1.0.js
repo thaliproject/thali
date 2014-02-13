@@ -3617,7 +3617,7 @@ function ajax(options, callback) {
     };
 
     if (options.timeout > 0) {
-      timer = setTimeout(abortReq, options.timeout);
+      //timer = setTimeout(abortReq, options.timeout);
       xhr.upload.onprogress = xhr.onprogress = function () {
         clearTimeout(timer);
         timer = setTimeout(abortReq, options.timeout);

@@ -13,10 +13,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 namespace ChromeNativeMessagingHostTest
 {
-    using System;
     using System.Diagnostics;
     using System.IO;
-    using System.Threading;
 
     using ChromeNativeMessagingHost;
 
@@ -29,7 +27,7 @@ namespace ChromeNativeMessagingHostTest
     [TestClass]
     public class XmlHttpRequestProxyTest
     {
-        private const string Host = "127.0.0.1";
+        private const string Host = "10.82.119.41";// "127.0.0.1";
 
         private const int Port = 9898;
 
@@ -44,7 +42,6 @@ namespace ChromeNativeMessagingHostTest
         {
             var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(tempDirectory);
 
-
             var testGetJsonString = GenerateXmlHttpRequestJsonObjectForNonExistentDatabase();
 
             var xmlHttpRequest = JsonConvert.DeserializeObject<XmlHttpRequest>(testGetJsonString);
@@ -54,6 +51,13 @@ namespace ChromeNativeMessagingHostTest
 
         [TestMethod]
         public void MainLoopTest()
+        {
+            this.MainLoopTestBody(true);    
+            this.MainLoopTestBody(false);
+        }
+
+
+        public void MainLoopTestBody(bool synchronous)
         {
             Process loopProcess = null;
             try
@@ -65,7 +69,8 @@ namespace ChromeNativeMessagingHostTest
                                               FileName = "ChromeNativeMessagingHost.exe",
                                               UseShellExecute = false,
                                               RedirectStandardInput = true,
-                                              RedirectStandardOutput = true
+                                              RedirectStandardOutput = true,
+                                              Arguments = synchronous.ToString()
                                           }
                                   };
                 loopProcess.Start();
@@ -76,9 +81,16 @@ namespace ChromeNativeMessagingHostTest
                     var testGetJsonString = GenerateXmlHttpRequestJsonObjectForNonExistentDatabase();
                     var xmlHttpRequest = JsonConvert.DeserializeObject<XmlHttpRequest>(testGetJsonString);
                     ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
+                    ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
+                    ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
                     inStream.BaseStream.Flush();
-                    var xmlHttpResponse = ChromeNativeHostUtilities.ReadNextMessage<XmlHttpResponse>(outStream.BaseStream);
-                    Assert.AreEqual(xmlHttpResponse.status, 404);
+                    var xmlHttpResponse =
+                        ChromeNativeHostUtilities.ReadNextMessage<XmlHttpResponse>(outStream.BaseStream);
+                    Assert.AreEqual(404, xmlHttpResponse.status);
+                    xmlHttpResponse = ChromeNativeHostUtilities.ReadNextMessage<XmlHttpResponse>(outStream.BaseStream);
+                    Assert.AreEqual(404, xmlHttpResponse.status);
+                    xmlHttpResponse = ChromeNativeHostUtilities.ReadNextMessage<XmlHttpResponse>(outStream.BaseStream);
+                    Assert.AreEqual(404, xmlHttpResponse.status);  
                 }
             }
             finally
@@ -97,8 +109,10 @@ namespace ChromeNativeMessagingHostTest
             tempDirectoryForSetup = Directory.CreateDirectory(tempDirectoryForSetupPath);
             var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(tempDirectoryForSetup);
             var serverPublicKey = ThaliClientToDeviceHubUtilities.GetServersRootPublicKey(Host, Port, clientCert);
+            ThaliClientToDeviceHubUtilities.ProvisionThaliClient(serverPublicKey, Host, Port, clientCert);
             var couchClient = ThaliClientToDeviceHubUtilities.GetCouchClient(serverPublicKey, Host, Port, clientCert);
-            couchClient.DeleteDatabase(TestDatabaseName);
+
+            var response = couchClient.DeleteDatabase(TestDatabaseName);
 
             var tempDirectoryPath = Path.Combine(Path.GetTempPath(), Path.GetRandomFileName());
             tempDirectory = Directory.CreateDirectory(tempDirectoryPath);

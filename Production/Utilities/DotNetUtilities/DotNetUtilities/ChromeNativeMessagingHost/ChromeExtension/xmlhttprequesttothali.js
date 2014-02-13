@@ -308,8 +308,21 @@ ThaliXMLHttpRequest.prototype.send = function (data) {
     this._thaliGlobalXMLHttpRequestHandlerTransactionId = this._thaliXmlHttpRequestManager.send(this, this._requestObject);
 };
 
+// s4 and guid taken from http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
+function s4() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+        .toString(16)
+        .substring(1);
+};
+
+function guid() {
+    return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+        s4() + '-' + s4() + s4() + s4();
+}
+
+
 window.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
-window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager("thaliXMLHTTPRequestManager");
+window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
 window.XMLHttpRequest = function () {
     return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);

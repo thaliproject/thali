@@ -33,8 +33,9 @@ namespace DotNetUtilities
         public BogusAuthorizeCouchDocument(BigIntegerRSAPublicKey publicKey)
         {
             Id = GenerateRsaKeyId(publicKey);
-            modulus = publicKey.Modulus.ToString();
-            exponent = publicKey.Exponent.ToString();
+            var modulusAndExponent = publicKey.GetModulusAndExponentAsString();
+            modulus = modulusAndExponent.Item1;
+            exponent = modulusAndExponent.Item2;
             keyType = RSAKeyType;
         }
 
@@ -56,7 +57,8 @@ namespace DotNetUtilities
         /// <returns></returns>
         public static string GenerateRsaKeyId(BigIntegerRSAPublicKey publicKey)
         {
-            return RSAKeyType + ":" + publicKey.Modulus + ":" + publicKey.Exponent;
+            var modulusAndExponent = publicKey.GetModulusAndExponentAsString();
+            return RSAKeyType + ":" + modulusAndExponent.Item1 + ":" + modulusAndExponent.Item2;
         }
 
         public string Id { get; set; }

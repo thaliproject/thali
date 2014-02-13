@@ -64,4 +64,4 @@ var SetErrorValue = function(errorValue, xmlHttpResponse) {
     var responseBody = JSON.parse(xmlHttpResponse.responseText);
     responseBody.error = errorValue;
     xmlHttpResponse.responseText = JSON.stringify(responseBody);
-}
+};
