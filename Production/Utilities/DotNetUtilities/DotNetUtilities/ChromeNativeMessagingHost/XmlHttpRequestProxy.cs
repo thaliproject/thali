@@ -62,7 +62,16 @@ namespace ChromeNativeMessagingHost
                     try
                     {
                         ServicePointManager.DefaultConnectionLimit = 100;
-                        var workingDirectory = new DirectoryInfo(Environment.CurrentDirectory);
+
+                        var appdataDirectory = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData);
+                        var homeDirectory = string.Concat(appdataDirectory, @"\Google\Chrome\User Data\Thali");
+                        if (!Directory.Exists(homeDirectory))
+                        {
+                            Directory.CreateDirectory(homeDirectory);
+                        }
+
+                        DirectoryInfo workingDirectory = new DirectoryInfo(homeDirectory);
+                        
                         var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(workingDirectory);
                         if (synchronous)
                         {
