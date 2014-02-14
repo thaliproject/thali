@@ -320,8 +320,7 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
-
-window.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
+ThaliXMLHttpRequest.prototype.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
 window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
 window.XMLHttpRequest = function () {

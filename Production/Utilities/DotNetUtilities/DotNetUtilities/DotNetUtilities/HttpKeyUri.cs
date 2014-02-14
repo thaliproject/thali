@@ -96,8 +96,12 @@ namespace DotNetUtilities
         /// <returns></returns>
         protected static BigIntegerRSAPublicKey GenerateServerPublicKey(string rsaKeyValue)
         {
-            Debug.Assert(string.IsNullOrWhiteSpace(rsaKeyValue) == false && rsaKeyValue.StartsWith(rsaKeyValue, StringComparison.Ordinal));
-        
+            if (string.IsNullOrWhiteSpace(rsaKeyValue)
+                || rsaKeyValue.StartsWith(RsaKeyType, StringComparison.Ordinal) == false)
+            {
+                throw new ArgumentException();
+            }
+
             var splitString = rsaKeyValue.Substring(RsaKeyType.Length + 1).Split('.');
             if (splitString.Length != 2)
             {

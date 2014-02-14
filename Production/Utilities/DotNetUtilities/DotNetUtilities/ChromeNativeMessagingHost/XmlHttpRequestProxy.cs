@@ -108,24 +108,21 @@ namespace ChromeNativeMessagingHost
                     " and not " + XmlHttpRequest.typeValue + " as required.");
             }
 
-            // Pouch gets unhappy if you give it a httpkey URL, so instead we give it a https URL
-            // that is really a httpkey URL. So we check here.
-            if (xmlHttpRequest.url.StartsWith("https://", StringComparison.Ordinal) == false)
+            HttpWebRequest webRequest;
+            var httpKeyUri = TryToCreateHttpKeyUri(xmlHttpRequest.url);
+            if (httpKeyUri == null)
             {
-                throw new ApplicationException("Incoming URL had to be a httpkey URL masquerading as a https URL but instead it was: "
-                    + xmlHttpRequest.url);
+                webRequest = (HttpWebRequest)WebRequest.Create(new Uri(xmlHttpRequest.url));
             }
+            else
+            {
+                httpKeyUri = DiscoverRootCertIfNeeded(httpKeyUri, clientCert);
 
-            var testHttpKeyUrlString = HttpKeyUri.HttpKeySchemeName + xmlHttpRequest.url.Substring("https".Length);
-            var httpKeyUri = HttpKeyUri.BuildHttpKeyUri(testHttpKeyUrlString);
+                var hostPortTuple = new Tuple<string, int>(httpKeyUri.Host, httpKeyUri.Port);
 
-            httpKeyUri = DiscoverRootCertIfNeeded(httpKeyUri, clientCert);
-
-            var hostPortTuple = new Tuple<string, int>(httpKeyUri.Host, httpKeyUri.Port);
-
-            ProvisionedList.AddOrUpdate(
-                hostPortTuple,
-                tuple =>
+                ProvisionedList.AddOrUpdate(
+                    hostPortTuple,
+                    tuple =>
                     {
                         ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
                             httpKeyUri.ServerPublicKey,
@@ -134,7 +131,7 @@ namespace ChromeNativeMessagingHost
                             clientCert);
                         return httpKeyUri.ServerPublicKey;
                     },
-                (tuple, value) =>
+                    (tuple, value) =>
                     {
                         if (value.Equals(httpKeyUri.ServerPublicKey) == false)
                         {
@@ -144,10 +141,13 @@ namespace ChromeNativeMessagingHost
                                 httpKeyUri.Port,
                                 clientCert);
                         }
+
                         return httpKeyUri.ServerPublicKey;
                     });
 
-            var webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
+                webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
+            }
+            
             webRequest.Method = xmlHttpRequest.method;
 
             // There are multiple headers that cannot be set directly via webRequest.Headers. I only catch
@@ -192,6 +192,32 @@ namespace ChromeNativeMessagingHost
                                           responseText = errorMessage
                                       };
             return xmlHttpResponse;
+        }
+
+        /// <summary>
+        /// Pouch will only let through HTTP or HTTPS URLs. So we encode httpkey URIs as
+        /// HTTPS Uris. This method will try to turn an incoming URI into a HttpKey URI if it
+        /// can otherwise it will return null;
+        /// TODO: It's theoretically possible for a legit https URL to just look like a HttpKey URI so we should fix Pouch to accept HttpKey URIs
+        /// </summary>
+        /// <param name="httpUrl"></param>
+        /// <returns></returns>
+        public static HttpKeyUri TryToCreateHttpKeyUri(string httpUrl)
+        {
+            if (string.IsNullOrWhiteSpace(httpUrl) || httpUrl.StartsWith("https://") == false)
+            {
+                return null;
+            }
+
+            var testHttpKeyUrlString = HttpKeyUri.HttpKeySchemeName + httpUrl.Substring("https".Length);
+            try
+            {
+                return HttpKeyUri.BuildHttpKeyUri(testHttpKeyUrlString);
+            }
+            catch (ArgumentException)
+            {
+                return null;
+            }
         }
 
         /// <summary>
