@@ -295,6 +295,23 @@ ThaliXMLHttpRequest.prototype.getResponseHeader = function (header) {
 };
 
 /**
+ * Retrieve all response headers
+ * @returns {String|null}
+ */
+ThaliXMLHttpRequest.prototype.getAllResponseHeaders = function () {
+    if (this.readyState < 2) {
+        return null;
+    }
+
+    var output = "";
+    for(var headerName in this._responseObject.headers) {
+        output += headerName + ": " + this._responseObject.headers[headerName] + "\r\n";
+    }
+
+    return output;
+};
+
+/**
  * Send a request, make sure to have called open first. The request body is whatever value, if any, that is put in data.
  * @param {String|null} data
  */
@@ -320,10 +337,16 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
-ThaliXMLHttpRequest.prototype.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
-window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
-window.XMLHttpRequest = function () {
-    return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);
-};
+/**
+ * This will cause the global XMLHTTP object to be replaced by the one defined in this file.
+ * @constructor
+ */
+function ThaliActivate() {
+    ThaliXMLHttpRequest.prototype.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
+    window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
+    window.XMLHttpRequest = function () {
+        return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);
+    };
+}

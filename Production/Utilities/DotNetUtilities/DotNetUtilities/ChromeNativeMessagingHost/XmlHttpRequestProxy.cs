@@ -182,7 +182,7 @@ namespace ChromeNativeMessagingHost
                 var bodyAsBytes = Encoding.UTF8.GetBytes(xmlHttpRequest.requestText);
                 webRequest.GetRequestStream().Write(bodyAsBytes, 0, bodyAsBytes.Count());
             }
-
+            
             var xmlHttpResponse = ProcessResponse(xmlHttpRequest.transactionId, webRequest);
 
             return xmlHttpResponse;

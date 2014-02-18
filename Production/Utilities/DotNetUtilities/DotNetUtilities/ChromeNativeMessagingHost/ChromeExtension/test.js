@@ -13,6 +13,9 @@
 
 "use strict";
 
+// Have Thali take over XMLHTTP
+ThaliActivate();
+
 /**
  *
  * @param {Function} doNext
@@ -79,7 +82,7 @@ function putDoc2() {
 function postATonOfDocs() {
     var docBag = [];
     var baseGuid = guid();
-    for(var i = 0; i < 10000; ++i) {
+    for(var i = 0; i < 10; ++i) {
         docBag = docBag.concat({silly: baseGuid + 1});
     }
     localCouch.bulkDocs({docs: docBag}, errorOrDoNext(replicateTo));

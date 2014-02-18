@@ -91,9 +91,9 @@
         {
             Debug.Assert(message != null && outStream != null);
             var jsonAsString = JsonConvert.SerializeObject(message);
-            var lengthAsBytes = BitConverter.GetBytes(jsonAsString.Length);
-            Debug.Assert(lengthAsBytes.Count() == 4);
             var jsonAsUTF8Binary = Encoding.UTF8.GetBytes(jsonAsString);
+            var lengthAsBytes = BitConverter.GetBytes(jsonAsUTF8Binary.Length);
+            Debug.Assert(lengthAsBytes.Count() == 4);
             lock (outStream)
             {
                 outStream.Write(lengthAsBytes, 0, lengthAsBytes.Count());
