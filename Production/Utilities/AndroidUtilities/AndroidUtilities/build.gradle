@@ -31,6 +31,7 @@ repositories {
     maven { url "${System.getProperty('user.home')}/.m2/repository" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
+    maven { url 'http://files.couchbase.com/maven2/' }
     mavenCentral()
 }
 
@@ -53,8 +54,8 @@ android {
 
 dependencies {
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
-    compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.1${mavenVersionSnapshot()}"
-    compile "com.couchbase.lite:Listener:1.0.0-beta${mavenVersionSnapshot()}"
+    compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
+    compile "com.couchbase.lite:Listener:1.0.0-beta"
 
     instrumentTestCompile files('libs/td_collator_so.jar')  //
     //fileTree(dir: 'libs', include: '*.jar')
@@ -77,7 +78,7 @@ uploadArchives {
                 authentication(userName: "${artifactory_user}", password: "${artifactory_password}")
             }
 
-            pom.version = "0.0.1${mavenVersionSnapshot()}"
+            pom.version = "0.0.1"
             pom.groupId = 'com.msopentech.thali'
             pom.artifactId = 'ThaliUtilitiesAndroid'
             pom.project {

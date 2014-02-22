@@ -111,7 +111,7 @@ ThaliXMLHttpRequestManager.prototype.send = function (xmlHttpRequestObject, thal
  */
 ThaliXMLHttpRequestManager.prototype.receive = function (responseObject) {
     var currentObject = this._xmlHTTPObjects[responseObject.transactionId];
-    if (currentObject === null) {
+    if (currentObject === undefined || currentObject === null) {
         return;
     }
     currentObject._receiveResponse(responseObject);
@@ -337,16 +337,23 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
+var HasThaliBeenActivated = false;
 
 /**
  * This will cause the global XMLHTTP object to be replaced by the one defined in this file.
  * @constructor
  */
 function ThaliActivate() {
+    if (HasThaliBeenActivated) {
+        return;
+    }
+
     ThaliXMLHttpRequest.prototype.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
     window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
     window.XMLHttpRequest = function () {
         return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);
     };
+
+    HasThaliBeenActivated = true;
 }

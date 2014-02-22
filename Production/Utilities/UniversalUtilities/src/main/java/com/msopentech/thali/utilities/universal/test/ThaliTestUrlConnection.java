@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -29,9 +30,25 @@ import java.security.*;
  */
 public class ThaliTestUrlConnection {
 
-    public static void TestThaliUrlConnection(String host, int port, char[] passPhrase, CreateClientBuilder createClientBuilder, File filesDir)
+    public static void TestThaliUrlConnection(String host, char[] passPhrase, CreateClientBuilder createClientBuilder, File filesDir)
             throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
             KeyStoreException, IOException {
+        ThaliTestUtilities.configuringLoggingApacheClient();
+
+        ThaliListener thaliTestServer = new ThaliListener();
+        File keyStore = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
+
+        // We want to start with a clean state
+        if (keyStore.exists()) {
+            keyStore.delete();
+        }
+
+        // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
+        // with the 'real' Thali Device Hub if it's running.
+        thaliTestServer.startServer(filesDir, 0);
+
+        int port = thaliTestServer.getSocketStatus().getPort();
+
         CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder, host, port, passPhrase);
 
         couchDbInstance.deleteDatabase(ThaliTestEktorpClient.TestDatabaseName);

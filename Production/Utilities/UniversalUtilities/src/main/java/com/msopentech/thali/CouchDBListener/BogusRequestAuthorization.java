@@ -14,12 +14,12 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.CouchDBListener;
 
-import android.util.Log;
 import com.couchbase.lite.*;
 import com.couchbase.lite.internal.RevisionInternal;
 import com.couchbase.lite.router.RequestAuthorization;
 import com.couchbase.lite.router.Router;
 import com.couchbase.lite.router.URLConnection;
+import com.couchbase.lite.util.Log;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.utilities.universal.ThaliPublicKeyComparer;
 
@@ -139,7 +139,7 @@ public class BogusRequestAuthorization implements RequestAuthorization {
         try {
             urlConnection.getResponseOutputStream().close();
         } catch (IOException e) {
-            android.util.Log.e("ThaliTestServer", "Error closing empty output stream");
+            Log.e("ThaliTestServer", "Error closing empty output stream");
         }
     }
 }

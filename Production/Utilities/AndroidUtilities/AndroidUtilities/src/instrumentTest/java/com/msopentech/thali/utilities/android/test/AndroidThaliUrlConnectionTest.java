@@ -14,14 +14,11 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
-import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.test.ThaliTestUrlConnection;
-import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -33,24 +30,7 @@ import java.security.UnrecoverableEntryException;
  */
 public class AndroidThaliUrlConnectionTest extends AndroidTestCase {
     public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        ThaliTestUtilities.configuringLoggingApacheClient();
-
-        AndroidThaliListener thaliTestServer = new AndroidThaliListener();
-        File filesDir = getContext().getFilesDir();
-        File keyStore = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
-
-        // We want to start with a clean state
-        if (keyStore.exists()) {
-            keyStore.delete();
-        }
-
-        // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
-        // with the 'real' Thali Device Hub if it's running.
-        thaliTestServer.startServer(getContext().getFilesDir(), 0);
-
-        int port = thaliTestServer.getSocketStatus().getPort();
-
-        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, port, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
+        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
     }
 
 }

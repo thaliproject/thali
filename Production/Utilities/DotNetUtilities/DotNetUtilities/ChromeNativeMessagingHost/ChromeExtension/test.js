@@ -57,6 +57,7 @@ function handleRespThenDoNext(handleResponse, doNext) {
 
 // Clean up state a little
 function startTest() {
+    window.ThaliActivate();
     PouchDB.destroy(testDbUrl, errorOrDoNext(destroyLocal));
 }
 
@@ -118,6 +119,6 @@ function seeIfItWorked() {
     }
 }
 
-var testDbUrl = 'https://10.82.119.41:9898/rsapublickey:0.0/test'; // 'https://127.0.0.1:9898/rsapublickey:0.0/test';
+var testDbUrl = 'https://127.0.0.1:9898/rsapublickey:0.0/test'; // 'https://10.82.119.41:9898/rsapublickey:0.0/test';
 
 window.onload = startTest();
