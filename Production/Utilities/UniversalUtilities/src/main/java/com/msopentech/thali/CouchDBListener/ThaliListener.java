@@ -22,7 +22,6 @@ import com.couchbase.lite.auth.AuthorizerFactory;
 import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
-import com.couchbase.lite.replicator.Replication;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 import org.slf4j.Logger;
@@ -42,14 +41,6 @@ public class ThaliListener {
     public static final String TjwsSslAcceptor = "com.msopentech.thali.CouchDBListener.AcceptAllClientCertsSSLAcceptor";
     public static final String DefaultThaliDeviceHubAddress = "127.0.0.1";
     public static final int DefaultThaliDeviceHubPort = 9898;
-
-    private class ThaliChangeListener implements Replication.ChangeListener {
-
-        @Override
-        public void changed(Replication.ChangeEvent event) {
-            Log.debug(event.toString());
-        }
-    }
 
     private LiteListener cblListener = null;
     private boolean serverStarted = false;

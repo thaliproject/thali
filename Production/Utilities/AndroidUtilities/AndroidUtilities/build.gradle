@@ -16,19 +16,14 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.7.+'
+        classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
 apply plugin: 'android-library'
 apply plugin: 'maven'
 
 repositories {
-    // support Android. So the following is a temporary work around for the 1.9 bug until we get a release of Gradle
-    // that both supports Android and mavenLocal(). Fix taken from: https://plus.google.com/+XavierDucrohet/posts/hF7W59uZ7rX
-    // Note that the fix used System.env.HOME but for some reason that didn't work so I switched it to System.getProperty('user.home') which
-    // does work.
-    //mavenLocal()
-    maven { url "${System.getProperty('user.home')}/.m2/repository" }
+    mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
     maven { url 'http://files.couchbase.com/maven2/' }
@@ -36,12 +31,12 @@ repositories {
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "18.1.1"
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 18
+        targetSdkVersion 19
     }
 
     // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
@@ -53,11 +48,11 @@ android {
 }
 
 dependencies {
+    compile 'com.couchbase.lite:android:1.0.0-beta3rc1'
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
-    compile "com.couchbase.lite:Listener:1.0.0-beta"
 
-    instrumentTestCompile files('libs/td_collator_so.jar')  //
+    instrumentTestCompile files('libs/td_collator_so.jar')
     //fileTree(dir: 'libs', include: '*.jar')
     // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
@@ -107,5 +102,5 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.9'
+    gradleVersion = '1.10'
 }

@@ -35,7 +35,7 @@ public class ConfigureRequestObjects {
     public final PublicKey serverPublicKey;
     public final KeyStore clientKeyStore;
 
-    public ConfigureRequestObjects(String host, int port, String databaseName, char[] passPhrase,
+    public ConfigureRequestObjects(String host, int port, char[] passPhrase,
                                    CreateClientBuilder createClientBuilder, File filesDir)
             throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException, KeyStoreException,
             KeyManagementException  {
@@ -58,6 +58,7 @@ public class ConfigureRequestObjects {
 
         clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
-        replicationDatabaseConnector = thaliCouchDbInstance.createConnector(databaseName, false);
+        replicationDatabaseConnector = thaliCouchDbInstance.createConnector(
+                ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
     }
 }

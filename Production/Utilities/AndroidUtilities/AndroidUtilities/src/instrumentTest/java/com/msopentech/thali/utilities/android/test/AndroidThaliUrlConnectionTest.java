@@ -32,5 +32,4 @@ public class AndroidThaliUrlConnectionTest extends AndroidTestCase {
     public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
     }
-
 }

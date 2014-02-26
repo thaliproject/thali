@@ -51,8 +51,8 @@ public class ThaliTestUrlConnection {
 
         CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder, host, port, passPhrase);
 
-        couchDbInstance.deleteDatabase(ThaliTestEktorpClient.TestDatabaseName);
-        couchDbInstance.createDatabase(ThaliTestEktorpClient.TestDatabaseName);
+        couchDbInstance.deleteDatabase(ThaliTestUtilities.TestDatabaseName);
+        couchDbInstance.createDatabase(ThaliTestUtilities.TestDatabaseName);
 
         KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
 
@@ -63,7 +63,7 @@ public class ThaliTestUrlConnection {
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
-        String httpsURL = "https://" + host + ":" + port + "/" + ThaliTestEktorpClient.TestDatabaseName + "/";
+        String httpsURL = "https://" + host + ":" + port + "/" + ThaliTestUtilities.TestDatabaseName + "/";
 
         HttpsURLConnection httpsURLConnection =
                 ThaliUrlConnection.getThaliUrlConnection(httpsURL, serverPublicKey, clientKeyStore, passPhrase);
