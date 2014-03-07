@@ -38,7 +38,8 @@ public class HttpKeySSLSocketFactory extends SSLSocketFactory {
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         super((KeyStore) null);
 
-        final ThaliPublicKeyComparer thaliPublicKeyComparer = serverPublicKey == null ? null : new ThaliPublicKeyComparer(serverPublicKey);
+        final ThaliPublicKeyComparer thaliPublicKeyComparer =
+                serverPublicKey == null ? null : new ThaliPublicKeyComparer(serverPublicKey);
 
         TrustManager trustManager = new X509TrustManager() {
             @Override

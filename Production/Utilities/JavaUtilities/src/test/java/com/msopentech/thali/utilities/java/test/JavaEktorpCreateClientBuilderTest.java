@@ -11,19 +11,22 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-
 package com.msopentech.thali.utilities.java.test;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import com.msopentech.thali.utilities.universal.ThaliTestEktorpClient;
-import com.msopentech.thali.utilities.universal.ThaliTestUtilities;
+import com.msopentech.thali.utilities.universal.test.ThaliTestEktorpClient;
+import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
+import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -33,20 +36,49 @@ import java.security.spec.InvalidKeySpecException;
 
 public class JavaEktorpCreateClientBuilderTest {
     private final boolean debugApache = true;
+    private File localDirectory;
+    private static ThaliTestEktorpClient testEktorpClient = null;
 
     @Before
-    public void setup() {
+    public void setUp() throws IOException, InterruptedException, KeyManagementException, UnrecoverableEntryException,
+            NoSuchAlgorithmException, KeyStoreException {
         if (debugApache) {
             ThaliTestUtilities.configuringLoggingApacheClient();
         }
+
+        File localDirectory = Files.createTempDirectory(null).toFile();
+        localDirectory.deleteOnExit();
+
+        if (testEktorpClient == null) {
+            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
+                    ThaliListener.DefaultThaliDeviceHubPort,
+                    ThaliCryptoUtilities.DefaultPassPhrase, localDirectory,
+                    new JavaEktorpCreateClientBuilder(), this.getClass());
+        }
+        testEktorpClient.setUp();
+    }
+
+    @After
+    public void tearDown() {
+        testEktorpClient.tearDown();
     }
 
     @Test
-    public void testClient()
-            throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
-            IOException, InvalidKeySpecException {
-        File localDirectory = Files.createTempDirectory(null).toFile();
-        localDirectory.deleteOnExit();
-        ThaliTestEktorpClient.runRetrieveTest(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
+    public void testPullReplication() throws InterruptedException, NoSuchAlgorithmException, CouchbaseLiteException,
+            URISyntaxException, MalformedURLException, InvalidKeySpecException {
+        testEktorpClient.testPullReplication();
+    }
+
+    @Test
+    public void testPushReplication() throws IOException, NoSuchAlgorithmException, URISyntaxException,
+            UnrecoverableEntryException, InterruptedException, CouchbaseLiteException, KeyStoreException,
+            InvalidKeySpecException, KeyManagementException {
+        testEktorpClient.testPushReplication();
+    }
+
+    @Test
+    public void testRetrieve() throws InterruptedException, NoSuchAlgorithmException, IOException,
+            KeyManagementException, KeyStoreException, UnrecoverableEntryException, InvalidKeySpecException {
+        testEktorpClient.testRetrieve();
     }
 }

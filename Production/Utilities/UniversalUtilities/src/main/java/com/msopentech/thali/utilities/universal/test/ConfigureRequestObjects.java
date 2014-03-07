@@ -28,6 +28,7 @@ import java.security.*;
  * This class generates them.
  */
 public class ConfigureRequestObjects {
+    public static final String clientSubDirectory = "client";
     public final ThaliCouchDbInstance thaliCouchDbInstance;
     public final CouchDbConnector testDatabaseConnector;
     public final CouchDbConnector replicationDatabaseConnector;
@@ -39,11 +40,26 @@ public class ConfigureRequestObjects {
                                    CreateClientBuilder createClientBuilder, File filesDir)
             throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException, KeyStoreException,
             KeyManagementException  {
-        thaliCouchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder, host, port, passPhrase);
+
+        File clientFilesDir = new File(filesDir, clientSubDirectory);
+
+        // We want to start with a new identity
+        if (clientFilesDir.exists()) {
+            clientFilesDir.delete();
+        }
+
+        clientFilesDir.mkdir();
+
+        thaliCouchDbInstance =
+                ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
+                        clientFilesDir, createClientBuilder, host, port, passPhrase);
+
+        thaliCouchDbInstance.deleteDatabase(ThaliTestUtilities.TestDatabaseName);
+        thaliCouchDbInstance.deleteDatabase(ThaliTestEktorpClient.ReplicationTestDatabaseName);
 
         testDatabaseConnector = thaliCouchDbInstance.createConnector(ThaliTestUtilities.TestDatabaseName, false);
 
-        clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+        clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(clientFilesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
                 createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);
@@ -54,11 +70,17 @@ public class ConfigureRequestObjects {
 
         KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
                 (KeyStore.PrivateKeyEntry)
-                        clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(passPhrase));
+                        clientKeyStore.getEntry(
+                                ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(passPhrase));
 
         clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
         replicationDatabaseConnector = thaliCouchDbInstance.createConnector(
                 ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
+
+        // Last but not least we need to provision the databases own key inside itself. The reason is
+        // that we are doing replication tests where the database talks to itself. So if its own key isn't
+        // in its own authorization database then it won't let itself talk to itself!
+        ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(serverPublicKey, thaliCouchDbInstance);
     }
 }

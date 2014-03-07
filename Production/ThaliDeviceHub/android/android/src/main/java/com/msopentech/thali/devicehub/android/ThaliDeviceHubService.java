@@ -16,7 +16,6 @@ package com.msopentech.thali.devicehub.android;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
-import com.msopentech.thali.CouchDBListener.AndroidThaliListener;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 
 /**
@@ -48,7 +47,7 @@ public class ThaliDeviceHubService extends Service {
 
     @Override
     public void onCreate() {
-        thaliListener = new AndroidThaliListener();
+        thaliListener = new ThaliListener();
         thaliListener.startServer(getFilesDir().getAbsoluteFile(), ThaliListener.DefaultThaliDeviceHubPort);
     }
 

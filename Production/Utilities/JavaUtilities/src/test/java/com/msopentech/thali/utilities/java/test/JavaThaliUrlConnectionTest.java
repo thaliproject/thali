@@ -17,8 +17,8 @@ package com.msopentech.thali.utilities.java.test;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import com.msopentech.thali.utilities.universal.ThaliTestUrlConnection;
-import com.msopentech.thali.utilities.universal.ThaliTestUtilities;
+import com.msopentech.thali.utilities.universal.test.ThaliTestUrlConnection;
+import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 import org.junit.Before;
 import org.junit.Test;
 
@@ -47,6 +47,6 @@ public class JavaThaliUrlConnectionTest {
             IOException, InvalidKeySpecException, InterruptedException {
         File localDirectory = Files.createTempDirectory(null).toFile();
         localDirectory.deleteOnExit();
-        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliListener.DefaultThaliDeviceHubPort, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
+        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
     }
 }

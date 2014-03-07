@@ -37,6 +37,7 @@ dependencies {
     testCompile 'junit:junit:4.11'
     testCompile 'org.slf4j:slf4j-simple:1.7.5'
 }
+
 def mavenPath() {
     artifactory_local == "true" ?
             'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
@@ -65,8 +66,6 @@ uploadArchives {
         }
     }
 }
-
-task installLocal(dependsOn: uploadArchives)
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'

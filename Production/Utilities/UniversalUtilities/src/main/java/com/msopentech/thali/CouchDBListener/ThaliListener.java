@@ -111,6 +111,7 @@ public class ThaliListener {
 
                 tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
 
+                //Allows us to bind to a particular address if that is interesting
                 //tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultThaliDeviceHubAddress);
 
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);

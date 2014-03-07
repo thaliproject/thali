@@ -14,8 +14,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
-import com.msopentech.thali.CouchDBListener.BogusAuthorizeCouchDocument;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.support.CouchDbDocument;
@@ -115,22 +115,17 @@ public class ThaliTestUtilities {
      * returns the records so they can be tested against. Note that it is possible for 0 docs to be
      * generated which can be useful for some kinds of tests and surprising for others.
      * @param couchDbInstance
+     * @param databaseName
      * @param  minimumTestRecords
      * @param maximumTestRecords
      * @param clientPublicKey This can be null if we are doing regression testing of no SSL and SSL without client auth scenarios
      */
     public static List<CouchDbDocument> setUpData(CouchDbInstance couchDbInstance,
-                                                  int minimumTestRecords, int maximumTestRecords,
+                                                  String databaseName, int minimumTestRecords, int maximumTestRecords,
                                                   PublicKey clientPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
-        // Set key for authorization - Authorization is set up to allow anyone to set the document with the ID keyID but all other requests have to have
-        // the key specified in the key document. This isn't meant to be secure, just to test if we are getting certs and validating them correctly.
-        if (clientPublicKey != null) {
-            ResetKeyDatabaseAndPutInKey(couchDbInstance, clientPublicKey);
-        }
-
-        couchDbInstance.deleteDatabase(TestDatabaseName);
-        couchDbInstance.createDatabase(TestDatabaseName);
-        CouchDbConnector couchDbConnector = couchDbInstance.createConnector(TestDatabaseName, false);
+        couchDbInstance.deleteDatabase(databaseName);
+        couchDbInstance.createDatabase(databaseName);
+        CouchDbConnector couchDbConnector = couchDbInstance.createConnector(databaseName, false);
 
         ArrayList<CouchDbDocument> generatedDocs = new ArrayList<CouchDbDocument>();
 
@@ -205,11 +200,7 @@ public class ThaliTestUtilities {
     public static void ResetKeyDatabaseAndPutInKey(CouchDbInstance couchDbInstance, PublicKey clientPublicKey) {
         couchDbInstance.deleteDatabase(ThaliListener.KeyDatabaseName);
         couchDbInstance.createDatabase(ThaliListener.KeyDatabaseName);
-        BogusAuthorizeCouchDocument testRSAKeyClass =
-                new BogusAuthorizeCouchDocument(clientPublicKey);
-        testRSAKeyClass.setId(testRSAKeyClass.getId());
-        CouchDbConnector keyDbConnector = couchDbInstance.createConnector(ThaliListener.KeyDatabaseName, false);
-        keyDbConnector.create(testRSAKeyClass);
+        ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(clientPublicKey, couchDbInstance);
     }
 
 }

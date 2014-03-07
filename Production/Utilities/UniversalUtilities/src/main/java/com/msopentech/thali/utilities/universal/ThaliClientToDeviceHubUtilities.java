@@ -59,6 +59,7 @@ import org.apache.http.protocol.BasicHttpContext;
 import org.apache.http.protocol.ExecutionContext;
 import org.apache.http.protocol.HttpContext;
 import org.ektorp.CouchDbConnector;
+import org.ektorp.CouchDbInstance;
 import org.ektorp.http.HttpClient;
 
 import java.io.File;
@@ -112,15 +113,22 @@ public class ThaliClientToDeviceHubUtilities {
 
         PublicKey clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
-        BogusAuthorizeCouchDocument authDoc = new BogusAuthorizeCouchDocument(clientPublicKey);
+        configureKeyInServersKeyDatabase(clientPublicKey, thaliCouchDbInstance);
 
-        CouchDbConnector keyDatabaseConnector = thaliCouchDbInstance.createConnector(ThaliListener.KeyDatabaseName, true);
+        return thaliCouchDbInstance;
+    }
 
+    /**
+     *
+     * @param keyToProvision
+     * @param serverInstance
+     */
+    public static void configureKeyInServersKeyDatabase(PublicKey keyToProvision, CouchDbInstance serverInstance) {
+        BogusAuthorizeCouchDocument authDoc = new BogusAuthorizeCouchDocument(keyToProvision);
+        CouchDbConnector keyDatabaseConnector = serverInstance.createConnector(ThaliListener.KeyDatabaseName, true);
         if (keyDatabaseConnector.contains(authDoc.getId()) == false) {
             keyDatabaseConnector.create(authDoc);
         }
-
-        return thaliCouchDbInstance;
     }
 
     /**

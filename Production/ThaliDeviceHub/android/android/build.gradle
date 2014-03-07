@@ -3,10 +3,11 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.7.+'
+        classpath 'com.android.tools.build:gradle:0.8.+'
     }
 }
 apply plugin: 'android'
+apply plugin: 'maven'
 
 repositories {
     // Gradle 1.9 has a bug that doesn't honor mavenLocal. Gradle 1.10 (the current release) has a bug that doesn't
@@ -18,16 +19,17 @@ repositories {
     maven { url "${System.getProperty('user.home')}/.m2/repository" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
+	maven { url 'http://files.couchbase.com/maven2/' }
     mavenCentral()
 }
 
 android {
-    compileSdkVersion 18
-    buildToolsVersion "18.1.1"
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
 
     defaultConfig {
         minSdkVersion 18
-        targetSdkVersion 18
+        targetSdkVersion 19
     }
 
     // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
@@ -38,14 +40,9 @@ android {
     }
 }
 
-// This is dorky but I wanted to keep the 'shape' of commands we use everywhere else in our build.gradle files without
-// requiring the folks who are building this project to have a gradle.properties. For those wonder what's going on
-// the expression below normally tests a value in gradle.properties to determine if this is a snapshot build or not.
-def mavenVersionSnapshot() { false ? "-SNAPSHOT" : ""}
-
 dependencies {
-    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.1${mavenVersionSnapshot()}"
-    compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.1${mavenVersionSnapshot()}"
+    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
+    compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.2"
     // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
     compile 'org.slf4j:slf4j-android:1.7.2'
@@ -53,5 +50,5 @@ dependencies {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.9'
+    gradleVersion = '1.10'
 }
