@@ -22,7 +22,7 @@ namespace DotNetUtilitiesTests
     [TestClass]
     public class ThaliClientToDeviceHubUtilitiesTest
     {
-        private const string Host = "10.82.119.41";// "127.0.0.1";
+        private const string Host = "127.0.0.1";
 
         private const int Port = 9898;
 

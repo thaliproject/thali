@@ -325,6 +325,72 @@ ThaliXMLHttpRequest.prototype.send = function (data) {
     this._thaliGlobalXMLHttpRequestHandlerTransactionId = this._thaliXmlHttpRequestManager.send(this, this._requestObject);
 };
 
+ThaliXMLHttpRequest.httpKey = "httpkey";
+
+/**
+ * A hack for creating httpkey URIs with no public key, this function goes away when the real security infrastructure
+ * shows up.
+ * @param {string} host
+ * @param {int} port
+ * @returns {string}
+ */
+var _CreateBogusHttpKey = function(host, port) {
+    return "httpkey://" + host + ":" + port + "/rsapublickey:0.0";
+}
+
+var _SetUpXhrForProvisioning = function(callback) {
+    var thaliRequestManager = new window.ThaliXMLHttpRequestManager(guid());
+    var xhr = new window.ThaliXMLHttpRequest(thaliRequestManager);
+    xhr.onreadystatechange = function () {
+        if (xhr.readyState == 4) {
+            if (xhr.status == 200) {
+                callback(null, xhr.responseText);
+            } else {
+                callback(xhr, null);
+            }
+        }
+    }
+    return xhr;
+}
+
+/**
+ * Callback used for provision methods
+ * @callback thaliProvisionCallback
+ * @param {ThaliXMLHttpRequest} Error
+ * @param {string} - Success The fully qualified httpkey URI
+ */
+
+/**
+ * Looks up the server key associated with the submitted host and port and then provisions the local client's
+ * public key into that server's principal database
+ * @param {String} host
+ * @param {int} port
+ * @param {thaliProvisionCallback} callback - If successful will get passed the fully qualified httpkey URL for the identified hub
+ * @returns {void}
+ */
+ThaliXMLHttpRequest.ProvisionClientToHub = function(host, port, callback) {
+    var xhr = _SetUpXhrForProvisioning(callback);
+    var localHubUrl = _CreateBogusHttpKey(host, port);
+    xhr.open("ThaliProvisionLocalClientToHub", localHubUrl);
+    xhr.send();
+}
+
+/**
+ * Provisions the hub at the specified remote host and port with the key used by hub identified by the localHttpUrlKey
+ * @param {string} localHttpUrlKey - This is a fully qualified httpkey URI. Typically returned from a call to
+ *                                  ProvisionClientToHub
+ * @param {string} remoteHubHost
+ * @param {int} remoteHubPort
+ * @param {thaliProvisionCallback} callback - If successful will get passed the fully qualified httpkey URL for the remote hub
+ * @returns {void}
+ */
+ThaliXMLHttpRequest.ProvisionHubToHub = function(localHttpUrlKey, remoteHubHost, remoteHubPort, callback) {
+    var xhr = _SetUpXhrForProvisioning(callback);
+    var remoteHubUrl = _CreateBogusHttpKey(remoteHubHost, remoteHubPort);
+    xhr.open("ThaliProvisionRemote", remoteHubUrl);
+    xhr.send(localHttpUrlKey);
+}
+
 // s4 and guid taken from http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
@@ -337,6 +403,46 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
+function SetThaliOpts(opts, callback) {
+    opts = opts || {};
+    if (typeof opts === 'function') {
+        callback = opts;
+        opts = {};
+    }
+
+    if (opts.xhr) {
+        throw "We must define the xhr, sorry.";
+    }
+
+    var thaliRequestManager = new window.ThaliXMLHttpRequestManager(guid());
+
+    opts.xhr = function() { return new window.ThaliXMLHttpRequest(thaliRequestManager) };
+
+    opts.timeout = 0;
+
+    return { opts: opts, callback: callback };
+}
+
+function HttpKeyPouch(opts, callback) {
+    var optsAndCallback = SetThaliOpts(opts, callback);
+    return window.PouchDB.adapters.http(optsAndCallback.opts, optsAndCallback.callback);
+}
+
+HttpKeyPouch.valid = function() {
+    return window.PouchDB.adapters.http.valid();
+};
+
+HttpKeyPouch.destroy = function (name, opts, callback) {
+    var optsAndCallback = SetThaliOpts(opts, callback);
+    return window.PouchDB.adapters.http.destroy(name, optsAndCallback.opts, optsAndCallback.callback);
+};
+
+
+// Register httpkey as a handler, this only works because the HttpPouch handler just cares if the URL starts
+// with http.
+window.PouchDB.adapter(ThaliXMLHttpRequest.httpKey, HttpKeyPouch);
+
+// TODO: EVERYTHING BELOW SHOULD BE DELETED SINCE WE NO LONGER HIJACK XMLHTTPREQUEST FOR THE BROWSER!
 var HasThaliBeenActivated = false;
 
 /**

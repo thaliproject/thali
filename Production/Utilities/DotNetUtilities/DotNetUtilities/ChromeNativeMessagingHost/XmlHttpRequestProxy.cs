@@ -28,6 +28,13 @@ namespace ChromeNativeMessagingHost
 
     public static class XmlHttpRequestProxy
     {
+        // These two values are for bogus HTTP methods that the client can send the proxy in order to
+        // get it to handle either provisioning the local client to the destination
+        public const string ProvisionClientToHub = "ThaliProvisionLocalClientToHub";
+
+        // or (see above) to provision the local hub to a remote hub
+        public const string ProvisionLocalHubToRemoteHub = "ThaliProvisionRemote";
+
         /// <summary>
         /// We support allowing the client to specify 0 for the modulus and exponent in a HttpKeyUrl, in that case
         /// we will (insecurely as hell) look up the server's key ourselves and then cache it here because otherwise
@@ -36,14 +43,6 @@ namespace ChromeNativeMessagingHost
         /// and if the server should change its key for any number of good reasons this will blow up. Bad. Bad. Bad.
         /// </summary>
         private static readonly ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey> HttpKeyStore = 
-            new ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
-
-        /// <summary>
-        /// When we provision the client's identity at a Thali Device Hub we record the address and the associated
-        /// server's key in this list.
-        /// TODO: This assumes there is just one client identity, which in a real Thali system wouldn't be true. Fix.
-        /// </summary>
-        private static readonly ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey> ProvisionedList =
             new ConcurrentDictionary<Tuple<string, int>, BigIntegerRSAPublicKey>();
 
         public static void MainLoop(bool synchronous)
@@ -117,46 +116,58 @@ namespace ChromeNativeMessagingHost
                     " and not " + XmlHttpRequest.typeValue + " as required.");
             }
 
-            HttpWebRequest webRequest;
-            var httpKeyUri = TryToCreateHttpKeyUri(xmlHttpRequest.url);
-            if (httpKeyUri == null)
+            switch (xmlHttpRequest.method)
             {
-                webRequest = (HttpWebRequest)WebRequest.Create(new Uri(xmlHttpRequest.url));
+                case ProvisionClientToHub:
+                    return ExecuteProvisionLocalClientToLocalHub(xmlHttpRequest, clientCert);
+                case ProvisionLocalHubToRemoteHub:
+                    return ExecuteProvisionLocalHubToRemoteHub(xmlHttpRequest, clientCert);
+                default:
+                    return ProxyRequest(xmlHttpRequest, clientCert);
             }
-            else
-            {
-                httpKeyUri = DiscoverRootCertIfNeeded(httpKeyUri, clientCert);
+        }
 
-                var hostPortTuple = new Tuple<string, int>(httpKeyUri.Host, httpKeyUri.Port);
+        private static XmlHttpResponse ExecuteProvisionLocalHubToRemoteHub(
+            XmlHttpRequest xmlHttpRequest,
+            X509Certificate2 clientCert)
+        {
+            var remoteHubHttpKeyUri = DiscoverRootCertIfNeeded(HttpKeyUri.BuildHttpKeyUri(xmlHttpRequest.url), clientCert);
 
-                ProvisionedList.AddOrUpdate(
-                    hostPortTuple,
-                    tuple =>
-                    {
-                        ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
-                            httpKeyUri.ServerPublicKey,
-                            httpKeyUri.Host,
-                            httpKeyUri.Port,
-                            clientCert);
-                        return httpKeyUri.ServerPublicKey;
-                    },
-                    (tuple, value) =>
-                    {
-                        if (value.Equals(httpKeyUri.ServerPublicKey) == false)
-                        {
-                            ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
-                                httpKeyUri.ServerPublicKey,
-                                httpKeyUri.Host,
-                                httpKeyUri.Port,
-                                clientCert);
-                        }
+            var localHubHttpKeyUri = HttpKeyUri.BuildHttpKeyUri(xmlHttpRequest.requestText);
 
-                        return httpKeyUri.ServerPublicKey;
-                    });
+            ThaliClientToDeviceHubUtilities.ProvisionKeyInPrincipalDatabase(remoteHubHttpKeyUri.ServerPublicKey, remoteHubHttpKeyUri.Host, remoteHubHttpKeyUri.Port, localHubHttpKeyUri.ServerPublicKey, clientCert);
 
-                webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
-            }
-            
+            return new XmlHttpResponse
+                       {
+                           status = 200,
+                           transactionId = xmlHttpRequest.transactionId,
+                           responseText = remoteHubHttpKeyUri.AbsoluteUri
+                       };
+        }
+
+        private static XmlHttpResponse ExecuteProvisionLocalClientToLocalHub(
+            XmlHttpRequest xmlHttpRequest,
+            X509Certificate2 clientCert)
+        {
+            var hubHttpKeyUri = DiscoverRootCertIfNeeded(HttpKeyUri.BuildHttpKeyUri(xmlHttpRequest.url), clientCert);
+
+            ThaliClientToDeviceHubUtilities.ProvisionThaliClient(
+                hubHttpKeyUri.ServerPublicKey,
+                hubHttpKeyUri.Host,
+                hubHttpKeyUri.Port,
+                clientCert);
+
+            return new XmlHttpResponse { status = 200, transactionId = xmlHttpRequest.transactionId, responseText = hubHttpKeyUri.AbsoluteUri };
+        }
+    
+        private static XmlHttpResponse ProxyRequest(
+            XmlHttpRequest xmlHttpRequest,
+            X509Certificate2 clientCert)
+        {
+            var httpKeyUri = HttpKeyUri.BuildHttpKeyUri(xmlHttpRequest.url);
+
+            HttpWebRequest webRequest = ThaliClientToDeviceHubUtilities.CreateThaliWebRequest(httpKeyUri, clientCert);
+
             webRequest.Method = xmlHttpRequest.method;
 
             // There are multiple headers that cannot be set directly via webRequest.Headers. I only catch
@@ -173,19 +184,19 @@ namespace ChromeNativeMessagingHost
                 }
                 else
                 {
-                    webRequest.Headers.Add(headerNameValue.Key, headerNameValue.Value);    
+                    webRequest.Headers.Add(headerNameValue.Key, headerNameValue.Value);
                 }
             }
 
-            if (string.IsNullOrWhiteSpace(xmlHttpRequest.requestText) == false)
+            if (string.IsNullOrWhiteSpace(xmlHttpRequest.requestText))
             {
-                var bodyAsBytes = Encoding.UTF8.GetBytes(xmlHttpRequest.requestText);
-                webRequest.GetRequestStream().Write(bodyAsBytes, 0, bodyAsBytes.Count());
+                return ProcessResponse(xmlHttpRequest.transactionId, webRequest);
             }
-            
-            var xmlHttpResponse = ProcessResponse(xmlHttpRequest.transactionId, webRequest);
 
-            return xmlHttpResponse;
+            var bodyAsBytes = Encoding.UTF8.GetBytes(xmlHttpRequest.requestText);
+            webRequest.GetRequestStream().Write(bodyAsBytes, 0, bodyAsBytes.Count());
+
+            return ProcessResponse(xmlHttpRequest.transactionId, webRequest);
         }
 
         public static object ProcessHostError(string errorMessage, XmlHttpRequest xmlHttpRequest)
@@ -231,7 +242,7 @@ namespace ChromeNativeMessagingHost
 
         /// <summary>
         /// TODO: This whole method is just wrong, what happens if the server at the address changes its key?!?!?!
-        /// Once we have a real discovery framework this whole 0.0 mechanism needs to go away.
+        /// TODO: Once we have a real discovery framework this whole 0.0 mechanism needs to go away.
         /// </summary>
         /// <param name="httpKeyUri"></param>
         /// <param name="clientCert"></param>

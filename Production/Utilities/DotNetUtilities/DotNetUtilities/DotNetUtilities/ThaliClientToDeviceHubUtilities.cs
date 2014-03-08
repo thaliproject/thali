@@ -131,13 +131,23 @@ namespace DotNetUtilities
         {
             var clientPublicKey = new BigIntegerRSAPublicKey(clientCert);
 
-            var aclDatabaseEntity = new BogusAuthorizeCouchDocument(clientPublicKey);
+            ProvisionKeyInPrincipalDatabase(serverPublicKey, host, port, clientPublicKey, clientCert);
+        }
+
+        public static void ProvisionKeyInPrincipalDatabase(
+            BigIntegerRSAPublicKey serverPublicKey,
+            string host,
+            int port,
+            BigIntegerRSAPublicKey keyToProvision,
+            X509Certificate2 clientCert)
+        {
+            var aclDatabaseEntity = new BogusAuthorizeCouchDocument(keyToProvision);
 
             var couchClient = GetCouchClient(serverPublicKey, host, port, clientCert);
             var principalDatabase = couchClient.GetDatabase(ThaliCryptoUtilities.KeyDatabaseName);
             var getResult =
                 principalDatabase.GetDocument(
-                    BogusAuthorizeCouchDocument.GenerateRsaKeyId(clientPublicKey));
+                    BogusAuthorizeCouchDocument.GenerateRsaKeyId(keyToProvision));
             if (getResult == null)
             {
                 var createResult = principalDatabase.CreateDocument(aclDatabaseEntity);
@@ -145,8 +155,8 @@ namespace DotNetUtilities
                 if (createResult.StatusCode < 200 || createResult.StatusCode > 299)
                 {
                     throw new ApplicationException("Could not successfully put client's credentials in ACL Store: " + createResult.StatusCode);
-                }    
-            }
+                }
+            }   
         }
 
         private static BigIntegerRSAPublicKey ThaliServerCertificateValidationCallback(

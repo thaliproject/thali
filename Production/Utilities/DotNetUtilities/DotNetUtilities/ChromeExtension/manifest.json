@@ -6,7 +6,7 @@
         "scripts": ["background.js"]
     },
     "content_scripts": [{
-        "matches": ["file:///C:/Thali/Production/Utilities/DotNetUtilities/DotNetUtilities/ChromeNativeMessagingHost/ChromeExtension/*", "http://localhost:42794/*"],
+        "matches": ["file:///C:/Thali/Production/Utilities/DotNetUtilities/DotNetUtilities/ChromeExtension/*", "http://localhost:42794/*"],
         "js": ["contentscript.js"],
         "all_frames": true,
         "run_at": "document_start"
