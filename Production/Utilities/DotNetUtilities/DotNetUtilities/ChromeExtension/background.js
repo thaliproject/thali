@@ -47,7 +47,8 @@ chrome.runtime.onConnect.addListener(function(contentPort) {
  * @constructor
  */
 var FixMissingErrors = function (xmlHttpResponse) {
-    if (xmlHttpResponse.headers["content-type"].toLowerCase() == "application/json") {
+    var contentType = xmlHttpResponse.headers["content-type"];
+    if (contentType && contentType.toLowerCase() == "application/json") {
         if (xmlHttpResponse.status == 404) { SetErrorValue("not_found", xmlHttpResponse); }
         if (xmlHttpResponse.status == 412) { SetErrorValue("missing_id", xmlHttpResponse); }
     }

@@ -335,8 +335,8 @@ ThaliXMLHttpRequest.httpKey = "httpkey";
  * @returns {string}
  */
 var _CreateBogusHttpKey = function(host, port) {
-    return "httpkey://" + host + ":" + port + "/rsapublickey:0.0";
-}
+    return "httpkey://" + host + ":" + port + "/rsapublickey:0.0/";
+};
 
 var _SetUpXhrForProvisioning = function(callback) {
     var thaliRequestManager = new window.ThaliXMLHttpRequestManager(guid());
@@ -349,9 +349,9 @@ var _SetUpXhrForProvisioning = function(callback) {
                 callback(xhr, null);
             }
         }
-    }
+    };
     return xhr;
-}
+};
 
 /**
  * Callback used for provision methods
@@ -373,7 +373,7 @@ ThaliXMLHttpRequest.ProvisionClientToHub = function(host, port, callback) {
     var localHubUrl = _CreateBogusHttpKey(host, port);
     xhr.open("ThaliProvisionLocalClientToHub", localHubUrl);
     xhr.send();
-}
+};
 
 /**
  * Provisions the hub at the specified remote host and port with the key used by hub identified by the localHttpUrlKey
@@ -389,26 +389,42 @@ ThaliXMLHttpRequest.ProvisionHubToHub = function(localHttpUrlKey, remoteHubHost,
     var remoteHubUrl = _CreateBogusHttpKey(remoteHubHost, remoteHubPort);
     xhr.open("ThaliProvisionRemote", remoteHubUrl);
     xhr.send(localHttpUrlKey);
-}
+};
 
 // s4 and guid taken from http://stackoverflow.com/questions/105034/how-to-create-a-guid-uuid-in-javascript
 function s4() {
     return Math.floor((1 + Math.random()) * 0x10000)
         .toString(16)
         .substring(1);
-};
+}
 
 function guid() {
     return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
         s4() + '-' + s4() + s4() + s4();
 }
 
-function SetThaliOpts(opts, callback) {
+function HttpKeyPouch(opts, callback) {
+    var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
+    var self = this;
+    return window.PouchDB.adapters.http.call(self, optsAndCallback.opts, optsAndCallback.callback);
+}
+
+HttpKeyPouch._SetThaliOpts = function(opts, callback) {
+
     opts = opts || {};
     if (typeof opts === 'function') {
         callback = opts;
         opts = {};
     }
+
+    if (opts.adapter && opts.adapter != ThaliXMLHttpRequest.httpKey) {
+        throw "We must define the adapter, sorry.";
+    }
+
+    // This is currently used by getHost in the HTTP adapter to see if the getHost functionality should be
+    // overridden. I expect eventually this will be replaced when getHost is made public and we can override
+    // it directly.
+    opts.adapter = this;
 
     if (opts.xhr) {
         throw "We must define the xhr, sorry.";
@@ -418,48 +434,52 @@ function SetThaliOpts(opts, callback) {
 
     opts.xhr = function() { return new window.ThaliXMLHttpRequest(thaliRequestManager) };
 
+    // TODO: Fix per https://thali.codeplex.com/workitem/19
+    if (opts.timeout && opts.timeout != 0) {
+        throw "For now we have to override the timeout, but this is a bug and needs to be fixed.";
+    }
+
     opts.timeout = 0;
 
-    return { opts: opts, callback: callback };
-}
+    // We need to repeat the settings above on the ajax property because the HTTP adapter doesn't honor
+    // the properties above when it makes its own internal only requests (e.g. like hard coded GETs to figure out
+    // if a database exists). But it does look for a property called ajax and sees if that has any properties
+    // defined on it. So to get those requests I need to repeat the config properties on that property.
+    opts.ajax = opts.ajax ? opts.ajax : {};
+    opts.ajax.adapter = opts.adapter;
+    opts.ajax.xhr = opts.xhr;
+    opts.ajax.timeout = opts.timeout;
 
-function HttpKeyPouch(opts, callback) {
-    var optsAndCallback = SetThaliOpts(opts, callback);
-    return window.PouchDB.adapters.http(optsAndCallback.opts, optsAndCallback.callback);
-}
+    return { opts: opts, callback: callback };
+};
 
 HttpKeyPouch.valid = function() {
     return window.PouchDB.adapters.http.valid();
 };
 
 HttpKeyPouch.destroy = function (name, opts, callback) {
-    var optsAndCallback = SetThaliOpts(opts, callback);
+    var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
     return window.PouchDB.adapters.http.destroy(name, optsAndCallback.opts, optsAndCallback.callback);
+};
+
+HttpKeyPouch.getHost = function(name, opts) {
+    var parts = name.split('/');
+
+    // remote, path, protocol, host, port, db
+    if (parts[0] == ThaliXMLHttpRequest.httpKey + ":") {
+        var uri = {};
+        uri.remote = true;
+        uri.protocol = ThaliXMLHttpRequest.httpKey;
+        var hostAndPort = parts[2].split(':');
+        uri.host = hostAndPort[0];
+        uri.port = hostAndPort[1];
+        uri.db = parts[4];
+        uri.path = parts[3];
+        return uri;
+    }
 };
 
 
 // Register httpkey as a handler, this only works because the HttpPouch handler just cares if the URL starts
 // with http.
 window.PouchDB.adapter(ThaliXMLHttpRequest.httpKey, HttpKeyPouch);
-
-// TODO: EVERYTHING BELOW SHOULD BE DELETED SINCE WE NO LONGER HIJACK XMLHTTPREQUEST FOR THE BROWSER!
-var HasThaliBeenActivated = false;
-
-/**
- * This will cause the global XMLHTTP object to be replaced by the one defined in this file.
- * @constructor
- */
-function ThaliActivate() {
-    if (HasThaliBeenActivated) {
-        return;
-    }
-
-    ThaliXMLHttpRequest.prototype.ThaliHolderForOriginalXMLHttpRequestObject = window.XMLHttpRequest;
-    window.ThaliXMLHTTPRequestManager = new window.ThaliXMLHttpRequestManager(guid());
-
-    window.XMLHttpRequest = function () {
-        return new window.ThaliXMLHttpRequest(window.ThaliXMLHTTPRequestManager);
-    };
-
-    HasThaliBeenActivated = true;
-}

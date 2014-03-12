@@ -61,7 +61,7 @@ namespace DotNetUtilities
         /// <returns></returns>
         public static HttpKeyUri BuildHttpKeyUri(BigIntegerRSAPublicKey serverPublicKey, string host, int port, string absolutePath, string extraValue)
         {
-            Debug.Assert(string.IsNullOrWhiteSpace(host) == false && (absolutePath == null || absolutePath[0] == '/'));
+            Debug.Assert(string.IsNullOrWhiteSpace(host) == false && (string.IsNullOrEmpty(absolutePath) || absolutePath[0] == '/'));
             var modulusAndExponent = serverPublicKey.GetModulusAndExponentAsString();
             string httpKeyAbsolutePath = "/" + RsaKeyType + ":" + modulusAndExponent.Item2 + "." + modulusAndExponent.Item1 + absolutePath;
             return new HttpKeyUri(new UriBuilder(HttpKeySchemeName, host, port, httpKeyAbsolutePath, extraValue).ToString());

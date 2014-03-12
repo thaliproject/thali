@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 namespace ChromeNativeMessagingHostTest
 {
+    using System;
     using System.Diagnostics;
     using System.IO;
 
@@ -37,16 +38,49 @@ namespace ChromeNativeMessagingHostTest
 
         private DirectoryInfo tempDirectoryForSetup;
 
+        private string testHttpKeyString = "httpkey://" + Host + ":" + Port + "/rsapublickey:0.0/" + TestDatabaseName + "/";
+            
+
         [TestMethod]
         public void ProcessMessageTest()
-        {
+        {            
             var clientCert = ThaliClientToDeviceHubUtilities.GetLocalClientCertificate(tempDirectory);
 
-            var testGetJsonString = GenerateXmlHttpRequestJsonObjectForNonExistentDatabase();
+            // Provision client to local Thali Hub
+            var provisionXmlHttpRequest = GenerateXmlHttprequestForClientProvisioning();
+            var xmlHttpResponse =
+                (XmlHttpResponse)XmlHttpRequestProxy.ProcessMessage(provisionXmlHttpRequest, clientCert);
+            Assert.AreEqual(xmlHttpResponse.status, 200);
+            var hubUrl = xmlHttpResponse.responseText;
 
-            var xmlHttpRequest = JsonConvert.DeserializeObject<XmlHttpRequest>(testGetJsonString);
-            var xmlHttpResponse = (XmlHttpResponse)XmlHttpRequestProxy.ProcessMessage(xmlHttpRequest, clientCert);
+            // Provision local hub to 'remote' hub
+            var localToRemoteHubXmlHttpRequest = this.GenerateXmlHttpRequestForLocalToRemoteHubProvisioning(hubUrl);
+            xmlHttpResponse =
+                (XmlHttpResponse)XmlHttpRequestProxy.ProcessMessage(localToRemoteHubXmlHttpRequest, clientCert);
+            Assert.AreEqual(200, xmlHttpResponse.status);
+            Assert.AreEqual(hubUrl, xmlHttpResponse.responseText);
+
+            var xmlHttpRequest = GenerateXmlHttpRequestForNonExistentDatabase(hubUrl);
+            xmlHttpResponse = (XmlHttpResponse)XmlHttpRequestProxy.ProcessMessage(xmlHttpRequest, clientCert);
             Assert.AreEqual(xmlHttpResponse.status, 404);
+        }
+
+        private XmlHttpRequest GenerateXmlHttprequestForClientProvisioning()
+        {
+            var provisionJsonRequest =
+                @"{""type"":""REQUEST_XMLHTTP"",""transactionId"":""thaliXMLHTTPRequestManagerProcessMessageTest"",""method"":"""
+                + XmlHttpRequestProxy.ProvisionClientToHub + @""",""url"":""" + this.testHttpKeyString
+                + @""",""headers"":{""Accept"":""application/json""},""requestText"":""""}";
+            return JsonConvert.DeserializeObject<XmlHttpRequest>(provisionJsonRequest);
+        }
+
+        private XmlHttpRequest GenerateXmlHttpRequestForLocalToRemoteHubProvisioning(string localHubHttpKeyString)
+        {
+            var requestString = @"{""type"":""REQUEST_XMLHTTP"",""transactionId"":""thaliXMLHTTPRequestManager1"",""method"":""" +
+                XmlHttpRequestProxy.ProvisionLocalHubToRemoteHub + @""",""url"":""" +
+                this.testHttpKeyString +
+@""",""headers"":{""Accept"":""application/json"",""Content-Type"":""application/json""},""requestText"":""" + localHubHttpKeyString + @"""}";
+            return JsonConvert.DeserializeObject<XmlHttpRequest>(requestString);
         }
 
         [TestMethod]
@@ -55,7 +89,6 @@ namespace ChromeNativeMessagingHostTest
             this.MainLoopTestBody(true);    
             this.MainLoopTestBody(false);
         }
-
 
         public void MainLoopTestBody(bool synchronous)
         {
@@ -78,8 +111,15 @@ namespace ChromeNativeMessagingHostTest
                 using (var inStream = loopProcess.StandardInput)
                 using (var outStream = loopProcess.StandardOutput)
                 {
-                    var testGetJsonString = GenerateXmlHttpRequestJsonObjectForNonExistentDatabase();
-                    var xmlHttpRequest = JsonConvert.DeserializeObject<XmlHttpRequest>(testGetJsonString);
+                    var provisionRequest = this.GenerateXmlHttprequestForClientProvisioning();
+                    ChromeNativeHostUtilities.SendMessage(provisionRequest, inStream.BaseStream);
+                    inStream.BaseStream.Flush();
+                    var provisionResponse =
+                        ChromeNativeHostUtilities.ReadNextMessage<XmlHttpResponse>(outStream.BaseStream);
+                    Assert.AreEqual(200, provisionResponse.status);
+                    var hubUrl = provisionResponse.responseText;
+
+                    var xmlHttpRequest = GenerateXmlHttpRequestForNonExistentDatabase(hubUrl);
                     ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
                     ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
                     ChromeNativeHostUtilities.SendMessage(xmlHttpRequest, inStream.BaseStream);
@@ -125,12 +165,12 @@ namespace ChromeNativeMessagingHostTest
             tempDirectoryForSetup.Delete(true);
         }
 
-        private static string GenerateXmlHttpRequestJsonObjectForNonExistentDatabase()
+        private static XmlHttpRequest GenerateXmlHttpRequestForNonExistentDatabase(string hubHttpKeyString)
         {
-            var testHttpsString = "https://" + Host + ":" + Port + "/rsapublickey:0.0/" + TestDatabaseName + "/";
-            return @"{""type"":""REQUEST_XMLHTTP"",""transactionId"":""thaliXMLHTTPRequestManager1"",""method"":""GET"",""url"":""" +
-                testHttpsString +
+            var requestString = @"{""type"":""REQUEST_XMLHTTP"",""transactionId"":""thaliXMLHTTPRequestManager1"",""method"":""GET"",""url"":""" +
+                hubHttpKeyString +
 @""",""headers"":{""Accept"":""application/json"",""Content-Type"":""application/json""},""requestText"":""""}";
+            return JsonConvert.DeserializeObject<XmlHttpRequest>(requestString);
         }
     }
 }

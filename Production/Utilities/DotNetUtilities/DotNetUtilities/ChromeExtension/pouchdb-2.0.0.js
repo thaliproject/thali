@@ -850,6 +850,13 @@ parseUri.options = {
 // Get all the information you possibly can about the URI given by name and
 // return it as a suitable object.
 function getHost(name, opts) {
+    if (opts.adapter.getHost) {
+        var adapterUri = opts.adapter.getHost(name, opts);
+        if (adapterUri) {
+            return adapterUri;
+        }
+    }
+
   // If the given name contains "http:"
   if (/http(s?):/.test(name)) {
     // Prase the URI into all its little bits

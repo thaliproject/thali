@@ -13,8 +13,14 @@
 
 "use strict";
 
-// Have Thali take over XMLHTTP
-ThaliActivate();
+/**
+ * Logs both from the Timeline function and in the general log
+ * @param message
+ */
+function doubleLog(message) {
+    console.timeStamp(message);
+    console.log(message);
+}
 
 /**
  *
@@ -27,7 +33,7 @@ function errorOrDoNext(doNext) {
         if (err != null) {
             window.alert("oy!");
         } else {
-            console.timeStamp("About to start function " + doNext.name);
+            doubleLog("About to start function " + doNext.name);
             doNext();
         }
     }
@@ -45,21 +51,28 @@ function handleRespThenDoNext(handleResponse, doNext) {
         if (err != null) {
             window.alert("oy!");
         } else {
-            console.timeStamp("About to start function " + handleResponse.name);
+            doubleLog("About to start function " + handleResponse.name);
             handleResponse(resp);
             if (doNext != null) {
-                console.timeStamp("About to start function " + doNext.name);
+                doubleLog("About to start function " + doNext.name);
                 doNext();
             }
         }
     }
 }
 
+var testDbUrl;
+
 // Clean up state a little
 function startTest() {
-    //window.ThaliActivate();
-    PouchDB.destroy(httpKeyTestDbUrl, errorOrDoNext(destroyLocal));
-    //PouchDB.destroy(testDbUrl, errorOrDoNext(destroyLocal));
+    ThaliXMLHttpRequest.ProvisionClientToHub(host, port,
+        handleRespThenDoNext(function(resp) {
+            testDbUrl = resp + "test";
+        }, destroyRemote));
+}
+
+function destroyRemote() {
+    PouchDB.destroy(testDbUrl, errorOrDoNext(destroyLocal));
 }
 
 function destroyLocal() {
@@ -90,16 +103,16 @@ function postATonOfDocs() {
     localCouch.bulkDocs({docs: docBag}, errorOrDoNext(replicateTo));
 }
 
-var thaliDeviceHub;
-
 function replicateTo() {
-    thaliDeviceHub = new PouchDB(testDbUrl);
-    localCouch.replicate.to(testDbUrl, { create_target: true }, errorOrDoNext(replicateFrom));
+    localCouch.replicate.to(testDbUrl , { create_target: false }, errorOrDoNext(replicateFrom));
 }
 
 var localFromThali;
 
 function replicateFrom() {
+    //var server = testDbUrl;
+    //var server = "http://127.0.0.1:2693/test5";
+
     localFromThali = new PouchDB('localcopy');
     localFromThali.replicate.from(testDbUrl, errorOrDoNext(getAllLocalDocs));
 }
@@ -115,12 +128,11 @@ function seeIfItWorked() {
         localFromThali.get(allLocalDocs.rows[localDoc].id, handleRespThenDoNext(function(doc) {
             var div = document.createElement("div");
             div.innerHTML = "A Doc! ";
-            console.timeStamp("A doc has completed.");
+            doubleLog("A doc has completed.");
         }));
     }
 }
 
-var testDbUrl = 'https://127.0.0.1:9898/rsapublickey:0.0/test'; // 'https://10.82.119.41:9898/rsapublickey:0.0/test';
-var httpKeyTestDbUrl = 'httpkey://127.0.0.1:9898/rsapublickey:0.0/test/';
-
+var host = "127.0.0.1";
+var port = 9898;
 window.onload = startTest();
