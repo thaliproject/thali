@@ -69,6 +69,18 @@ namespace DotNetUtilities
                 ServerCertificateValidationCallbackGenerator(expectedServerRsaKey);
             httpWebRequest.ClientCertificates.Add(clientCertificate);
 
+            // There is a bug in TJWS that doesn't handle Expect 100 Continue correctly
+            httpWebRequest.ServicePoint.Expect100Continue = false;
+
+            // This is a desperate bid to see if our perf issues are because we are recycling TCP connections too quickly, I tend to doubt it.
+            httpWebRequest.ServicePoint.SetTcpKeepAlive(true, 1000, 10 * 1000);
+
+            // Nagle combines small packets into big packets which is very good on long haul connections but we are only talking locally
+            httpWebRequest.ServicePoint.UseNagleAlgorithm = false;
+
+            // Since most of our requests are anyway serially I doubt this will help but I'm desperate so let's try.
+            httpWebRequest.ServicePoint.ConnectionLimit = 100;
+
             return httpWebRequest;
         }
 

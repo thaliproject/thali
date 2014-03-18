@@ -403,82 +403,91 @@ function guid() {
         s4() + '-' + s4() + s4() + s4();
 }
 
+/**
+ * Creates a new adapter for PouchDB by wrapping the existing http.js adapter and having it talk to our
+ * custom XMLHTTPRequest implementation.
+ * @param opts
+ * @param callback
+ * @returns {*}
+ * @constructor
+ */
 function HttpKeyPouch(opts, callback) {
     var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
     var self = this;
+    self.getHost = HttpKeyPouch.getHost;
+    // It turns out that PouchDB depends on a custom 'this' object to access the context with the api object
+    // so when creating a new instance of the http adapter we have to remember to use 'call' and provide the
+    // self object that was passed to us by the adapter factory.
     return window.PouchDB.adapters.http.call(self, optsAndCallback.opts, optsAndCallback.callback);
 }
 
-HttpKeyPouch._SetThaliOpts = function(opts, callback) {
+/**
+ * Required to be exposed by any adapter
+ * @returns {*}
+ */
+HttpKeyPouch.valid = function() {
+    return window.PouchDB.adapters.http.valid();
+};
 
+/**
+ * Required to be exposed by any adapter
+ * @param name
+ * @param opts
+ * @param callback
+ * @returns {*}
+ */
+HttpKeyPouch.destroy = function (name, opts, callback) {
+    var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
+    // Same issue as with HttpKeyPouch itself, we need to include the 'this' we were passed in order to make sure
+    // we have the right context to issue the destroy call. Hence why we use 'call'.
+    return window.PouchDB.adapters.http.destroy.call(this, name, optsAndCallback.opts, optsAndCallback.callback);
+};
+
+/**
+ * Overrides the default getHost to make sure that we parse httpkey URLs correctly
+ * @param name
+ * @param opts
+ * @returns {{}}
+ */
+HttpKeyPouch.getHost = function(name, opts) {
+    var urlSeparator = "://";
+
+    if (name.slice(0, ThaliXMLHttpRequest.httpKey.length + urlSeparator.length) != ThaliXMLHttpRequest.httpKey + urlSeparator) {
+        throw "Huh?!?! How did this happen? Expected httpkey URL but got " + name;
+    }
+
+    var parts = name.split('/');
+
+    // Figuring out what properties to set was mostly trial and error
+    var uri = {};
+    uri.remote = true;
+    uri.protocol = ThaliXMLHttpRequest.httpKey;
+    var hostAndPort = parts[2].split(':');
+    uri.host = hostAndPort[0];
+    uri.port = hostAndPort[1];
+    uri.db = parts[4];
+    uri.path = parts[3];
+    return uri;
+};
+
+HttpKeyPouch._SetThaliOpts = function(opts, callback) {
     opts = opts || {};
     if (typeof opts === 'function') {
         callback = opts;
         opts = {};
     }
 
-    if (opts.adapter && opts.adapter != ThaliXMLHttpRequest.httpKey) {
-        throw "We must define the adapter, sorry.";
-    }
-
-    // This is currently used by getHost in the HTTP adapter to see if the getHost functionality should be
-    // overridden. I expect eventually this will be replaced when getHost is made public and we can override
-    // it directly.
-    opts.adapter = this;
-
-    if (opts.xhr) {
-        throw "We must define the xhr, sorry.";
-    }
+    opts.ajax = opts.ajax ? opts.ajax : {};
 
     var thaliRequestManager = new window.ThaliXMLHttpRequestManager(guid());
 
-    opts.xhr = function() { return new window.ThaliXMLHttpRequest(thaliRequestManager) };
-
+    // Takes over xhr so we can handle httpkey requests ourselves
+    opts.ajax.xhr = function() { return new window.ThaliXMLHttpRequest(thaliRequestManager) };
     // TODO: Fix per https://thali.codeplex.com/workitem/19
-    if (opts.timeout && opts.timeout != 0) {
-        throw "For now we have to override the timeout, but this is a bug and needs to be fixed.";
-    }
-
-    opts.timeout = 0;
-
-    // We need to repeat the settings above on the ajax property because the HTTP adapter doesn't honor
-    // the properties above when it makes its own internal only requests (e.g. like hard coded GETs to figure out
-    // if a database exists). But it does look for a property called ajax and sees if that has any properties
-    // defined on it. So to get those requests I need to repeat the config properties on that property.
-    opts.ajax = opts.ajax ? opts.ajax : {};
-    opts.ajax.adapter = opts.adapter;
-    opts.ajax.xhr = opts.xhr;
-    opts.ajax.timeout = opts.timeout;
+    opts.ajax.timeout = 0;
 
     return { opts: opts, callback: callback };
 };
-
-HttpKeyPouch.valid = function() {
-    return window.PouchDB.adapters.http.valid();
-};
-
-HttpKeyPouch.destroy = function (name, opts, callback) {
-    var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
-    return window.PouchDB.adapters.http.destroy(name, optsAndCallback.opts, optsAndCallback.callback);
-};
-
-HttpKeyPouch.getHost = function(name, opts) {
-    var parts = name.split('/');
-
-    // remote, path, protocol, host, port, db
-    if (parts[0] == ThaliXMLHttpRequest.httpKey + ":") {
-        var uri = {};
-        uri.remote = true;
-        uri.protocol = ThaliXMLHttpRequest.httpKey;
-        var hostAndPort = parts[2].split(':');
-        uri.host = hostAndPort[0];
-        uri.port = hostAndPort[1];
-        uri.db = parts[4];
-        uri.path = parts[3];
-        return uri;
-    }
-};
-
 
 // Register httpkey as a handler, this only works because the HttpPouch handler just cares if the URL starts
 // with http.

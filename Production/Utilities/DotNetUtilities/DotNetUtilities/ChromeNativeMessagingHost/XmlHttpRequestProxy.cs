@@ -19,6 +19,7 @@ namespace ChromeNativeMessagingHost
     using System.IO;
     using System.Linq;
     using System.Net;
+    using System.Runtime.InteropServices;
     using System.Security.Cryptography.X509Certificates;
     using System.Text;
 
@@ -112,19 +113,49 @@ namespace ChromeNativeMessagingHost
             Debug.Assert(xmlHttpRequest != null && clientCert != null);
             if (xmlHttpRequest.type != XmlHttpRequest.typeValue)
             {
-                throw new ApplicationException("The type of the incoming request was " + xmlHttpRequest.type + 
-                    " and not " + XmlHttpRequest.typeValue + " as required.");
+                return
+                    ProcessHostError(
+                        "The type of the incoming request was " + xmlHttpRequest.type + " and not "
+                        + XmlHttpRequest.typeValue + " as required.",
+                        xmlHttpRequest);
             }
 
-            switch (xmlHttpRequest.method)
+            try
             {
-                case ProvisionClientToHub:
-                    return ExecuteProvisionLocalClientToLocalHub(xmlHttpRequest, clientCert);
-                case ProvisionLocalHubToRemoteHub:
-                    return ExecuteProvisionLocalHubToRemoteHub(xmlHttpRequest, clientCert);
-                default:
-                    return ProxyRequest(xmlHttpRequest, clientCert);
+                switch (xmlHttpRequest.method)
+                {
+                    case ProvisionClientToHub:
+                        return ExecuteProvisionLocalClientToLocalHub(xmlHttpRequest, clientCert);
+                    case ProvisionLocalHubToRemoteHub:
+                        return ExecuteProvisionLocalHubToRemoteHub(xmlHttpRequest, clientCert);
+                    default:
+                        var stopwatch = new Stopwatch();
+                        stopwatch.Start();
+                        var result = ProxyRequest(xmlHttpRequest, clientCert);
+                        stopwatch.Stop();            
+                        Debug.WriteLine("Method: " + xmlHttpRequest.method + ", elapsed Time: " + stopwatch.ElapsedMilliseconds + ", id: " + xmlHttpRequest.transactionId);
+                        return result;
+                }
             }
+            catch (Exception e)
+            {
+                return ProcessHostError("Received exception: " + e.Message, xmlHttpRequest);
+            }
+        }
+
+        public static object ProcessHostError(string errorMessage, XmlHttpRequest xmlHttpRequest)
+        {
+            var xmlHttpResponse = new XmlHttpResponse
+                                      {
+                                          transactionId =
+                                              xmlHttpRequest != null
+                                                  ? xmlHttpRequest.transactionId
+                                                  : null,
+                                          status = 502,
+                                          responseText = errorMessage
+                                      };
+            xmlHttpResponse.headers.Add("content-type", "text/plain");
+            return xmlHttpResponse;
         }
 
         private static XmlHttpResponse ExecuteProvisionLocalHubToRemoteHub(
@@ -138,11 +169,11 @@ namespace ChromeNativeMessagingHost
             ThaliClientToDeviceHubUtilities.ProvisionKeyInPrincipalDatabase(remoteHubHttpKeyUri.ServerPublicKey, remoteHubHttpKeyUri.Host, remoteHubHttpKeyUri.Port, localHubHttpKeyUri.ServerPublicKey, clientCert);
 
             return new XmlHttpResponse
-                       {
-                           status = 200,
-                           transactionId = xmlHttpRequest.transactionId,
-                           responseText = remoteHubHttpKeyUri.AbsoluteUri
-                       };
+            {
+                status = 200,
+                transactionId = xmlHttpRequest.transactionId,
+                responseText = remoteHubHttpKeyUri.AbsoluteUri
+            };
         }
 
         private static XmlHttpResponse ExecuteProvisionLocalClientToLocalHub(
@@ -159,7 +190,7 @@ namespace ChromeNativeMessagingHost
 
             return new XmlHttpResponse { status = 200, transactionId = xmlHttpRequest.transactionId, responseText = hubHttpKeyUri.AbsoluteUri };
         }
-    
+
         private static XmlHttpResponse ProxyRequest(
             XmlHttpRequest xmlHttpRequest,
             X509Certificate2 clientCert)
@@ -196,48 +227,9 @@ namespace ChromeNativeMessagingHost
             var bodyAsBytes = Encoding.UTF8.GetBytes(xmlHttpRequest.requestText);
             webRequest.GetRequestStream().Write(bodyAsBytes, 0, bodyAsBytes.Count());
 
-            return ProcessResponse(xmlHttpRequest.transactionId, webRequest);
-        }
+            var response = ProcessResponse(xmlHttpRequest.transactionId, webRequest);
 
-        public static object ProcessHostError(string errorMessage, XmlHttpRequest xmlHttpRequest)
-        {
-            var xmlHttpResponse = new XmlHttpResponse
-                                      {
-                                          transactionId =
-                                              xmlHttpRequest != null
-                                                  ? xmlHttpRequest.transactionId
-                                                  : null,
-                                          status = 502,
-                                          headers = null,
-                                          responseText = errorMessage
-                                      };
-            return xmlHttpResponse;
-        }
-
-        /// <summary>
-        /// Pouch will only let through HTTP or HTTPS URLs. So we encode httpkey URIs as
-        /// HTTPS Uris. This method will try to turn an incoming URI into a HttpKey URI if it
-        /// can otherwise it will return null;
-        /// TODO: It's theoretically possible for a legit https URL to just look like a HttpKey URI so we should fix Pouch to accept HttpKey URIs
-        /// </summary>
-        /// <param name="httpUrl"></param>
-        /// <returns></returns>
-        public static HttpKeyUri TryToCreateHttpKeyUri(string httpUrl)
-        {
-            if (string.IsNullOrWhiteSpace(httpUrl) || httpUrl.StartsWith("https://") == false)
-            {
-                return null;
-            }
-
-            var testHttpKeyUrlString = HttpKeyUri.HttpKeySchemeName + httpUrl.Substring("https".Length);
-            try
-            {
-                return HttpKeyUri.BuildHttpKeyUri(testHttpKeyUrlString);
-            }
-            catch (ArgumentException)
-            {
-                return null;
-            }
+            return response;
         }
 
         /// <summary>
@@ -277,6 +269,9 @@ namespace ChromeNativeMessagingHost
             Debug.Assert(string.IsNullOrWhiteSpace(transactionId) == false && webRequest != null);
             HttpWebResponse webResponse;
 
+            var stopWatch = new Stopwatch();
+            stopWatch.Start();
+
             try
             {
                 webResponse = (HttpWebResponse)webRequest.GetResponse();
@@ -285,6 +280,9 @@ namespace ChromeNativeMessagingHost
             {
                 webResponse = (HttpWebResponse)webException.Response;
             }
+
+            stopWatch.Stop();
+            Debug.WriteLine("webRequest only - elapsed Time: " + stopWatch.ElapsedMilliseconds + ", id: " + transactionId);
 
             var xmlHttpResponse = new XmlHttpResponse
                                       {

@@ -61,13 +61,27 @@ function handleRespThenDoNext(handleResponse, doNext) {
     }
 }
 
+
+var host = "127.0.0.1";
+var port = 9898;
 var testDbUrl;
+var localDbBaseUrl;
+var localCouch;
+var localFromThali;
 
 // Clean up state a little
-function startTest() {
+function startTest(localIsOnThali) {
+    localDbBaseUrl = "";
     ThaliXMLHttpRequest.ProvisionClientToHub(host, port,
         handleRespThenDoNext(function(resp) {
             testDbUrl = resp + "test";
+        }, localIsOnThali ? provisionHubToHub : destroyRemote));
+}
+
+function provisionHubToHub() {
+    ThaliXMLHttpRequest.ProvisionHubToHub(testDbUrl, host, port,
+        handleRespThenDoNext(function(resp) {
+            localDbBaseUrl = resp;
         }, destroyRemote));
 }
 
@@ -76,17 +90,15 @@ function destroyRemote() {
 }
 
 function destroyLocal() {
-    PouchDB.destroy('local', errorOrDoNext(destroyLocalCopy));
+    PouchDB.destroy(localDbBaseUrl + 'local', errorOrDoNext(destroyLocalCopy));
 }
 
 function destroyLocalCopy() {
-    PouchDB.destroy('localcopy', errorOrDoNext(createLocalAndPutDoc1));
+    PouchDB.destroy(localDbBaseUrl + 'localcopy', errorOrDoNext(createLocalAndPutDoc1));
 }
 
-var localCouch;
-
 function createLocalAndPutDoc1() {
-    localCouch = new PouchDB('local');
+    localCouch = new PouchDB(localDbBaseUrl + 'local');
     localCouch.put({_id: 'bar', foo: "bar"}, errorOrDoNext(putDoc2));
 }
 
@@ -104,35 +116,48 @@ function postATonOfDocs() {
 }
 
 function replicateTo() {
-    localCouch.replicate.to(testDbUrl , { create_target: false }, errorOrDoNext(replicateFrom));
+    var options = { create_target: true };
+    // Disabled due to a bug in CouchBase, it doesn't support local to local replication
+//    if (testWithThali) {
+//        options.server = true;
+//    }
+    localCouch.replicate.to(testDbUrl , options, errorOrDoNext(replicateFrom));
 }
 
-var localFromThali;
-
 function replicateFrom() {
-    //var server = testDbUrl;
-    //var server = "http://127.0.0.1:2693/test5";
-
-    localFromThali = new PouchDB('localcopy');
-    localFromThali.replicate.from(testDbUrl, errorOrDoNext(getAllLocalDocs));
+    // Disabled setting server; true because of a bug in CouchBase, it doesn't support local to local replication
+    var options = {};
+//    var options = testWithThali ? { server: true } : {};
+    localFromThali = new PouchDB(localDbBaseUrl + 'localcopy');
+    localFromThali.replicate.from(testDbUrl, options, errorOrDoNext(getAllLocalDocs));
 }
 
 var allLocalDocs;
 
 function getAllLocalDocs() {
-    localCouch.allDocs({include_docs: true}, handleRespThenDoNext(function(docs) { allLocalDocs = docs; }, seeIfItWorked));
+    localCouch.allDocs({include_docs: true}, handleRespThenDoNext(function(docs) { allLocalDocs = docs.rows; }, seeIfItWorked));
 }
 
 function seeIfItWorked() {
-    for(var localDoc in allLocalDocs.rows) {
-        localFromThali.get(allLocalDocs.rows[localDoc].id, handleRespThenDoNext(function(doc) {
-            var div = document.createElement("div");
-            div.innerHTML = "A Doc! ";
-            doubleLog("A doc has completed.");
-        }));
+    if (allLocalDocs.length == 0) {
+        testSuccessful();
+        return;
+    }
+
+    localFromThali.get(allLocalDocs[0].id, handleRespThenDoNext(function(doc) {
+        doubleLog("A doc has completed.");
+        allLocalDocs = allLocalDocs.slice(1);
+    }, seeIfItWorked));
+}
+
+function testSuccessful() {
+    doubleLog("Test successfully completed! testWithThatli = " + testWithThali);
+    if (testWithThali == false) {
+        testWithThali = true;
+        startTest(testWithThali);
     }
 }
 
-var host = "127.0.0.1";
-var port = 9898;
-window.onload = startTest();
+// The value below SHOULD be set to false in order to run both versions of the test
+window.testWithThali = false;
+window.onload = startTest(testWithThali);
