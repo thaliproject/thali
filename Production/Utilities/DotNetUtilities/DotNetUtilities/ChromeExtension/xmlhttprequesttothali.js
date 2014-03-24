@@ -414,7 +414,6 @@ function guid() {
 function HttpKeyPouch(opts, callback) {
     var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
     var self = this;
-    self.getHost = HttpKeyPouch.getHost;
     // It turns out that PouchDB depends on a custom 'this' object to access the context with the api object
     // so when creating a new instance of the http adapter we have to remember to use 'call' and provide the
     // self object that was passed to us by the adapter factory.
@@ -438,9 +437,8 @@ HttpKeyPouch.valid = function() {
  */
 HttpKeyPouch.destroy = function (name, opts, callback) {
     var optsAndCallback = HttpKeyPouch._SetThaliOpts(opts, callback);
-    // Same issue as with HttpKeyPouch itself, we need to include the 'this' we were passed in order to make sure
-    // we have the right context to issue the destroy call. Hence why we use 'call'.
-    return window.PouchDB.adapters.http.destroy.call(this, name, optsAndCallback.opts, optsAndCallback.callback);
+    var hiddenPouch = new PouchDB(name, optsAndCallback.opts, optsAndCallback.callback);
+    return hiddenPouch.destroy();
 };
 
 /**
@@ -476,6 +474,8 @@ HttpKeyPouch._SetThaliOpts = function(opts, callback) {
         callback = opts;
         opts = {};
     }
+
+    opts.getHost = HttpKeyPouch.getHost;
 
     opts.ajax = opts.ajax ? opts.ajax : {};
 

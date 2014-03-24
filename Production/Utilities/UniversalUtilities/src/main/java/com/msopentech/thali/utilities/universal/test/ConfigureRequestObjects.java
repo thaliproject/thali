@@ -13,10 +13,12 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.Context;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
 import com.msopentech.thali.utilities.universal.ThaliCouchDbInstance;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
+import org.apache.commons.io.FileUtils;
 import org.ektorp.CouchDbConnector;
 
 import java.io.File;
@@ -37,18 +39,18 @@ public class ConfigureRequestObjects {
     public final KeyStore clientKeyStore;
 
     public ConfigureRequestObjects(String host, int port, char[] passPhrase,
-                                   CreateClientBuilder createClientBuilder, File filesDir)
+                                   CreateClientBuilder createClientBuilder, Context context)
             throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException, KeyStoreException,
             KeyManagementException  {
 
-        File clientFilesDir = new File(filesDir, clientSubDirectory);
+        File clientFilesDir = new File(context.getFilesDir(), clientSubDirectory);
 
         // We want to start with a new identity
         if (clientFilesDir.exists()) {
-            clientFilesDir.delete();
+            FileUtils.deleteDirectory(clientFilesDir);
         }
 
-        clientFilesDir.mkdir();
+        assert clientFilesDir.mkdirs();
 
         thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(

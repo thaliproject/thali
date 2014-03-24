@@ -1,13 +1,10 @@
 !function(e){if("object"==typeof exports)module.exports=e();else if("function"==typeof define&&define.amd)define(e);else{var f;"undefined"!=typeof window?f=window:"undefined"!=typeof global?f=global:"undefined"!=typeof self&&(f=self),f.PouchDB=e()}}(function(){var define,module,exports;return (function e(t,n,r){function s(o,u){if(!n[o]){if(!t[o]){var a=typeof require=="function"&&require;if(!u&&a)return a(o,!0);if(i)return i(o,!0);throw new Error("Cannot find module '"+o+"'")}var f=n[o]={exports:{}};t[o][0].call(f.exports,function(e){var n=t[o][1][e];return s(n?n:e)},f,f.exports,e,t,n,r)}return n[o].exports}var i=typeof require=="function"&&require;for(var o=0;o<r.length;o++)s(r[o]);return s})({1:[function(_dereq_,module,exports){
-(function (global){
 "use strict";
 
 var utils = _dereq_('./utils');
 var merge = _dereq_('./merge');
 var errors = _dereq_('./deps/errors');
 var EventEmitter = _dereq_('events').EventEmitter;
-var Promise = typeof global.Promise === 'function' ?
-  global.Promise : _dereq_('bluebird');
 
 /*
  * A generic pouch adapter
@@ -721,57 +718,8 @@ function doChanges(api, opts, promise) {
   }
 }
 
-AbstractPouchDB.prototype.changes = function (opts, promise) {
-
-  var self = this;
-
-  // If promise is defined, this is being recalled via the taskqueue
-  if (promise) {
-    // changes may have been cancelled between being queued
-    if (promise.isCancelled) {
-      opts.complete(null, {status: 'cancelled'});
-    } else {
-      doChanges(this, opts, promise);
-    }
-    return;
-  }
-
-  opts = opts ? utils.extend(true, {}, opts) : {};
-  opts.complete = opts.complete || function () { };
-  var complete = utils.once(opts.complete);
-
-  promise = new Promise(function (fulfill, reject) {
-    opts.complete = function (err, res) {
-      if (err) {
-        reject(err);
-      } else {
-        fulfill(res);
-      }
-    };
-  });
-
-  promise.then(function (result) {
-    complete(null, result);
-  }, function (err) {
-    complete(err);
-  });
-
-  // this will be overwritten in doChanges, dont fire complete until
-  // the task is ready
-  promise.cancel = function () {
-    promise.isCancelled = true;
-    if (self.taskqueue.isReady) {
-      opts.complete(null, {status: 'cancelled'});
-    }
-  };
-
-  if (!this.taskqueue.isReady) {
-    this.taskqueue.addTask('changes', [opts, promise]);
-    return promise;
-  } else {
-    doChanges(this, opts, promise);
-    return promise;
-  }
+AbstractPouchDB.prototype.changes = function (opts) {
+  return utils.cancellableFun(doChanges, this, opts);
 };
 
 AbstractPouchDB.prototype.close = utils.adapterFun('close', function (callback) {
@@ -837,8 +785,7 @@ AbstractPouchDB.prototype.bulkDocs = utils.adapterFun('bulkDocs', function (req,
   return this._bulkDocs(req, opts, this.autoCompact(callback));
 });
 
-}).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./deps/errors":8,"./merge":14,"./utils":18,"bluebird":24,"events":21}],2:[function(_dereq_,module,exports){
+},{"./deps/errors":8,"./merge":14,"./utils":18,"events":22}],2:[function(_dereq_,module,exports){
 "use strict";
 
 var utils = _dereq_('../utils');
@@ -960,7 +907,7 @@ function genUrl(opts, path) {
 function HttpPouch(opts, callback) {
   // The functions that will be publicly available for HttpPouch
   var api = this;
-  api.getHost = api.getHost ? api.getHost : getHost;
+  api.getHost = opts.getHost ? opts.getHost : getHost;
 
   // Parse the URI given by opts.name into an easy-to-use object
   var host = api.getHost(opts.name, opts);
@@ -1818,7 +1765,7 @@ function HttpPouch(opts, callback) {
     });
   };
   api.destroy = utils.adapterFun('destroy', function (callback) {
-    utils.ajax({
+    ajax({
       url: genDBUrl(host, ''),
       method: 'DELETE'
     }, function (err, resp) {
@@ -1835,7 +1782,7 @@ function HttpPouch(opts, callback) {
 
 // Delete the HttpPouch specified by the given name.
 HttpPouch.destroy = utils.toPromise(function (name, opts, callback) {
-  var host = this.getHost ? this.getHost(name, opts) : getHost(name, opts);
+  var host = getHost(name, opts);
   opts = opts || {};
   if (typeof opts === 'function') {
     callback = opts;
@@ -2120,13 +2067,14 @@ function IdbPouch(opts, callback) {
       }
       var reader = new FileReader();
       reader.onloadend = function (e) {
-        att.digest = 'md5-' + utils.Crypto.MD5(this.result);
+        var binary = utils.arrayBufferToBinaryString(this.result);
+        att.digest = 'md5-' + utils.Crypto.MD5(binary);
         if (!blobSupport) {
-          att.data = btoa(this.result);
+          att.data = btoa(binary);
         }
         finish();
       };
-      reader.readAsBinaryString(att.data);
+      reader.readAsArrayBuffer(att.data);
     }
 
     function preprocessAttachments(callback) {
@@ -2366,10 +2314,11 @@ function IdbPouch(opts, callback) {
         if (blobSupport) {
           var reader = new FileReader();
           reader.onloadend = function (e) {
-            result = btoa(this.result);
+            var binary = utils.arrayBufferToBinaryString(this.result);
+            result = btoa(binary);
             callback(null, result);
           };
-          reader.readAsBinaryString(data);
+          reader.readAsArrayBuffer(data);
         } else {
           result = data;
           callback(null, result);
@@ -3193,11 +3142,12 @@ function WebSqlPouch(opts, callback) {
       }
       var reader = new FileReader();
       reader.onloadend = function (e) {
-        att.data = this.result;
-        att.digest = 'md5-' + utils.Crypto.MD5(this.result);
+        var binary = utils.arrayBufferToBinaryString(this.result);
+        att.data = binary;
+        att.digest = 'md5-' + utils.Crypto.MD5(binary);
         finish();
       };
-      reader.readAsBinaryString(att.data);
+      reader.readAsArrayBuffer(att.data);
     }
 
     function preprocessAttachments(callback) {
@@ -3806,7 +3756,7 @@ function PouchDB(name, opts, callback) {
           throw error;
         }
 
-        backend = PouchDB.parseAdapter(originalName);
+        backend = PouchDB.parseAdapter(originalName, opts);
         
         opts.originalName = originalName;
         opts.name = backend.name;
@@ -3836,8 +3786,15 @@ function PouchDB(name, opts, callback) {
       return reject(error); // constructor error, see above
     }
     self.adapter = opts.adapter;
+
     // needs access to PouchDB;
-    self.replicate = PouchDB.replicate.bind(self, self);
+    self.replicate = function (src, target, opts) {
+      return utils.cancellableFun(function (api, _opts, promise) {
+        var replicate = PouchDB.replicate(src, target, opts);
+        promise.cancel = replicate.cancel;
+      }, self, opts);
+    };
+
     self.replicate.from = function (url, opts, callback) {
       if (typeof opts === 'function') {
         callback = opts;
@@ -3846,12 +3803,12 @@ function PouchDB(name, opts, callback) {
       return PouchDB.replicate(url, self, opts, callback);
     };
 
-    self.replicate.to = function (dbName, opts, callback) {
+    self.replicate.to = function (url, opts, callback) {
       if (typeof opts === 'function') {
         callback = opts;
         opts = {};
       }
-      return self.replicate(dbName, opts, callback);
+      return PouchDB.replicate(self, url, opts, callback);
     };
 
     self.replicate.sync = function (dbName, opts, callback) {
@@ -3859,8 +3816,12 @@ function PouchDB(name, opts, callback) {
         callback = opts;
         opts = {};
       }
-      return PouchDB.sync(self, dbName, opts, callback);
+      return utils.cancellableFun(function (api, _opts, promise) {
+        var sync = PouchDB.sync(self, dbName, opts, callback);
+        promise.cancel = sync.cancel;
+      }, self, opts);
     };
+
     self.destroy = utils.adapterFun('destroy', function (callback) {
       var self = this;
       self.info(function (err, info) {
@@ -3870,6 +3831,7 @@ function PouchDB(name, opts, callback) {
         PouchDB.destroy(info.db_name, callback);
       });
     });
+
     PouchDB.adapters[opts.adapter].call(self, opts, function (err, db) {
       if (err) {
         if (callback) {
@@ -3878,13 +3840,13 @@ function PouchDB(name, opts, callback) {
         }
         return;
       }
-      function destructionListner(event) {
+      function destructionListener(event) {
         if (event === 'destroyed') {
           self.emit('destroyed');
-          PouchDB.removeListener(opts.name, destructionListner);
+          PouchDB.removeListener(opts.name, destructionListener);
         }
       }
-      PouchDB.on(opts.name, destructionListner);
+      PouchDB.on(opts.name, destructionListener);
       self.emit('created', self);
       PouchDB.emit('created', opts.originalName);
       self.taskqueue.ready(self);
@@ -3915,7 +3877,7 @@ function PouchDB(name, opts, callback) {
 module.exports = PouchDB;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./adapter":1,"./taskqueue":17,"./utils":18,"bluebird":24}],6:[function(_dereq_,module,exports){
+},{"./adapter":1,"./taskqueue":17,"./utils":18,"bluebird":25}],6:[function(_dereq_,module,exports){
 (function (process){
 "use strict";
 
@@ -4195,8 +4157,8 @@ function ajax(options, adapterCallback) {
 
 module.exports = ajax;
 
-}).call(this,_dereq_("c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"))
-},{"../deps/uuid":12,"../utils":18,"./blob.js":7,"./errors":8,"./extend.js":10,"c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":22,"request":20}],7:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"../deps/uuid":12,"../utils":18,"./blob.js":7,"./errors":8,"./extend.js":10,"/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":23,"request":21}],7:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 
@@ -4747,8 +4709,8 @@ exports.MD5 = function (string) {
   var temp = wordToHex(a) + wordToHex(b) + wordToHex(c) + wordToHex(d);
   return temp.toLowerCase();
 };
-}).call(this,_dereq_("c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"))
-},{"c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":22,"crypto":20}],12:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":23,"crypto":20}],12:[function(_dereq_,module,exports){
 "use strict";
 
 // BEGIN Math.uuid.js
@@ -4861,8 +4823,8 @@ if (!process.browser) {
   PouchDB.adapter('leveldb', ldbAdapter);
 }
 
-}).call(this,_dereq_("c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"))
-},{"./adapters/http":2,"./adapters/idb":3,"./adapters/leveldb":20,"./adapters/websql":4,"./deps/ajax":6,"./deps/errors":8,"./deps/es5_shims":9,"./deps/extend":10,"./replicate":15,"./setup":16,"./utils":18,"./version":19,"c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":22,"pouchdb-mapreduce":33}],14:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"))
+},{"./adapters/http":2,"./adapters/idb":3,"./adapters/websql":4,"./deps/ajax":6,"./deps/errors":8,"./deps/es5_shims":9,"./deps/extend":10,"./replicate":15,"./setup":16,"./utils":18,"./version":19,"/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":23,"pouchdb-mapreduce":34}],14:[function(_dereq_,module,exports){
 'use strict';
 
 var extend = _dereq_('./deps/extend');
@@ -5671,15 +5633,15 @@ var eventEmitterMethods = [
   'setMaxListeners'
 ];
 
-var preferredAdapters = ['idb', 'leveldb', 'websql'];
+var preferredAdapters = ['levelalt', 'idb', 'leveldb', 'websql'];
 
 eventEmitterMethods.forEach(function (method) {
   PouchDB[method] = eventEmitter[method].bind(eventEmitter);
 });
 PouchDB.setMaxListeners(0);
-PouchDB.parseAdapter = function (name) {
+PouchDB.parseAdapter = function (name, opts) {
   var match = name.match(/([a-z\-]*):\/\/(.*)/);
-  var adapter;
+  var adapter, adapterName;
   if (match) {
     // the http adapter expects the fully qualified name
     name = /http(s?)/.test(match[1]) ? match[1] + '://' + match[2] : match[2];
@@ -5690,25 +5652,33 @@ PouchDB.parseAdapter = function (name) {
     return {name: name, adapter: match[1]};
   }
 
-  // check for browers that have been upgraded from websql-only to websql+idb
+  // check for browsers that have been upgraded from websql-only to websql+idb
   var skipIdb = 'idb' in PouchDB.adapters && 'websql' in PouchDB.adapters &&
     utils.hasLocalStorage() &&
     global.localStorage['_pouch__websqldb_' + PouchDB.prefix + name];
 
-  for (var i = 0; i < preferredAdapters.length; ++i) {
-    var adapterName = preferredAdapters[i];
-    if (adapterName in PouchDB.adapters) {
-      if (skipIdb && adapterName === 'idb') {
-        continue; // keep using websql to avoid user data loss
+  if (typeof opts !== 'undefined' && opts.db) {
+    adapterName = 'leveldb';
+  } else {
+    for (var i = 0; i < preferredAdapters.length; ++i) {
+      adapterName = preferredAdapters[i];
+      if (adapterName in PouchDB.adapters) {
+        if (skipIdb && adapterName === 'idb') {
+          continue; // keep using websql to avoid user data loss
+        }
+        break;
       }
-      adapter = PouchDB.adapters[adapterName];
-      var use_prefix = 'use_prefix' in adapter ? adapter.use_prefix : true;
-
-      return {
-        name: use_prefix ? PouchDB.prefix + name : name,
-        adapter: adapterName
-      };
     }
+  }
+
+  if (adapterName) {
+    adapter = PouchDB.adapters[adapterName];
+    var use_prefix = 'use_prefix' in adapter ? adapter.use_prefix : true;
+
+    return {
+      name: use_prefix ? PouchDB.prefix + name : name,
+      adapter: adapterName
+    };
   }
 
   throw 'No valid adapter found';
@@ -5725,7 +5695,7 @@ PouchDB.destroy = utils.toPromise(function (name, opts, callback) {
     name = undefined;
   }
 
-  var backend = PouchDB.parseAdapter(opts.name || name);
+  var backend = PouchDB.parseAdapter(opts.name || name, opts);
   var dbName = backend.name;
 
   // call destroy method of the particular adaptor
@@ -5760,7 +5730,7 @@ PouchDB.plugin = function (obj) {
 module.exports = PouchDB;
 
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./constructor":5,"./utils":18,"events":21}],17:[function(_dereq_,module,exports){
+},{"./constructor":5,"./utils":18,"events":22}],17:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = TaskQueue;
@@ -5784,10 +5754,15 @@ TaskQueue.prototype.execute = function () {
     }
   } else if (this.isReady) {
     while ((d = this.queue.shift())) {
-      d.task = this.db[d.name].apply(this.db, d.parameters);
+      if (typeof d === 'function') {
+        d();
+      } else {
+        d.task = this.db[d.name].apply(this.db, d.parameters);
+      }
     }
   }
 };
+
 TaskQueue.prototype.fail = function (err) {
   this.failed = err;
   this.execute();
@@ -5805,13 +5780,18 @@ TaskQueue.prototype.ready = function (db) {
 };
 
 TaskQueue.prototype.addTask = function (name, parameters) {
-  var task = { name: name, parameters: parameters };
-  this.queue.push(task);
-  if (this.failed) {
-    this.execute();
+  if (typeof name === 'function') {
+    this.queue.push(name);
+  } else {
+    var task = { name: name, parameters: parameters };
+    this.queue.push(task);
+    if (this.failed) {
+      this.execute();
+    }
+    return task;
   }
-  return task;
 };
+
 },{}],18:[function(_dereq_,module,exports){
 (function (process,global){
 /*jshint strict: false */
@@ -6258,13 +6238,69 @@ exports.adapterFun = function (name, callback) {
     callback.apply(this, args);
   }));
 };
+//Can't find original post, but this is close
+//http://stackoverflow.com/questions/6965107/converting-between-strings-and-arraybuffers
+exports.arrayBufferToBinaryString = function (buffer) {
+  var binary = "";
+  var bytes = new Uint8Array(buffer);
+  var length = bytes.byteLength;
+  for (var i = 0; i < length; i++) {
+    binary += String.fromCharCode(bytes[i]);
+  }
+  return binary;
+};
 
-}).call(this,_dereq_("c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./deps/ajax":6,"./deps/blob":7,"./deps/buffer":20,"./deps/errors":8,"./deps/extend":10,"./deps/md5.js":11,"./deps/uuid":12,"./merge":14,"bluebird":24,"c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":22,"events":21,"inherits":23}],19:[function(_dereq_,module,exports){
+exports.cancellableFun = function (fun, self, opts) {
+
+  opts = opts ? exports.extend(true, {}, opts) : {};
+  opts.complete = opts.complete || function () { };
+  var complete = exports.once(opts.complete);
+
+  var promise = new Promise(function (fulfill, reject) {
+    opts.complete = function (err, res) {
+      if (err) {
+        reject(err);
+      } else {
+        fulfill(res);
+      }
+    };
+  });
+
+  promise.then(function (result) {
+    complete(null, result);
+  }, complete);
+
+  // this needs to be overwridden by caller, dont fire complete until
+  // the task is ready
+  promise.cancel = function () {
+    promise.isCancelled = true;
+    if (self.taskqueue.isReady) {
+      opts.complete(null, {status: 'cancelled'});
+    }
+  };
+
+  if (!self.taskqueue.isReady) {
+    self.taskqueue.addTask(function () {
+      if (promise.isCancelled) {
+        opts.complete(null, {status: 'cancelled'});
+      } else {
+        fun(self, opts, promise);
+      }
+    });
+    return promise;
+  } else {
+    fun(self, opts, promise);
+    return promise;
+  }
+};
+}).call(this,_dereq_("/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./deps/ajax":6,"./deps/blob":7,"./deps/buffer":21,"./deps/errors":8,"./deps/extend":10,"./deps/md5.js":11,"./deps/uuid":12,"./merge":14,"/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":23,"bluebird":25,"events":22,"inherits":24}],19:[function(_dereq_,module,exports){
 module.exports = _dereq_('../package.json').version;
-},{"../package.json":35}],20:[function(_dereq_,module,exports){
+},{"../package.json":36}],20:[function(_dereq_,module,exports){
 
 },{}],21:[function(_dereq_,module,exports){
+module.exports=_dereq_(20)
+},{}],22:[function(_dereq_,module,exports){
 // Copyright Joyent, Inc. and other Node contributors.
 //
 // Permission is hereby granted, free of charge, to any person obtaining a
@@ -6566,7 +6602,7 @@ function isUndefined(arg) {
   return arg === void 0;
 }
 
-},{}],22:[function(_dereq_,module,exports){
+},{}],23:[function(_dereq_,module,exports){
 // shim for using process in browser
 
 var process = module.exports = {};
@@ -6621,7 +6657,7 @@ process.chdir = function (dir) {
     throw new Error('process.chdir is not supported');
 };
 
-},{}],23:[function(_dereq_,module,exports){
+},{}],24:[function(_dereq_,module,exports){
 if (typeof Object.create === 'function') {
   // implementation from standard node.js 'util' module
   module.exports = function inherits(ctor, superCtor) {
@@ -6646,7 +6682,7 @@ if (typeof Object.create === 'function') {
   }
 }
 
-},{}],24:[function(_dereq_,module,exports){
+},{}],25:[function(_dereq_,module,exports){
 'use strict';
 
 var immediate = _dereq_('immediate');
@@ -6799,12 +6835,12 @@ function execute(callback, value, resolve, reject) {
 
 module.exports = Promise;
 
-},{"immediate":26}],25:[function(_dereq_,module,exports){
+},{"immediate":27}],26:[function(_dereq_,module,exports){
 "use strict";
 exports.test = function () {
     return false;
 };
-},{}],26:[function(_dereq_,module,exports){
+},{}],27:[function(_dereq_,module,exports){
 "use strict";
 var types = [
     _dereq_("./nextTick"),
@@ -6859,7 +6895,7 @@ module.exports.clear = function (n) {
     return this;
 };
 
-},{"./messageChannel":27,"./mutation":28,"./nextTick":25,"./postMessage":29,"./stateChange":30,"./timeout":31}],27:[function(_dereq_,module,exports){
+},{"./messageChannel":28,"./mutation":29,"./nextTick":26,"./postMessage":30,"./stateChange":31,"./timeout":32}],28:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 
@@ -6875,7 +6911,7 @@ exports.install = function (func) {
     };
 };
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],28:[function(_dereq_,module,exports){
+},{}],29:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 //based off rsvp
@@ -6902,7 +6938,7 @@ exports.install = function (handle) {
     };
 };
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],29:[function(_dereq_,module,exports){
+},{}],30:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 exports.test = function () {
@@ -6941,7 +6977,7 @@ exports.install = function (func) {
     };
 };
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],30:[function(_dereq_,module,exports){
+},{}],31:[function(_dereq_,module,exports){
 (function (global){
 "use strict";
 
@@ -6968,7 +7004,7 @@ exports.install = function (handle) {
     };
 };
 }).call(this,typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{}],31:[function(_dereq_,module,exports){
+},{}],32:[function(_dereq_,module,exports){
 "use strict";
 exports.test = function () {
     return true;
@@ -6979,7 +7015,7 @@ exports.install = function (t) {
         setTimeout(t, 0);
     };
 };
-},{}],32:[function(_dereq_,module,exports){
+},{}],33:[function(_dereq_,module,exports){
 'use strict';
 
 module.exports = function (func, emit, sum, log, isArray, toJSON) {
@@ -6987,7 +7023,7 @@ module.exports = function (func, emit, sum, log, isArray, toJSON) {
   return eval("'use strict'; (" + func + ");");
 };
 
-},{}],33:[function(_dereq_,module,exports){
+},{}],34:[function(_dereq_,module,exports){
 (function (process,global){
 'use strict';
 
@@ -7423,8 +7459,8 @@ exports.query = function (fun, opts, callback) {
   return promise;
 };
 
-}).call(this,_dereq_("c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
-},{"./evalfunc":32,"c:\\yaronyg-pouchdb\\node_modules\\browserify\\node_modules\\insert-module-globals\\node_modules\\process\\browser.js":22,"lie":24,"pouchdb-collate":34}],34:[function(_dereq_,module,exports){
+}).call(this,_dereq_("/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js"),typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {})
+},{"./evalfunc":33,"/home/elementary/yaronyg-pouchdb/node_modules/browserify/node_modules/insert-module-globals/node_modules/process/browser.js":23,"lie":25,"pouchdb-collate":35}],35:[function(_dereq_,module,exports){
 'use strict';
 
 exports.collate = function (a, b) {
@@ -7523,7 +7559,7 @@ function collationIndex(x) {
   }
 }
 
-},{}],35:[function(_dereq_,module,exports){
+},{}],36:[function(_dereq_,module,exports){
 module.exports={
   "name": "pouchdb",
   "version": "2.0.2-alpha",
@@ -7545,6 +7581,7 @@ module.exports={
   "dependencies": {
     "bluebird": "~1.0.0",
     "inherits": "~2.0.1",
+    "level-js": "~2.0.0",
     "level-sublevel": "~5.2.0",
     "leveldown": "~0.10.2",
     "levelup": "~0.18.2",
@@ -7573,7 +7610,7 @@ module.exports={
   },
   "scripts": {
     "jshint": "jshint -c .jshintrc bin/ lib/ tests/*.js",
-    "build-js": "browserify lib/index.js -s PouchDB -o dist/pouchdb-nightly.js",
+    "build-js": "./bin/build-js.sh",
     "uglify": "uglifyjs dist/pouchdb-nightly.js -mc > dist/pouchdb-nightly.min.js",
     "build": "mkdir -p dist && npm run build-js && npm run uglify",
     "test-node": "./bin/run-mocha.sh",
@@ -7586,14 +7623,10 @@ module.exports={
     "shell": "./bin/repl.js"
   },
   "browser": {
-    "./adapters/leveldb": false,
     "./deps/buffer": false,
     "request": false,
-    "levelup": false,
-    "leveldown": false,
-    "crypto": false,
-    "bluebird": "lie",
-    "level-sublevel": false
+    "leveldown": "level-js",
+    "bluebird": "lie"
   }
 }
 

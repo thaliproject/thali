@@ -23,11 +23,9 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
 import java.net.MalformedURLException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -36,7 +34,6 @@ import java.security.spec.InvalidKeySpecException;
 
 public class JavaEktorpCreateClientBuilderTest {
     private final boolean debugApache = true;
-    private File localDirectory;
     private static ThaliTestEktorpClient testEktorpClient = null;
 
     @Before
@@ -46,13 +43,9 @@ public class JavaEktorpCreateClientBuilderTest {
             ThaliTestUtilities.configuringLoggingApacheClient();
         }
 
-        File localDirectory = Files.createTempDirectory(null).toFile();
-        localDirectory.deleteOnExit();
-
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
-                    ThaliListener.DefaultThaliDeviceHubPort,
-                    ThaliCryptoUtilities.DefaultPassPhrase, localDirectory,
+                    ThaliCryptoUtilities.DefaultPassPhrase, new DeleteMe(),
                     new JavaEktorpCreateClientBuilder(), this.getClass());
         }
         testEktorpClient.setUp();

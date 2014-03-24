@@ -14,6 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.Context;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
@@ -33,7 +34,6 @@ import org.ektorp.impl.StdCouchDbInstance;
 import org.ektorp.support.CouchDbDocument;
 
 import javax.net.ssl.SSLException;
-import java.io.File;
 import java.io.IOException;
 import java.lang.reflect.Method;
 import java.net.MalformedURLException;
@@ -60,7 +60,7 @@ public class ThaliTestEktorpClient {
 
     private final String host;
     private final char[] passPhrase;
-    private final File filesDir;
+    private final Context context;
     private final CreateClientBuilder createClientBuilder;
     private boolean createServer;
     private int port;
@@ -73,17 +73,17 @@ public class ThaliTestEktorpClient {
      * Creates a local instance of the Thali Listener to use for testing
      * @param host
      * @param passPhrase
-     * @param filesDir
+     * @param context
      * @param createClientBuilder
      * @param childClass This is the class object of the test environment that created this object
      */
-    public ThaliTestEktorpClient(String host, char[] passPhrase, File filesDir,
+    public ThaliTestEktorpClient(String host, char[] passPhrase, Context context,
                                       CreateClientBuilder createClientBuilder, Class childClass) {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
         this.host = host;
         this.passPhrase = passPhrase;
-        this.filesDir = filesDir;
+        this.context = context;
         this.createClientBuilder = createClientBuilder;
         this.createServer= true;
 
@@ -96,13 +96,13 @@ public class ThaliTestEktorpClient {
      * @param host
      * @param port
      * @param passPhrase
-     * @param filesDir
+     * @param context
      * @param createClientBuilder
      * @param childClass
      */
-    public ThaliTestEktorpClient(String host, int port, char[] passPhrase, File filesDir,
+    public ThaliTestEktorpClient(String host, int port, char[] passPhrase, Context context,
                                  CreateClientBuilder createClientBuilder, Class childClass) {
-        this(host, passPhrase, filesDir, createClientBuilder, childClass);
+        this(host, passPhrase, context, createClientBuilder, childClass);
         this.thaliTestServer = null;
         this.createServer = false;
         this.port = port;
@@ -115,12 +115,12 @@ public class ThaliTestEktorpClient {
 
             // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
             // with the 'real' Thali Device Hub if it's running.
-            thaliTestServer.startServer(filesDir, 0);
+            thaliTestServer.startServer(context, 0);
 
             port = thaliTestServer.getSocketStatus().getPort();
         }
 
-        configureRequestObjects = new ConfigureRequestObjects(host, port, passPhrase, createClientBuilder, filesDir);
+        configureRequestObjects = new ConfigureRequestObjects(host, port, passPhrase, createClientBuilder, context);
     }
 
     public void tearDown() {
@@ -239,7 +239,7 @@ public class ThaliTestEktorpClient {
             throws IOException, KeyManagementException, NoSuchAlgorithmException, UnrecoverableEntryException,
             KeyStoreException, InvalidKeySpecException, InterruptedException {
         ConfigureRequestObjects configureRequestObjects =
-                new ConfigureRequestObjects(host, port, passPhrase, createClientBuilder, filesDir);
+                new ConfigureRequestObjects(host, port, passPhrase, createClientBuilder, context);
 
         Collection<CouchDbDocument> testDocuments = ThaliTestUtilities.setUpData(
                 configureRequestObjects.thaliCouchDbInstance, ThaliTestUtilities.TestDatabaseName , 1,

@@ -78,8 +78,10 @@ public class ThaliClientToDeviceHubUtilities {
      * create a new key and register it with the Thali Device Hub.
      * @return
      */
-    public static ThaliCouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder, String host, int port, char[] passPhrase)
-            throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException, IOException {
+    public static ThaliCouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder,
+                                                               String host, int port, char[] passPhrase)
+            throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException,
+            IOException {
         assert filesDir != null && filesDir.exists();
 
         KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);

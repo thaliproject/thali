@@ -15,6 +15,7 @@ package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
 import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -36,9 +37,10 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
     @Override
     public void setUp() throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException, IOException {
+
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
-                    ThaliCryptoUtilities.DefaultPassPhrase, getContext().getFilesDir(),
+                    ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),
                     new AndroidEktorpCreateClientBuilder(), this.getClass());
         }
         testEktorpClient.setUp();

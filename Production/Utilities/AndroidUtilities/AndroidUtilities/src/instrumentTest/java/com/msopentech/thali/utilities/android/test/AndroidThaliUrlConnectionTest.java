@@ -14,6 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
+import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -29,7 +30,10 @@ import java.security.UnrecoverableEntryException;
  * Created by yarong on 1/7/14.
  */
 public class AndroidThaliUrlConnectionTest extends AndroidTestCase {
-    public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase, new AndroidEktorpCreateClientBuilder(), getContext().getFilesDir());
+    public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException,
+            KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+        ThaliTestUrlConnection.TestThaliUrlConnection(
+                ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase,
+                new AndroidEktorpCreateClientBuilder(), new AndroidContext(getContext()));
     }
 }

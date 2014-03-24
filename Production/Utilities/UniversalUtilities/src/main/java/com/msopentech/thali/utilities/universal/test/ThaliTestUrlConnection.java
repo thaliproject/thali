@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.Context;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
@@ -30,13 +31,14 @@ import java.security.*;
  */
 public class ThaliTestUrlConnection {
 
-    public static void TestThaliUrlConnection(String host, char[] passPhrase, CreateClientBuilder createClientBuilder, File filesDir)
+    public static void TestThaliUrlConnection(String host, char[] passPhrase, CreateClientBuilder createClientBuilder,
+                                              Context context)
             throws InterruptedException, UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
             KeyStoreException, IOException {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
         ThaliListener thaliTestServer = new ThaliListener();
-        File keyStore = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
+        File keyStore = ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir());
 
         // We want to start with a clean state
         if (keyStore.exists()) {
@@ -45,16 +47,18 @@ public class ThaliTestUrlConnection {
 
         // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
         // with the 'real' Thali Device Hub if it's running.
-        thaliTestServer.startServer(filesDir, 0);
+        thaliTestServer.startServer(context, 0);
 
         int port = thaliTestServer.getSocketStatus().getPort();
 
-        CouchDbInstance couchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(filesDir, createClientBuilder, host, port, passPhrase);
+        CouchDbInstance couchDbInstance =
+                ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
+                        context.getFilesDir(), createClientBuilder, host, port, passPhrase);
 
         couchDbInstance.deleteDatabase(ThaliTestUtilities.TestDatabaseName);
         couchDbInstance.createDatabase(ThaliTestUtilities.TestDatabaseName);
 
-        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(context.getFilesDir());
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
                 createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);

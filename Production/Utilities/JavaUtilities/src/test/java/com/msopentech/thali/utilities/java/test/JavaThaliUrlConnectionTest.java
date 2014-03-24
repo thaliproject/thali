@@ -22,9 +22,7 @@ import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 import org.junit.Before;
 import org.junit.Test;
 
-import java.io.File;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -45,8 +43,10 @@ public class JavaThaliUrlConnectionTest {
     public void testClient()
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException, InvalidKeySpecException, InterruptedException {
-        File localDirectory = Files.createTempDirectory(null).toFile();
-        localDirectory.deleteOnExit();
-        ThaliTestUrlConnection.TestThaliUrlConnection(ThaliListener.DefaultThaliDeviceHubAddress, ThaliCryptoUtilities.DefaultPassPhrase, new JavaEktorpCreateClientBuilder(), localDirectory);
+        ThaliTestUrlConnection.TestThaliUrlConnection(
+                ThaliListener.DefaultThaliDeviceHubAddress,
+                ThaliCryptoUtilities.DefaultPassPhrase,
+                new JavaEktorpCreateClientBuilder(),
+                new DeleteMe());
     }
 }

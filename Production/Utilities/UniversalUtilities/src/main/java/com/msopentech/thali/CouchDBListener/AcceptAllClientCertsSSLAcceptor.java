@@ -167,9 +167,13 @@ public class AcceptAllClientCertsSSLAcceptor extends LiteSSLAcceptor {
                     return;
                 }
 
+                // Thanks to http://stackoverflow.com/questions/14694701/java-netty-ssl-server-client-with-self-signed-certificates-throws-fatal-error
+                // for pointing to a bug (http://bugs.java.com/bugdatabase/view_bug.do;jsessionid=ceec221faba405f38f9d3c0970ad?bug_id=7148699)
+                // that if you return null from getAcceptedIssuers then the server side SSL
+                // stack on Java will suffer a null pointer exception.
                 @Override
                 public X509Certificate[] getAcceptedIssuers() {
-                    return null;
+                    return new X509Certificate[0];
                 }
             };
 

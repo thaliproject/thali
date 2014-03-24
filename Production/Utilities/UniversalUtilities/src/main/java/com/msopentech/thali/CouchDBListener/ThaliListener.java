@@ -15,6 +15,7 @@ package com.msopentech.thali.CouchDBListener;
 
 import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
+import com.couchbase.lite.Context;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.ManagerOptions;
@@ -27,7 +28,6 @@ import org.bouncycastle.crypto.RuntimeCryptoException;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
 import java.io.IOException;
 import java.security.KeyStore;
 import java.util.ArrayList;
@@ -60,19 +60,19 @@ public class ThaliListener {
     /**
      * Starts the server on a new thread using a key and database files recorded in the specified directory and listening on
      * the specified port.
-     * @param filesDir
+     * @param context
      * @param port
      */
-    public void startServer(final File filesDir, final int port) {
+    public void startServer(final Context context, final int port) {
         serverStarted = true;
-        if (filesDir == null) {
+        if (context == null) {
             throw new RuntimeException();
         }
 
-        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(context.getFilesDir());
         if (clientKeyStore == null) {
-            if (ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir).exists() == false) {
-                clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
+            if (ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir()).exists() == false) {
+                clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(context.getFilesDir());
             } else {
                 Log.error("Device key store came up as invalid.");
                 throw new RuntimeException("Device key store came up as invalid.");
@@ -91,7 +91,7 @@ public class ThaliListener {
                     AuthorizerFactoryManager authorizerFactoryManager = new AuthorizerFactoryManager(authorizerFactoryArrayList);
                     ManagerOptions managerOptions =
                             new ManagerOptions(authorizerFactoryManager);
-                    manager = new Manager(filesDir, managerOptions);
+                    manager = new Manager(context, managerOptions);
                     // This creates the database used to store the keys of remote applications that are authorized to use
                     // the system in case it doesn't already exist.
                     manager.getDatabase(KeyDatabaseName);
@@ -106,8 +106,11 @@ public class ThaliListener {
                 Properties tjwsProperties = new Properties();
                 tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, TjwsSslAcceptor);
                 tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
-                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREFILE, ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir).getAbsolutePath());
-                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
+                tjwsProperties.setProperty(
+                        SSLAcceptor.ARG_KEYSTOREFILE,
+                        ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir()).getAbsolutePath());
+                tjwsProperties.setProperty(
+                        SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
 
                 tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
 
