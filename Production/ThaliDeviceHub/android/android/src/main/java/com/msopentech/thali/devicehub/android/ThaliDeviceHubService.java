@@ -16,6 +16,7 @@ package com.msopentech.thali.devicehub.android;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
+import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 
 /**
@@ -48,7 +49,8 @@ public class ThaliDeviceHubService extends Service {
     @Override
     public void onCreate() {
         thaliListener = new ThaliListener();
-        thaliListener.startServer(getFilesDir().getAbsoluteFile(), ThaliListener.DefaultThaliDeviceHubPort);
+        // Embarrassing enough I'm not sure if getApplicationContext is the right context to get. :(
+        thaliListener.startServer(new AndroidContext(getApplicationContext()), ThaliListener.DefaultThaliDeviceHubPort);
     }
 
     @Override

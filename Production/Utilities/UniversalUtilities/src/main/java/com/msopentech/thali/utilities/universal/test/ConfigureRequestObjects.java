@@ -50,7 +50,9 @@ public class ConfigureRequestObjects {
             FileUtils.deleteDirectory(clientFilesDir);
         }
 
-        assert clientFilesDir.mkdirs();
+        boolean mkDirResult = clientFilesDir.mkdirs();
+
+        if (mkDirResult == false) { throw new RuntimeException(); }
 
         thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(

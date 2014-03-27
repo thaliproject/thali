@@ -183,6 +183,9 @@ public class ThaliCryptoUtilities {
             try {
                 fileOutputStream =  new FileOutputStream(keyStoreFile);
                 keyStore.store(fileOutputStream, ThaliCryptoUtilities.DefaultPassPhrase);
+            } catch (Exception e) {
+                logger.error("oops", e);
+                throw e;
             } finally {
                 if (fileOutputStream != null) {
                     fileOutputStream.close();
