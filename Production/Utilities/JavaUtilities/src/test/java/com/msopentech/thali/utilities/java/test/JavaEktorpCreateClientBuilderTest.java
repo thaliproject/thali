@@ -43,11 +43,11 @@ public class JavaEktorpCreateClientBuilderTest {
             ThaliTestUtilities.configuringLoggingApacheClient();
         }
 
-        if (testEktorpClient == null) {
-            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
+        // I have to create a new DeleteMe() on each test run due to https://github.com/couchbase/couchbase-lite-java-listener/issues/43
+        testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
                     ThaliCryptoUtilities.DefaultPassPhrase, new DeleteMe(),
                     new JavaEktorpCreateClientBuilder(), this.getClass());
-        }
+
         testEktorpClient.setUp();
     }
 

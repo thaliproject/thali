@@ -117,6 +117,9 @@ public class ThaliListener {
                 //Allows us to bind to a particular address if that is interesting
                 //tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultThaliDeviceHubAddress);
 
+                // Needed to work around https://github.com/couchbase/couchbase-lite-java-listener/issues/40
+                tjwsProperties.setProperty(Serve.ARG_KEEPALIVE_TIMEOUT, "1");
+
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
 
                 cblListener = new LiteListener(manager, port, tjwsProperties, authorize);
