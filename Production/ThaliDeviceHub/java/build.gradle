@@ -25,44 +25,16 @@ repositories {
 }
 
 javafx {
-    mainClass = 'com.msopentech.thali.utilities.java.JavaFXBridgeManager'
+    mainClass = 'com.msopentech.thali.devicehub.javahub.main'
 }
 
 dependencies {
-    compile 'com.couchbase.lite:java:1.0.0-beta3rc1'
-    compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
+    compile 'com.msopentech.thali:ThaliUtilitiesJava:0.0.2'
+    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
+    compile 'org.slf4j:slf4j-simple:1.7.5'
 
     testCompile 'junit:junit:4.11'
-    testCompile 'org.slf4j:slf4j-simple:1.7.5'
-}
 
-def mavenPath() {
-    artifactory_local == "true" ?
-            'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
-            artifactory_contextUrl + "/libs-release-local"
-}
-
-uploadArchives {
-    repositories {
-        mavenDeployer {
-            repository(url: mavenPath()) {
-                authentication(userName: "${artifactory_user}", password: "${artifactory_password}")
-            }
-
-            pom.version = "0.0.2"
-            pom.groupId = 'com.msopentech.thali'
-            pom.artifactId = 'ThaliUtilitiesJava'
-            pom.project {
-                licenses {
-                    license {
-                        name 'Apache 2.0'
-                        url 'https://thali.codeplex.com/SourceControl/latest#license.txt'
-                        distribution 'repo'
-                    }
-                }
-            }
-        }
-    }
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {

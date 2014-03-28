@@ -19,17 +19,17 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
+// Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
+// https://github.com/couchbase/couchbase-lite-java-core/issues/117
 class DeleteMe extends JavaContext {
     private final File tempDirectory;
     public DeleteMe() {
-        super();
-
         try {
             tempDirectory = Files.createTempDirectory("javacoretest").toFile();
             tempDirectory.deleteOnExit();
             File filesDir = getFilesDir();
-            if (filesDir.exists() == false) {
-                assert filesDir.mkdirs();
+            if (filesDir.exists() == false && filesDir.mkdirs() == false) {
+                throw new RuntimeException();
             }
         } catch (IOException e) {
             throw new RuntimeException(e);
