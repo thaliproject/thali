@@ -14,6 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.android.test;
 
 import android.test.AndroidTestCase;
+import com.couchbase.lite.Context;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
@@ -33,11 +34,9 @@ import java.security.spec.InvalidKeySpecException;
 public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
     private static ThaliTestEktorpClient testEktorpClient = null;
 
-
     @Override
     public void setUp() throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException, IOException {
-
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
                     ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),

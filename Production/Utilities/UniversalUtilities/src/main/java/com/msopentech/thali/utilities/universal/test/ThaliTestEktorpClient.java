@@ -11,7 +11,6 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-
 package com.msopentech.thali.utilities.universal.test;
 
 import com.couchbase.lite.Context;
@@ -51,6 +50,10 @@ import java.util.concurrent.TimeUnit;
  * Because of inheritance issues I can't make this into a true test class and instead have to rely on the code
  * in the AndroidUtilities and JavaUtilities projects to properly bind this class. I have put in some simple
  * checks to try and detect when the child hasn't bound all the various methods.
+ *
+ * This test assumes that there is one instance of the thali listener that is used across all the different
+ * tests. This is necessary to work around a bug in TJWS (https://github.com/couchbase/couchbase-lite-java-listener/issues/43)
+ * that keeps threads (and file locks) when you think you have killed TJWS.
  */
 public class ThaliTestEktorpClient {
     public static final String KeyId = "key";
@@ -62,10 +65,9 @@ public class ThaliTestEktorpClient {
     private final char[] passPhrase;
     private final Context context;
     private final CreateClientBuilder createClientBuilder;
-    private boolean createServer;
     private int port;
 
-    private ThaliListener thaliTestServer;
+    private ThaliListener thaliTestServer = null;
     private ConfigureRequestObjects configureRequestObjects;
 
 
@@ -78,14 +80,22 @@ public class ThaliTestEktorpClient {
      * @param childClass This is the class object of the test environment that created this object
      */
     public ThaliTestEktorpClient(String host, char[] passPhrase, Context context,
-                                      CreateClientBuilder createClientBuilder, Class childClass) {
+                                      CreateClientBuilder createClientBuilder, Class childClass)
+            throws InterruptedException {
         ThaliTestUtilities.configuringLoggingApacheClient();
 
         this.host = host;
         this.passPhrase = passPhrase;
         this.context = context;
         this.createClientBuilder = createClientBuilder;
-        this.createServer= true;
+
+        thaliTestServer = new ThaliListener();
+
+        // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
+        // with the 'real' Thali Device Hub if it's running.
+        thaliTestServer.startServer(context, 0);
+
+        port = thaliTestServer.getSocketStatus().getPort();
 
         checkIfChildClassExecutesAllTests(childClass);
     }
@@ -101,32 +111,19 @@ public class ThaliTestEktorpClient {
      * @param childClass
      */
     public ThaliTestEktorpClient(String host, int port, char[] passPhrase, Context context,
-                                 CreateClientBuilder createClientBuilder, Class childClass) {
+                                 CreateClientBuilder createClientBuilder, Class childClass)
+            throws InterruptedException {
         this(host, passPhrase, context, createClientBuilder, childClass);
         this.thaliTestServer = null;
-        this.createServer = false;
         this.port = port;
     }
 
     public void setUp() throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException, IOException {
-        if (createServer) {
-            thaliTestServer = new ThaliListener();
-
-            // We use a random port (e.g. port 0) both because it's good hygiene and because it keeps us from conflicting
-            // with the 'real' Thali Device Hub if it's running.
-            thaliTestServer.startServer(context, 0);
-
-            port = thaliTestServer.getSocketStatus().getPort();
-        }
-
         configureRequestObjects = new ConfigureRequestObjects(host, port, passPhrase, createClientBuilder, context);
     }
 
     public void tearDown() {
-        if (thaliTestServer != null) {
-            thaliTestServer.stopServer();
-        }
     }
 
     public void testPullReplication() throws InvalidKeySpecException, NoSuchAlgorithmException,
@@ -375,7 +372,7 @@ public class ThaliTestEktorpClient {
 
         ReplicationChangeListener replicationChangeListener = null;
 
-        if (createServer) {
+        if (thaliTestServer != null) {
             Manager manager = thaliTestServer.getManager();
             Database database = manager.getDatabase(source);
             URL targetHttpsUrl = new URL(targetUrl.createHttpsUrl());
@@ -471,5 +468,4 @@ public class ThaliTestEktorpClient {
         } catch (DbAccessException e) {
         }
     }
-
 }

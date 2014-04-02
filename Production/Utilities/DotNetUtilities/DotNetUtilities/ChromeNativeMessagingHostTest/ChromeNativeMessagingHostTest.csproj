@@ -40,9 +40,8 @@
     <Reference Include="BouncyCastle.Crypto">
       <HintPath>..\packages\BouncyCastle.1.7.0\lib\Net40-Client\BouncyCastle.Crypto.dll</HintPath>
     </Reference>
-    <Reference Include="LoveSeat, Version=1.0.0.0, Culture=neutral, processorArchitecture=MSIL">
-      <SpecificVersion>False</SpecificVersion>
-      <HintPath>..\..\..\..\..\..\yaronyg-LoveSeat\LoveSeat\bin\Debug\LoveSeat.dll</HintPath>
+    <Reference Include="LoveSeat">
+      <HintPath>..\..\..\..\..\..\LoveSeat\LoveSeat\bin\Debug\LoveSeat.dll</HintPath>
     </Reference>
     <Reference Include="Newtonsoft.Json">
       <HintPath>..\packages\Newtonsoft.Json.6.0.1\lib\net45\Newtonsoft.Json.dll</HintPath>

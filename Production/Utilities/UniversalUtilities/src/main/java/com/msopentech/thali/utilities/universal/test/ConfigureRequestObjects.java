@@ -14,10 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.universal.test;
 
 import com.couchbase.lite.Context;
-import com.msopentech.thali.utilities.universal.CreateClientBuilder;
-import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
-import com.msopentech.thali.utilities.universal.ThaliCouchDbInstance;
-import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
+import com.msopentech.thali.utilities.universal.*;
 import org.apache.commons.io.FileUtils;
 import org.ektorp.CouchDbConnector;
 
@@ -50,9 +47,9 @@ public class ConfigureRequestObjects {
             FileUtils.deleteDirectory(clientFilesDir);
         }
 
-        boolean mkDirResult = clientFilesDir.mkdirs();
-
-        if (mkDirResult == false) { throw new RuntimeException(); }
+        if (clientFilesDir.mkdirs() == false) {
+            throw new RuntimeException();
+        }
 
         thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
