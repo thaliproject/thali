@@ -16,7 +16,7 @@ buildscript {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.8.+'
+        classpath 'com.android.tools.build:gradle:0.9.+'
     }
 }
 apply plugin: 'android-library'
@@ -56,11 +56,11 @@ dependencies {
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
 
-    instrumentTestCompile files('libs/td_collator_so.jar')
+    androidTestCompile files('libs/td_collator_so.jar')
     //fileTree(dir: 'libs', include: '*.jar')
     // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
-    instrumentTestCompile 'org.slf4j:slf4j-android:1.7.2'
+    androidTestCompile 'org.slf4j:slf4j-android:1.7.2'
 }
 
 def mavenPath() {

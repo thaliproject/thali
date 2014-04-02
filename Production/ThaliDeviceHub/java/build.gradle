@@ -34,7 +34,6 @@ dependencies {
     compile 'org.slf4j:slf4j-simple:1.7.5'
 
     testCompile 'junit:junit:4.11'
-
 }
 
 task sourcesJar(type: Jar, dependsOn: classes) {
@@ -53,5 +52,5 @@ artifacts {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
+    gradleVersion = '1.11'
 }
