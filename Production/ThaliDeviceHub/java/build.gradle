@@ -11,10 +11,12 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
+apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'maven'
 apply from: 'javafx.plugin'
-apply plugin: 'java-library-distribution'
+
+mainClassName = "com.msopentech.thali.devicehub.javahub.main"
 
 repositories {
     mavenLocal()
