@@ -84,17 +84,7 @@ public class ThaliClientToDeviceHubUtilities {
             IOException {
         assert filesDir != null && filesDir.exists();
 
-        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
-
-        // Unrecoverable error with the keystore so lets nuke and start over
-        if (clientKeyStore == null) {
-            File keyFile = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
-            if (keyFile.exists()) {
-                keyFile.delete();
-            }
-
-            clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
-        }
+        KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(filesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
                 createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);

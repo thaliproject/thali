@@ -14,6 +14,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.webviewbridge;
 
+import org.apache.commons.lang3.StringEscapeUtils;
+
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Scanner;
@@ -26,8 +28,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public abstract class BridgeManager implements Bridge {
     protected String callbackManager = "window.thali_callback_manager";
     private String managerNameInJavascript = "ThaliBridgeManager0";
-    private String pathToBridgeManagerJs = "/BridgeManager.js";
-    private boolean javascriptLoaded = false;
+    public static final String pathToBridgeManagerJs = "/BridgeManager.js";
 
     protected ConcurrentHashMap<String, BridgeHandler> registeredHandlers = new ConcurrentHashMap<String, BridgeHandler>();
 
@@ -65,19 +66,11 @@ public abstract class BridgeManager implements Bridge {
      *
      */
     public void callBack(String handlerName, String jsonString) {
-        String functionCall = callbackManager + "[\"" + handlerName + "\"]('" + jsonString + "')";
+        String functionCall = callbackManager + "[\"" + handlerName + "\"]('" + StringEscapeUtils.escapeEcmaScript(jsonString) + "')";
         this.executeJavascript(functionCall);
     }
 
     public void register(BridgeHandler bridgeHandler) {
-        if (javascriptLoaded == false) {
-            // We do this here rather than in a constructor because otherwise we get unpleasant race conditions
-            // between the constructor called by super() from the inherited constructor and from this call back to
-            // that inherited object. Nasty.
-            executeJavascript(turnUTF8InputStreamToString(getClass().getResourceAsStream(pathToBridgeManagerJs)));
-            javascriptLoaded = true;
-        }
-
         if (registeredHandlers.putIfAbsent(bridgeHandler.getName(), bridgeHandler) != null) {
             throw new RuntimeException("Already have a handler registered with the given name");
         }

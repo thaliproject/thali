@@ -48,6 +48,8 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/NOTICE.txt' //https://groups.google.com/forum/#!topic/adt-dev/bl5Rc4Szpzg
+        exclude 'META-INF/LICENSE.txt'
     }
 }
 

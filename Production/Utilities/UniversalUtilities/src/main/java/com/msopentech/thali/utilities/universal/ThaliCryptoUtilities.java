@@ -49,6 +49,30 @@ public class ThaliCryptoUtilities {
     private static Logger logger = LoggerFactory.getLogger(ThaliCryptoUtilities.class);
 
     /**
+     * This method will try to find an existing Thali keystore. If the keystore is there
+     * then it will be validated. If valid, it will be returned. Otherwise if the keystore
+     * is invalid (which is really, really, bad) then it will be deleted. In either case
+     * however a new keystore will be created.
+     * @param filesDir
+     * @return
+     */
+    public static KeyStore getThaliKeyStoreByAnyMeansNecessary(File filesDir) {
+        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(filesDir);
+
+        // Unrecoverable error with the keystore (or it doesn't exist) so lets nuke and start over
+        if (clientKeyStore == null) {
+            File keyFile = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
+            if (keyFile.exists()) {
+                keyFile.delete();
+            }
+
+            clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
+        }
+
+        return clientKeyStore;
+    }
+
+    /**
      * Retrieves the Thali related keystore from the specified directory.
      * @param filesDir
      * @return
@@ -175,14 +199,16 @@ public class ThaliCryptoUtilities {
 
         KeyStore keyStore =
                 ThaliCryptoUtilities.CreatePKCS12KeyStoreWithPublicPrivateKeyPair(
-                        ThaliCryptoUtilities.GenerateThaliAcceptablePublicPrivateKeyPair(), ThaliKeyAlias, ThaliCryptoUtilities.DefaultPassPhrase);
+                        GenerateThaliAcceptablePublicPrivateKeyPair(),
+                        ThaliKeyAlias,
+                        DefaultPassPhrase);
 
         FileOutputStream fileOutputStream = null;
         try {
             // Yes this can swallow exceptions (if you got an exception inside this try and then the finally has an exception, but given what I'm doing here I don't care.
             try {
                 fileOutputStream =  new FileOutputStream(keyStoreFile);
-                keyStore.store(fileOutputStream, ThaliCryptoUtilities.DefaultPassPhrase);
+                keyStore.store(fileOutputStream, DefaultPassPhrase);
             } catch (Exception e) {
                 logger.error("oops", e);
                 throw e;
@@ -269,5 +295,19 @@ public class ThaliCryptoUtilities {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
+    }
+
+    /**
+     * This presumes a keystore created by our own utilities and yes we eventually need to come up with a better
+     * wrapper for all of this.
+     * @param keyStore
+     * @return
+     * @throws UnrecoverableKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     */
+    public static PublicKey RetrieveAppKeyFromKeyStore(KeyStore keyStore) throws UnrecoverableKeyException,
+            NoSuchAlgorithmException, KeyStoreException {
+        return keyStore.getCertificate(ThaliKeyAlias).getPublicKey();
     }
 }

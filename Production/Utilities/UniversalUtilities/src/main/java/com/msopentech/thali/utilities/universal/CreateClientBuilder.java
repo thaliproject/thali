@@ -35,13 +35,27 @@ public abstract class CreateClientBuilder {
      * @param clientKeyStorePassPhrase
      * @return
      */
-    abstract public HttpClient CreateApacheClient(String host, int port, PublicKey serverPublicKey, KeyStore clientKeyStore,
-                                         char[] clientKeyStorePassPhrase)
+    abstract public HttpClient CreateApacheClient(String host, int port, PublicKey serverPublicKey,
+                                                  KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
+
+    public HttpClient CreateApacheClient(
+            HttpKeyURL httpKeyURL, KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return CreateApacheClient(httpKeyURL.getHost(), httpKeyURL.getPort(), httpKeyURL.getServerPublicKey(),
+                clientKeyStore, clientKeyStorePassPhrase);
+    }
 
     abstract public org.ektorp.http.HttpClient CreateEktorpClient(String host, int port, PublicKey serverPublicKey,
                                                          KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
+
+    public org.ektorp.http.HttpClient CreateEktorpClient(HttpKeyURL httpKeyURL, KeyStore clientKeyStore,
+                                                         char[] clientKeyStorePassPhrase)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        return CreateEktorpClient(httpKeyURL.getHost(), httpKeyURL.getPort(), httpKeyURL.getServerPublicKey(),
+                clientKeyStore, clientKeyStorePassPhrase);
+    }
 
     /**
      * Creates a SSL Socket Factory that will validate that the server presented a cert chain that roots with the

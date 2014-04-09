@@ -68,7 +68,11 @@ public class BridgeManagerTest {
     public void launchTest(BridgeManager bridgeManager) {
         BridgeHandler bridgeTest = new BridgeTest();
         bridgeManager.register(bridgeTest);
-        String testJavaScript = BridgeManager.turnUTF8InputStreamToString(getClass().getResourceAsStream(bridgeHandlerTestJs));
+        String bridgeManagerJs =
+                BridgeManager.turnUTF8InputStreamToString(getClass().getResourceAsStream(BridgeManager.pathToBridgeManagerJs));
+        bridgeManager.executeJavascript(bridgeManagerJs);
+        String testJavaScript =
+                BridgeManager.turnUTF8InputStreamToString(getClass().getResourceAsStream(bridgeHandlerTestJs));
         bridgeManager.executeJavascript(testJavaScript);
     }
 
@@ -86,5 +90,4 @@ public class BridgeManagerTest {
 
         return seenPing2 == pingStatus.success;
     }
-
 }

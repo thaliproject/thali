@@ -22,6 +22,10 @@ import android.webkit.WebViewClient;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManagerTest;
 
+/**
+ * Android gets very annoyed if I try to define an Activity in the test project, so even though this is only used
+ * for testing I have to define it here.
+ */
 public class AndroidBridgeManagerTestActivity extends Activity {
     protected BridgeManager bridgeManager;
 

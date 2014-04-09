@@ -17,6 +17,7 @@ import com.msopentech.thali.utilities.webviewbridge.Bridge;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
 import javafx.application.Platform;
 import javafx.scene.web.WebEngine;
+import netscape.javascript.JSException;
 import netscape.javascript.JSObject;
 
 public class JavaFXBridgeManager extends BridgeManager {

@@ -33,9 +33,6 @@ import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Properties;
 
-/**
- * Created by yarong on 12/27/13.
- */
 public class ThaliListener {
     public static final String KeyDatabaseName = "thaliprincipaldatabase";
     public static final String TjwsSslAcceptor = "com.msopentech.thali.CouchDBListener.AcceptAllClientCertsSSLAcceptor";
@@ -69,15 +66,7 @@ public class ThaliListener {
             throw new RuntimeException();
         }
 
-        KeyStore clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(context.getFilesDir());
-        if (clientKeyStore == null) {
-            if (ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir()).exists() == false) {
-                clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(context.getFilesDir());
-            } else {
-                Log.error("Device key store came up as invalid.");
-                throw new RuntimeException("Device key store came up as invalid.");
-            }
-        }
+        KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(context.getFilesDir());
 
         final KeyStore finalClientKeyStore = clientKeyStore;
 

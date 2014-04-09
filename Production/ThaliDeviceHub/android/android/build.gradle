@@ -10,13 +10,7 @@ apply plugin: 'android'
 apply plugin: 'maven'
 
 repositories {
-    // Gradle 1.9 has a bug that doesn't honor mavenLocal. Gradle 1.10 (the current release) has a bug that doesn't
-    // support Android. So the following is a temporary work around for the 1.9 bug until we get a release of Gradle
-    // that both supports Android and mavenLocal(). Fix taken from: https://plus.google.com/+XavierDucrohet/posts/hF7W59uZ7rX
-    // Note that the fix used System.env.HOME but for some reason that didn't work so I switched it to System.getProperty('user.home') which
-    // does work.
-    //mavenLocal()
-    maven { url "${System.getProperty('user.home')}/.m2/repository" }
+    mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
 	maven { url 'http://files.couchbase.com/maven2/' }
@@ -37,6 +31,8 @@ android {
         exclude 'META-INF/LICENSE'
         exclude 'META-INF/NOTICE'
         exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
     }
 }
 

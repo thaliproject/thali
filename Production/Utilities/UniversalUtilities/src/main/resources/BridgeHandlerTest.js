@@ -18,7 +18,7 @@
 
 var failCallBack = function(responseString) {
     throw "Was not supposed to be called, got: " + responseString;
-}
+};
 
 var successPing1 = function(responseString) {
     var responseObject = JSON.parse(responseString);
@@ -27,7 +27,7 @@ var successPing1 = function(responseString) {
     }
     // Eventually we'll introduce one way update calls but for now, not.
     window.ThaliBridgeCallOnce("Test","Ping2", failCallBack, failCallBack);
-}
+};
 
 var successPing = function(responseString) {
     var responseObject = JSON.parse(responseString);
@@ -35,6 +35,6 @@ var successPing = function(responseString) {
         throw "Expecting Pong! But got " + responseObject;
     }
     window.ThaliBridgeCallOnce("Test","Ping1", failCallBack, successPing1);
-}
+};
 
 window.ThaliBridgeCallOnce("Test","Ping", successPing, failCallBack);

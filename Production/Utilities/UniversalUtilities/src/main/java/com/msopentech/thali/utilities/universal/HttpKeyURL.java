@@ -23,16 +23,13 @@ import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
 
-/**
- * Created by yarong on 1/13/14.
- */
 public class HttpKeyURL {
     public static final String httpKeySchemeName = "httpkey";
     public static final String rsaKeyType = "rsapublickey";
 
     private final String host;
     private final Integer port;
-    private final PublicKey serverPublicKey;
+    protected final PublicKey serverPublicKey;
     private final String path;
     private final String query;
     private final String fragment;
@@ -55,7 +52,8 @@ public class HttpKeyURL {
             assert uri.getPath().charAt(0) == '/';
             String preprocessedPath = uri.getPath().substring(1);
             int locationOfPathStart = preprocessedPath.indexOf('/');
-            String identityKeyString = locationOfPathStart == -1 ? preprocessedPath : preprocessedPath.substring(0, locationOfPathStart);
+            String identityKeyString =
+                    locationOfPathStart == -1 ? preprocessedPath : preprocessedPath.substring(0, locationOfPathStart);
             serverPublicKey = rsaKeyStringToRsaPublicKey(identityKeyString);
             path = locationOfPathStart == -1 ? null : preprocessedPath.substring(locationOfPathStart);
             query = uri.getQuery();
@@ -75,7 +73,8 @@ public class HttpKeyURL {
      * @param fragment can be set to null
      * @throws IllegalArgumentException
      */
-    public HttpKeyURL(PublicKey serverPublicKey, String host, int port, String path, String query, String fragment) throws IllegalArgumentException {
+    public HttpKeyURL(PublicKey serverPublicKey, String host, int port, String path, String query, String fragment)
+            throws IllegalArgumentException {
         if ((serverPublicKey instanceof RSAPublicKey) == false) {
             throw new IllegalArgumentException("We only support serverPublicKey of type RSAPublicKey at the moment.");
         }
@@ -87,10 +86,13 @@ public class HttpKeyURL {
         this.query = query;
         this.fragment = fragment;
 
-        String httpKeyPath = "/" + rsaKeyToHttpKeyString((RSAPublicKey) getServerPublicKey()) + (getPath() != null ? getPath() : "");
+        String httpKeyPath = "/" + rsaKeyToHttpKeyString((RSAPublicKey) getServerPublicKey()) +
+                (getPath() != null ? getPath() : "/");
 
         try {
-            stringRepresentationOfUri = new URI(httpKeySchemeName, null, getHost(), getPort(), httpKeyPath, getQuery(), getFragment()).toString();
+            stringRepresentationOfUri =
+                    new URI(httpKeySchemeName, null, getHost(), getPort(), httpKeyPath, getQuery(), getFragment())
+                            .toString();
         } catch (URISyntaxException e) {
             throw new IllegalArgumentException("Could not parse arguments into a URL", e);
         }
@@ -129,7 +131,8 @@ public class HttpKeyURL {
             throw new IllegalArgumentException("rsaKeyValue must have a single dot, instead it had: " + rsaKeyValue);
         }
 
-        RSAPublicKeySpec rsaPublicKeySpec = new RSAPublicKeySpec(new BigInteger(splitString[1]), new BigInteger(splitString[0]));
+        RSAPublicKeySpec rsaPublicKeySpec =
+                new RSAPublicKeySpec(new BigInteger(splitString[1]), new BigInteger(splitString[0]));
         try {
             return (RSAPublicKey) KeyFactory.getInstance("RSA").generatePublic(rsaPublicKeySpec);
         } catch (InvalidKeySpecException e) {
@@ -142,7 +145,9 @@ public class HttpKeyURL {
     public boolean equals(HttpKeyURL secondKey) {
         try {
             return secondKey != null && getHost().equals(secondKey.getHost()) && (getPort() == secondKey.getPort()) &&
-                    ThaliPublicKeyComparer.RsaPublicKeyComparer((RSAPublicKey)getServerPublicKey(), (RSAPublicKey)secondKey.getServerPublicKey()) &&
+                    ThaliPublicKeyComparer.RsaPublicKeyComparer(
+                            (RSAPublicKey)getServerPublicKey(),
+                            (RSAPublicKey)secondKey.getServerPublicKey()) &&
                     nullOrEqual(getPath(), secondKey.getPath()) && nullOrEqual(getQuery(), secondKey.getQuery()) &&
                     nullOrEqual(getFragment(), secondKey.getFragment()) && toString().equals(secondKey.toString()) &&
                     createHttpsUrl().equals(secondKey.createHttpsUrl());

@@ -72,4 +72,9 @@ task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceH
     tasks = ['build'] // This isn't a library, it's an 'executable', this builds the apk file
 }
 
-task globalBuild(dependsOn: 'buildThaliDeviceHubAndroid'){}
+task buildThaliAndroidSdk(type: GradleBuild, dependsOn:'buildThaliDeviceHubAndroid') {
+    buildFile = 'ThaliApplicationSDKs/AndroidPouchDbSDK/build.gradle'
+    tasks = ['copyAssets', 'build'] // The first copies files over that are needed for the buidl and the second builds the apk
+}
+
+task globalBuild(dependsOn: 'buildThaliAndroidSdk'){}

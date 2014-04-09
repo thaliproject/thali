@@ -26,9 +26,6 @@ import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 
-/**
- * Created by yarong on 1/7/14.
- */
 public class AndroidThaliUrlConnectionTest extends AndroidTestCase {
     public void testThaliUrlConnection() throws InterruptedException, UnrecoverableEntryException,
             KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {

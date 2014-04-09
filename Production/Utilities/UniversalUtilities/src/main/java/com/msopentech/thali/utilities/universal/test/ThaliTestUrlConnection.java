@@ -26,9 +26,6 @@ import java.io.File;
 import java.io.IOException;
 import java.security.*;
 
-/**
- * Created by yarong on 1/7/14.
- */
 public class ThaliTestUrlConnection {
 
     public static void TestThaliUrlConnection(String host, char[] passPhrase, CreateClientBuilder createClientBuilder,

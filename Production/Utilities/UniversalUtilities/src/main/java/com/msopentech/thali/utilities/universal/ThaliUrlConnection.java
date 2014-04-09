@@ -24,7 +24,10 @@ import java.security.KeyManagementException;import java.security.KeyStore;import
 import java.security.cert.X509Certificate;
 
 /**
- * Created by yarong on 1/7/14.
+ * This class is nice because it can be made to work identically in both Android and Java. However Ektorp
+ * currently only works with Apache HTTP clients so as long as we are committed to Ektorp we are committed
+ * to Apache Client. So I keep this around for tests but otherwise we are focused on HttpClient (problems and all)
+ * so we don't have to double down efforts on two different solution.
  */
 public class ThaliUrlConnection {
     private static Logger logger = LoggerFactory.getLogger(ThaliUrlConnection.class);
@@ -40,7 +43,8 @@ public class ThaliUrlConnection {
 
         HttpsURLConnection httpsURLConnection = (HttpsURLConnection) urlConnection;
 
-        final ThaliPublicKeyComparer thaliPublicKeyComparer = serverPublicKey == null ? null : new ThaliPublicKeyComparer(serverPublicKey);
+        final ThaliPublicKeyComparer thaliPublicKeyComparer =
+                serverPublicKey == null ? null : new ThaliPublicKeyComparer(serverPublicKey);
 
         TrustManager trustManager = new X509TrustManager() {
             @Override

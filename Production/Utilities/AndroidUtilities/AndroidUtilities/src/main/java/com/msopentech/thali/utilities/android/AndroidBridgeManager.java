@@ -15,6 +15,8 @@ package com.msopentech.thali.utilities.android;
 
 import android.annotation.SuppressLint;
 import android.app.Activity;
+import android.os.Build;
+import android.util.Log;
 import android.webkit.JavascriptInterface;
 import android.webkit.WebView;
 import com.msopentech.thali.utilities.webviewbridge.Bridge;
@@ -35,7 +37,9 @@ public class AndroidBridgeManager extends BridgeManager implements Bridge {
         Bridge bridge = this;
         webview.addJavascriptInterface(bridge, this.getManagerNameInJavascript());
         // Objects added via addJavascriptInterface only show up if the webview is reloaded
-        webView.loadData("", "text/html", null);
+        webView.loadData("<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 4.01//EN\"\n" +
+                "   \"http://www.w3.org/TR/html4/strict.dtd\"><HTML><HEAD></HEAD><BODY></BODY></HTML>",
+                "text/html", null);
     }
 
     @Override
@@ -53,8 +57,12 @@ public class AndroidBridgeManager extends BridgeManager implements Bridge {
         activity.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                String dataURL = CreateJavascriptUrl(javascriptFileString);
-                webview.loadUrl(dataURL);
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+                    String dataURL = CreateJavascriptUrl(javascriptFileString);
+                    webview.loadUrl(dataURL);
+                } else {
+                    webview.evaluateJavascript(javascriptFileString, null);
+                }
             }
         });
     }

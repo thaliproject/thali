@@ -1,0 +1,29 @@
+<!DOCTYPE html>
+<html>
+<head lang="en">
+    <meta charset="UTF-8">
+    <script src="BridgeManager.js"></script>
+    <script src="pouchdb-2.1.2.js"></script>
+    <script src="xmlhttprequesttothali.js"></script>
+    <title>Sample HTML File</title>
+</head>
+<body>
+<p>Welcome to the sample Thali app! To use the wonders of Thali you need to do a few things.</p>
+<p>You need to copy your files into the assets folder where you found this file! Please make sure
+all of your files use relative paths.</p>
+<p>You also need to decide what your launch page will be. By default this code will launch assets/index.html. But
+there is nothing magical about that. You can change that if you want to by going to src/main/java/com/msopentech/thali/androidpouchdbsdk/app/MainActivity.java
+and change the url in loadUrl.</p>
+<p>Where ever you launch from make sure you include the scripts listed above. Without them the Thali funcitonality will
+not work.</p>
+<p>The default settings for the WebView give security permissions for just about everything under the sun. This is fine
+so long as *all* the code you are running is your code that you have total control over. But if you are intended to host any kind of
+third party content the current settings are a guaranteed security failure. My own suggestion is that you should treat this SDK like
+any other program that you would write. It needs to be your code that you own and nothing else.</p>
+<p>Believe it or not for the most part stuff should 'just work'. If you hand PouchDB a httpkey URL then it will just
+do the right thing. The only real difference between Thali and any other CouchDB application is that you need to
+provision. Right now we have some temporary provisioning APIs because we haven't put in the full provisioning framework yet
+and we just want to bootstrap things. Those two apis are ThaliXMLHttpRequest.ProvisionClientToHub and
+ThaliXMLHttpRequest.ProvisioninHubToHub.</p>
+</body>
+</html>

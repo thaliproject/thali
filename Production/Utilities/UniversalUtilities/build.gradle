@@ -33,6 +33,8 @@ dependencies {
     compile 'org.ektorp:org.ektorp:1.4.2-SNAPSHOT'
     compile 'com.couchbase.lite:java-core:1.0.0-beta3rc1'
     compile 'com.couchbase.lite:java-listener:1.0.0-beta3rc1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
+    compile 'org.apache.commons:commons-lang3:3.3.1'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.slf4j:slf4j-simple:1.7.5'
