@@ -17,9 +17,7 @@ import android.app.Activity;
 import android.content.Context;
 import android.os.Build;
 import android.os.Bundle;
-import android.provider.ContactsContract;
 import android.webkit.*;
-import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
 import com.msopentech.thali.utilities.xmlhttprequestbridge.BridgeTestLoadHtml;
@@ -143,8 +141,8 @@ public class AndroidXmlHttpRequestTestActivity extends Activity implements Bridg
         bridgeManager = new AndroidBridgeManager(this, webView);
     }
 
-    public void runTest(BridgeTestManager bridgeTestManager, Context context) throws InterruptedException {
+    public void runTest(BridgeTestManager bridgeTestManager, Context androidContext) throws InterruptedException {
         bridgeTestManager.launchTest(bridgeManager, new AndroidEktorpCreateClientBuilder(), this,
-                new AndroidContext(context));
+                new ContextInTempDirectory(androidContext), new ContextInTempDirectory(androidContext));
     }
 }

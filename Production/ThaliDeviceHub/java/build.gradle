@@ -26,10 +26,6 @@ repositories {
     mavenCentral()
 }
 
-javafx {
-    mainClass = 'com.msopentech.thali.devicehub.javahub.main'
-}
-
 dependencies {
     compile 'com.msopentech.thali:ThaliUtilitiesJava:0.0.2'
     compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"

@@ -80,6 +80,3 @@ artifacts {
     archives generateJavadocs
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
-}

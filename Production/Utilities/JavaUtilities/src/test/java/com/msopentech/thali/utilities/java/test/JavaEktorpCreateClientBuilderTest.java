@@ -13,7 +13,6 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.java.test;
 
-import com.couchbase.lite.Context;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
@@ -47,7 +46,7 @@ public class JavaEktorpCreateClientBuilderTest {
         // I have to create a new DeleteMe() on each test run due to https://github.com/couchbase/couchbase-lite-java-listener/issues/43
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress,
-                    ThaliCryptoUtilities.DefaultPassPhrase, new DeleteMe(),
+                    ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
                     new JavaEktorpCreateClientBuilder(), this.getClass());
         }
 

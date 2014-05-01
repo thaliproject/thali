@@ -111,7 +111,7 @@ public class ThaliListener {
 
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
 
-                cblListener = new LiteListener(manager, port, tjwsProperties, authorize);
+                cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
 
                 cblListener.start();
             }

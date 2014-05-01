@@ -47,6 +47,6 @@ public class JavaThaliUrlConnectionTest {
                 ThaliListener.DefaultThaliDeviceHubAddress,
                 ThaliCryptoUtilities.DefaultPassPhrase,
                 new JavaEktorpCreateClientBuilder(),
-                new DeleteMe());
+                new CreateContextInTemp());
     }
 }

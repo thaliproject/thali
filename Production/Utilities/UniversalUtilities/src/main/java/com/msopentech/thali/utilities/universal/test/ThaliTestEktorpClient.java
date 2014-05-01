@@ -356,7 +356,7 @@ public class ThaliTestEktorpClient {
             throws InterruptedException, MalformedURLException, URISyntaxException, CouchbaseLiteException {
         HttpKeyURL targetUrl =
                 new HttpKeyURL(configureRequestObjects.serverPublicKey, host, port,
-                        "/" + target, null, null);
+                        target, null, null);
         ThaliReplicationCommand thaliReplicationCommand =
                 new ThaliReplicationCommand.Builder()
                         .source(push ? source : targetUrl.toString())

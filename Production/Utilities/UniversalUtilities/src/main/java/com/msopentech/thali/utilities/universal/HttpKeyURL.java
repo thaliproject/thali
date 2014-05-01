@@ -30,7 +30,7 @@ public class HttpKeyURL {
     private final String host;
     private final Integer port;
     protected final PublicKey serverPublicKey;
-    private final String path;
+    private final String path; // Does not contain the leading slash
     private final String query;
     private final String fragment;
     private final String stringRepresentationOfUri;
@@ -55,7 +55,11 @@ public class HttpKeyURL {
             String identityKeyString =
                     locationOfPathStart == -1 ? preprocessedPath : preprocessedPath.substring(0, locationOfPathStart);
             serverPublicKey = rsaKeyStringToRsaPublicKey(identityKeyString);
-            path = locationOfPathStart == -1 ? null : preprocessedPath.substring(locationOfPathStart);
+            // The path, if it exists, starts with a '/', so the second term of the or checks if the path contains
+            // more than just the '/' character.
+            path = locationOfPathStart == -1 || preprocessedPath.substring(locationOfPathStart).length() <= 1 ?
+                    null :
+                    preprocessedPath.substring(locationOfPathStart + 1);
             query = uri.getQuery();
             fragment = uri.getFragment();
         } catch (URISyntaxException e) {
@@ -68,7 +72,7 @@ public class HttpKeyURL {
      * @param serverPublicKey
      * @param host
      * @param port
-     * @param path can be set to null
+     * @param path - the value after the leading '/' in the URL, can be set to null
      * @param query can be set to null
      * @param fragment can be set to null
      * @throws IllegalArgumentException
@@ -86,8 +90,8 @@ public class HttpKeyURL {
         this.query = query;
         this.fragment = fragment;
 
-        String httpKeyPath = "/" + rsaKeyToHttpKeyString((RSAPublicKey) getServerPublicKey()) +
-                (getPath() != null ? getPath() : "/");
+        String httpKeyPath = "/" + rsaKeyToHttpKeyString((RSAPublicKey) getServerPublicKey()) + "/" +
+                (getPath() == null ? "" : getPath());
 
         try {
             stringRepresentationOfUri =
@@ -162,7 +166,7 @@ public class HttpKeyURL {
      * @return
      */
     public String createHttpsUrl() throws URISyntaxException {
-        return new URI("https", null, getHost(), getPort(), getPath(), getQuery(), getFragment()).toString();
+        return new URI("https", null, getHost(), getPort(), "/" + getPath(), getQuery(), getFragment()).toString();
     }
 
     private boolean nullOrEqual(String first, String second) {

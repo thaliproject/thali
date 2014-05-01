@@ -24,7 +24,7 @@ import java.util.Map;
 /**
  * Created by yarong on 1/13/14.
  */
-public class BogusThaliAuthorizer implements Authorizer {
+public class BogusThaliAuthorizer extends Authorizer {
     private final PublicKey serverPublicKey;
     private final KeyStore clientKeyStore;
     private final char[] clientPassPhrase;

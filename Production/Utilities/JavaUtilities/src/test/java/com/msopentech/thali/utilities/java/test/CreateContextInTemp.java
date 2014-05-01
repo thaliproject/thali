@@ -19,11 +19,15 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
-// Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
-// https://github.com/couchbase/couchbase-lite-java-core/issues/117
-class DeleteMe extends JavaContext {
+/**
+ * Creates context using a temporary directory. It's not clear if this is safe in Android and so it lives in the Java
+ * Utilities project.
+ * Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
+ * https://github.com/couchbase/couchbase-lite-java-core/issues/117
+ */
+class CreateContextInTemp extends JavaContext {
     private final File tempDirectory;
-    public DeleteMe() {
+    public CreateContextInTemp() {
         try {
             tempDirectory = Files.createTempDirectory("javacoretest").toFile();
             tempDirectory.deleteOnExit();

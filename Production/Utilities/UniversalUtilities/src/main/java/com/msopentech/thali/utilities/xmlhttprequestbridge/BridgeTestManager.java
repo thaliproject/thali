@@ -20,9 +20,6 @@ import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.webviewbridge.BridgeCallBack;
 import com.msopentech.thali.utilities.webviewbridge.BridgeHandler;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
-import org.slf4j.Logger;
-
-import java.io.File;
 
 public class BridgeTestManager {
     public static Object waitObject = new Object();
@@ -30,7 +27,7 @@ public class BridgeTestManager {
     public static String testJs = "/xhrtest/test.js";
     public enum pingStatus { unset, failed, success }
     public static pingStatus seenPing = pingStatus.unset;
-    public ThaliListener thaliListener;
+    public ThaliListener thaliListenerStandardPort, thaliListenerPlusOnePort;
 
     public static class BridgeTest extends BridgeHandler {
         public BridgeTest() {
@@ -72,13 +69,17 @@ public class BridgeTestManager {
      * test completes.
      * @param bridgeManager
      * @param createClientBuilder
+     * @param  bridgeTestLoadHtml
+     * @param  contextForStandardPort
+     * @param  contextForPortPlusOne
      */
     public void launchTest(
             BridgeManager bridgeManager, CreateClientBuilder createClientBuilder,
-            BridgeTestLoadHtml bridgeTestLoadHtml, Context context) throws InterruptedException {
-        startServer(context);
+            BridgeTestLoadHtml bridgeTestLoadHtml, Context contextForStandardPort, Context contextForPortPlusOne)
+            throws InterruptedException {
+        startServers(contextForStandardPort, contextForPortPlusOne);
 
-        BridgeHandler xmlhttpBridge = new Bridge(context.getFilesDir(), createClientBuilder);
+        BridgeHandler xmlhttpBridge = new Bridge(contextForStandardPort.getFilesDir(), createClientBuilder);
         bridgeManager.register(xmlhttpBridge);
 
         BridgeHandler bridgeTestHandler = new BridgeTest();
@@ -94,12 +95,13 @@ public class BridgeTestManager {
      * See description of other launchTest. This one is for situations where the WebView already has a xmlhttpBridge
      * and has already loaded its web page. So we just run the test.js directly in the existing context.
      * @param bridgeManager
-     * @param context
+     * @param contextForStandardPort
+     * @param contextForPortPlusOne
      * @throws InterruptedException
      */
-    public void launchTest(BridgeManager bridgeManager, Context context)
+    public void launchTest(BridgeManager bridgeManager, Context contextForStandardPort, Context contextForPortPlusOne)
             throws InterruptedException {
-        startServer(context);
+        startServers(contextForStandardPort, contextForPortPlusOne);
 
         BridgeHandler bridgeTestHandler = new BridgeTest();
         bridgeManager.register(bridgeTestHandler);
@@ -118,14 +120,20 @@ public class BridgeTestManager {
                 waitObject.wait();
             }
         }
-        thaliListener.stopServer();
+        thaliListenerStandardPort.stopServer();
+        thaliListenerPlusOnePort.stopServer();
         return seenPing == pingStatus.success;
     }
 
-    protected void startServer(Context context) throws InterruptedException {
-        thaliListener = new ThaliListener();
-        thaliListener.startServer(context, ThaliListener.DefaultThaliDeviceHubPort);
-        // This is a poor man's synch solution to make sure the test doesn't start before the listener is running.
-        thaliListener.getSocketStatus();
+    protected void startServers(Context contextForDefaultPort, Context contextForPlusOnePort) throws InterruptedException {
+        thaliListenerStandardPort = new ThaliListener();
+        thaliListenerStandardPort.startServer(contextForDefaultPort, ThaliListener.DefaultThaliDeviceHubPort);
+
+        thaliListenerPlusOnePort = new ThaliListener();
+        thaliListenerPlusOnePort.startServer(contextForPlusOnePort, ThaliListener.DefaultThaliDeviceHubPort + 1);
+
+        // This is a poor man's synch solution to make sure the test doesn't start before the listeners are running.
+        thaliListenerStandardPort.getSocketStatus();
+        thaliListenerPlusOnePort.getSocketStatus();
     }
 }

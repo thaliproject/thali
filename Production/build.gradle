@@ -15,24 +15,27 @@ In other words that there is a single directory that contains all the relevant d
 
 task buildCouchbaseLiteJavaNative(type: GradleBuild) {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
     buildFile = '../../couchbase-lite-java-core/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
     buildFile = '../../couchbase-lite-java-listener/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
+// The test task is not included because of https://github.com/couchbase/couchbase-lite-java/issues/15
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn:'buildCouchbaseLiteJavaListener') {
     buildFile = '../../couchbase-lite-java/build.gradle'
     tasks = ['uploadArchives']
 }
 
+// I had to remove the connectedAndroidTest task because a bunch of the tests fail
+// https://github.com/couchbase/couchbase-lite-android/issues/287#issuecomment-41827162
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
     buildFile = '../../couchbase-lite-android/build.gradle'
     tasks = ['uploadArchives']
@@ -44,37 +47,37 @@ task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLite
 
 task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliJavaUtilities(type: GradleBuild, dependsOn: 'buildThaliUniversalUtilities') {
     buildFile = 'Utilities/JavaUtilities/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUtilities') {
     buildFile = 'Utilities/AndroidUtilities/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['connectedAndroidTest', 'uploadArchives']
 }
 
 task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
     buildFile = 'ThaliDeviceHub/java/build.gradle'
-    tasks = ['distZip'] // This isn't a library, it's an 'executable', this builds the distribution
+    tasks = ['test', 'distZip'] // This isn't a library, it's an 'executable', this builds the distribution
 }
 
 task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {
     buildFile = 'ThaliDeviceHub/android/android/build.gradle'
-    tasks = ['build'] // This isn't a library, it's an 'executable', this builds the apk file
+    tasks = ['connectedAndroidTest', 'build'] // This isn't a library, it's an 'executable', this builds the apk file
 }
 
 task buildThaliAndroidSdk(type: GradleBuild, dependsOn:'buildThaliDeviceHubAndroid') {
     buildFile = 'ThaliApplicationSDKs/AndroidPouchDbSDK/build.gradle'
-    tasks = ['copyAssets', 'build'] // The first copies files over that are needed for the buidl and the second builds the apk
+    tasks = ['copyAssets', 'connectedAndroidTest', 'build'] // The first copies files over that are needed for the buidl and the second builds the apk
 }
 
 task globalBuild(dependsOn: 'buildThaliAndroidSdk'){}

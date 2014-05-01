@@ -7109,7 +7109,6 @@ var types = [
 ];
 var handlerQueue = [];
 function drainQueue() {
-    window.doubleLog("In drainQueue");
     var i = 0,
         task,
         innerQueue = handlerQueue;

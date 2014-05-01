@@ -18,41 +18,12 @@ import com.msopentech.thali.CouchDBListener.ThaliListener;
 
 import java.io.File;
 
-// Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
-// https://github.com/couchbase/couchbase-lite-java-core/issues/117
-class DeleteMe extends JavaContext {
-    private final File rootDirectory;
-
-    public DeleteMe() {
-        String rootDirectoryBasePath = System.getProperty("user.home");
-        rootDirectory = new File(rootDirectoryBasePath, ".thali/data/data/com.couchbase.cblite.test/files");
-        if (rootDirectory.exists() == false && rootDirectory.mkdirs() == false) {
-            throw new RuntimeException("Couldn't create rootDirectory: " + rootDirectory.getAbsolutePath());
-        }
-    }
-
-    @Override
-    public File getRootDirectory() {
-        return rootDirectory;
-    }
-
-    @Override
-    public File getFilesDir() {
-        // Unfortunately subdir is private, not public
-        File filesDir = new File(getRootDirectory(), "cblite");
-        if (filesDir.exists() == false && filesDir.mkdirs() == false) {
-            throw new RuntimeException("Couldn't create filesDir: " + filesDir.getAbsolutePath());
-        }
-        return filesDir;
-    }
-}
-
 public class ThaliDeviceHubService {
     protected ThaliListener thaliListener = null;
 
     public void startService() {
         thaliListener = new ThaliListener();
-        thaliListener.startServer(new DeleteMe(), ThaliListener.DefaultThaliDeviceHubPort);
+        thaliListener.startServer(new ContextInUserHomeDirectory(), ThaliListener.DefaultThaliDeviceHubPort);
     }
 
     public void stopService() {

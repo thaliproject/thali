@@ -34,7 +34,6 @@ function errorOrDoNext(doNext) {
     {
         if (err != null) {
             window.doubleLog("oy!" + err);
-            //window.alert("oy!");
             window.ThaliBridgeCallOnce("Test", "Bad", failCallBack, failCallBack);
         } else {
             window.doubleLog("About to start function " + doNext.name);
@@ -53,7 +52,8 @@ function handleRespThenDoNext(handleResponse, doNext) {
     return function(err, resp)
     {
         if (err != null) {
-            window.alert("oy!");
+            window.doubleLog("oy!" + err);
+            window.ThaliBridgeCallOnce("Test", "Bad", failCallBack, failCallBack);
         } else {
             window.doubleLog("About to start function " + handleResponse.name);
             handleResponse(resp);
@@ -68,6 +68,7 @@ function handleRespThenDoNext(handleResponse, doNext) {
 
 var host = "127.0.0.1";
 var port = 9898;
+var secondPort = 9899;
 var testDbUrl;
 var localDbBaseUrl;
 var localCouch;
@@ -75,18 +76,23 @@ var localFromThali;
 
 // Clean up state a little
 function startTest(localIsOnThali) {
-    localDbBaseUrl = "";
-    ThaliXMLHttpRequest.ProvisionClientToHub(host, port,
-        handleRespThenDoNext(function(resp) {
-            testDbUrl = resp + "test";
-        }, localIsOnThali ? provisionHubToHub : destroyRemote));
-}
-
-function provisionHubToHub() {
-    ThaliXMLHttpRequest.ProvisionHubToHub(testDbUrl, host, port,
-        handleRespThenDoNext(function(resp) {
-            localDbBaseUrl = resp;
-        }, destroyRemote));
+    if (localIsOnThali) {
+        ThaliXMLHttpRequest.ProvisionClientToHub(host, port,
+            handleRespThenDoNext(
+                function (resp) { localDbBaseUrl = resp },
+                function () {
+                    ThaliXMLHttpRequest.ProvisionHubToHub(localDbBaseUrl, host, secondPort,
+                        handleRespThenDoNext(
+                            function (resp) { testDbUrl = resp + "test" },
+                            destroyRemote))
+                }));
+    } else {
+        localDbBaseUrl = "";
+        ThaliXMLHttpRequest.ProvisionClientToHub(host, port,
+            handleRespThenDoNext(
+                function (resp) { testDbUrl = resp + "test" },
+                destroyRemote));
+    }
 }
 
 function destroyRemote() {
@@ -121,25 +127,28 @@ function postATonOfDocs() {
 
 function replicateTo() {
     var options = { create_target: true };
-    // Disabled due to a bug in CouchBase, it doesn't support local to local replication
-//    if (testWithThali) {
-//        options.server = true;
-//    }
+    if (testWithThali) {
+        options.server = true;
+    }
     localCouch.replicate.to(testDbUrl , options, errorOrDoNext(replicateFrom));
 }
 
 function replicateFrom() {
-    // Disabled setting server; true because of a bug in CouchBase, it doesn't support local to local replication
-    var options = {};
-//    var options = testWithThali ? { server: true } : {};
-    localFromThali = new PouchDB(localDbBaseUrl + 'localcopy');
-    localFromThali.replicate.from(testDbUrl, options, errorOrDoNext(getAllLocalDocs));
+    setTimeout(function () {
+        var options = testWithThali ? { server: true } : {};
+        localFromThali = new PouchDB(localDbBaseUrl + 'localcopy');
+        localFromThali.replicate.from(testDbUrl, options, errorOrDoNext(getAllLocalDocs));
+    }, 1000);
 }
 
 var allLocalDocs;
 
 function getAllLocalDocs() {
-    localCouch.allDocs({include_docs: true}, handleRespThenDoNext(function(docs) { allLocalDocs = docs.rows; }, seeIfItWorked));
+    setTimeout(function() {
+        localCouch.allDocs({include_docs: true}, handleRespThenDoNext(function (docs) {
+            allLocalDocs = docs.rows;
+        }, seeIfItWorked));
+    }, 1000);
 }
 
 function seeIfItWorked() {
@@ -163,18 +172,6 @@ function testSuccessful() {
         window.ThaliBridgeCallOnce("Test","Good", failCallBack, failCallBack)
     }
 }
-
-var canSetImmediate = typeof window !== 'undefined'
-    && window.setImmediate;
-var canPost = typeof window !== 'undefined'
-        && window.postMessage && window.addEventListener;
-
-window.doubleLog("window.inEventListener = " + window.inEventListener)
-window.doubleLog("canSetImmediate = " + canSetImmediate + ", canPost = " + canPost);
-window.doubleLog("window.openDatabase - " + window.openDatabase);
-window.doubleLog("window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB; - " +
-    window.indexedDB || window.mozIndexedDB || window.webkitIndexedDB || window.msIndexedDB);
-window.doubleLog("window.localStorage - " + window.localStorage);
 
 // The value below SHOULD be set to false in order to run both versions of the test
 window.testWithThali = false;

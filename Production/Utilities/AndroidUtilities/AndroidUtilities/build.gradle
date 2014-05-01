@@ -58,7 +58,6 @@ dependencies {
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
 
-    androidTestCompile files('libs/td_collator_so.jar')
     //fileTree(dir: 'libs', include: '*.jar')
     // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
@@ -101,8 +100,4 @@ task sourcesJar(type: Jar) {
 
 artifacts {
     archives sourcesJar
-}
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
 }

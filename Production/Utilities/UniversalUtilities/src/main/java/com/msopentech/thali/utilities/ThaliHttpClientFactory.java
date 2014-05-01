@@ -15,15 +15,18 @@ package com.msopentech.thali.utilities;
 
 import com.couchbase.lite.support.HttpClientFactory;
 import com.msopentech.thali.utilities.universal.HttpKeySSLSocketFactory;
+import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.cookie.Cookie;
 import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 
 import java.security.*;
+import java.util.List;
 
 public class ThaliHttpClientFactory implements HttpClientFactory {
     HttpKeySSLSocketFactory httpKeySSLSocketFactory;
@@ -41,5 +44,22 @@ public class ThaliHttpClientFactory implements HttpClientFactory {
         schemeRegistry.register(new Scheme("https", httpKeySSLSocketFactory, 443));
         ClientConnectionManager clientConnectionManager = new ThreadSafeClientConnManager(basicHttpParams, schemeRegistry);
         return new DefaultHttpClient(clientConnectionManager, basicHttpParams);
+    }
+
+    @Override
+    public void addCookies(List<Cookie> cookies) {
+        // Cookies are a security hole, don't use them.
+        return;
+    }
+
+    @Override
+    public void deleteCookie(String name) {
+        // Cookies are a security hole, don't use them.
+        return;
+    }
+
+    @Override
+    public CookieStore getCookieStore() {
+        return null;
     }
 }

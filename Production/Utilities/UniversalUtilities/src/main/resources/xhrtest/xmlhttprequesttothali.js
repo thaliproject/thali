@@ -499,6 +499,10 @@ HttpKeyPouch.getHost = function(name, opts) {
     var uri = {};
     uri.remote = true;
     uri.protocol = ThaliXMLHttpRequest.httpKey;
+    // Used by replicateOnServer in HTTP adapter to see if two URLs of the same protocol are for the same Couch Server
+    // To make such a comparison for httpkey we need both the authority and key
+    uri.authority = parts[2] + "/" + parts[3];
+    uri.source = name;
     var hostAndPort = parts[2].split(':');
     uri.host = hostAndPort[0];
     uri.port = hostAndPort[1];

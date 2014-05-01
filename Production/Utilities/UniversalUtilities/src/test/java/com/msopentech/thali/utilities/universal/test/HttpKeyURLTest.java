@@ -33,7 +33,7 @@ public class HttpKeyURLTest {
         RSAPublicKey serverPublicKey = (RSAPublicKey) keyPair.getPublic();
         String host = "foo.com";
         int port = 413;
-        String path = "/ick";
+        String path = "ick";
         String query = "ark";
         String fragment = "bark";
 
@@ -50,11 +50,11 @@ public class HttpKeyURLTest {
 
         String expectedURL = HttpKeyURL.httpKeySchemeName + "://" + host + ":" + port + "/" +
                 HttpKeyURL.rsaKeyType + ":" + serverPublicKey.getPublicExponent() + "." + serverPublicKey.getModulus() +
-                path + "?" + query + "#" + fragment;
+                "/" + path + "?" + query + "#" + fragment;
 
         assertTrue(expectedURL.equals(httpKeyURL.toString()));
 
-        String expectedHttpsURL = "https://" + host + ":" + port + path + "?" + query + "#" + fragment;
+        String expectedHttpsURL = "https://" + host + ":" + port + "/" + path + "?" + query + "#" + fragment;
         assertTrue(expectedHttpsURL.equals(httpKeyURL.createHttpsUrl()));
 
         assertTrue(httpKeyURL.equals(httpKeyURL));
@@ -66,12 +66,13 @@ public class HttpKeyURLTest {
         HttpKeyURL thirdHttpKeyURL = new HttpKeyURL(serverPublicKey, host, port, null, null, null);
 
         String expectedThirdURL = HttpKeyURL.httpKeySchemeName + "://" + host + ":" + port + "/" +
-                HttpKeyURL.rsaKeyType + ":" + serverPublicKey.getPublicExponent() + "." + serverPublicKey.getModulus();
+                HttpKeyURL.rsaKeyType + ":" + serverPublicKey.getPublicExponent() + "." + serverPublicKey.getModulus()
+                + "/";
 
         assertTrue(expectedThirdURL.equals(thirdHttpKeyURL.toString()));
         assertTrue(new HttpKeyURL(expectedThirdURL).equals(thirdHttpKeyURL));
 
-        path = "/ick  ?";
+        path = "ick  ?";
         query = "??????    ";
         fragment = "###???///???";
         HttpKeyURL escapedChars = new HttpKeyURL(serverPublicKey, host, port, path, query, fragment);
