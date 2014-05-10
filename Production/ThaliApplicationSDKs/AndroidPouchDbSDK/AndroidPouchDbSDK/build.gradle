@@ -55,17 +55,21 @@ dependencies {
     compile 'org.slf4j:slf4j-android:1.7.2'
 }
 
-def pathToResourcesInUniversalUtilities =
-        file('src').toString() + File.separator + '..' + File.separator + '..' + File.separator +
-        '..' + File.separator + '..' + File.separator + 'Utilities' + File.separator +
-        'UniversalUtilities' + File.separator + 'src' + File.separator + 'main' + File.separator +
-        'resources' + File.separator
+def pathToResourcesInUniversalUtilities = "../../../Utilities/UniversalUtilities/src/main/resources/"
 
-def pathToXhrTest = pathToResourcesInUniversalUtilities + File.separator + "xhrtest" + File.separator
+def pathToXhrTest = pathToResourcesInUniversalUtilities + "xhrtest"
 
-task copyAssets(type: Copy) {
+println file(new File(pathToResourcesInUniversalUtilities))
+println file(new File(pathToXhrTest))
+
+task copyBridgeManager(type: Copy) {
     from pathToResourcesInUniversalUtilities + "BridgeManager.js"
-    from pathToXhrTest + "pouchdb-2.1.2.js"
-    from pathToXhrTest + "xmlhttprequesttothali.js"
     into 'assets'
 }
+
+task copyXhrTestFiles(type: Copy) {
+    from pathToXhrTest
+    into 'assets/xhrtest'
+}
+
+assemble.dependsOn copyBridgeManager, copyXhrTestFiles

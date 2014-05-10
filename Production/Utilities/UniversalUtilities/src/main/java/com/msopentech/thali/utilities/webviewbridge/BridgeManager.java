@@ -76,6 +76,10 @@ public abstract class BridgeManager implements Bridge {
         }
     }
 
+    public void registerIfNameNotTaken(BridgeHandler bridgeHandler) {
+        registeredHandlers.putIfAbsent(bridgeHandler.getName(), bridgeHandler);
+    }
+
     /**
      * The method that will be called by the Bridge framework from Javascript. E.g. someone calls to the bridge in
      * Javascript and the bridge then marshals the call and calls across the bridge to this method.

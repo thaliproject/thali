@@ -25,6 +25,7 @@ import java.io.IOException;
 public class MainActivity extends Activity {
     public static final String pathToIndexHtml = "file:///android_asset/index.html";
     public static final String PouchSDKTag = "PouchSDK";
+    public WebView webView = null; // Public for testing purposes only
 
     public BridgeManager bridgeManager;
 
@@ -33,7 +34,7 @@ public class MainActivity extends Activity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_main);
 
-        WebView webView = (WebView) findViewById(R.id.webview);
+        webView = (WebView) findViewById(R.id.webview);
 
         bridgeManager = new AndroidBridgeManager(this, webView);
         BridgeHandler xmlhttpBridge = new Bridge(getFilesDir(), new AndroidEktorpCreateClientBuilder());

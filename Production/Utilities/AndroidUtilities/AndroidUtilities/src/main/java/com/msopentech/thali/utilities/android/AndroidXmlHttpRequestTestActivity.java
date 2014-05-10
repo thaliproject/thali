@@ -26,6 +26,8 @@ import org.apache.commons.io.FileUtils;
 import org.apache.commons.io.IOUtils;
 
 import java.io.*;
+import java.net.*;
+import java.util.*;
 
 /**
  * Android does not like Activities to live in the test part of the project so I have to define it here
@@ -37,45 +39,46 @@ public class AndroidXmlHttpRequestTestActivity extends Activity implements Bridg
 
     @Override
     public void LoadWebPage(final String url) {
-        readResourceIntoDirectory(BridgeManager.pathToBridgeManagerJs, false);
-        final String testHtmlUrl = readResourceIntoDirectory("/xhrtest/test.html", true);
-        readResourceIntoDirectory("/xhrtest/pouchdb-2.1.2.js", false);
-        readResourceIntoDirectory("/xhrtest/xmlhttprequesttothali.js", false);
-        readResourceIntoDirectory("/xhrtest/test.js", false);
+        readResourceIntoDirectory(BridgeManager.pathToBridgeManagerJs);
 
+        try {
+            loadManifestFilesIntoDirectory("/xhrtest/");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+
+        final File testHtmlFile = new File(getFilesDir(), "/xhrtest/test.html");
         this.runOnUiThread(new Runnable() {
             @Override
             public void run() {
-                webView.loadUrl(testHtmlUrl);
+                webView.loadUrl(testHtmlFile.toURI().toString());
             }
         });
+    }
+
+    private void loadManifestFilesIntoDirectory(String resourceDirectoryPath) throws IOException {
+        File directoryAtDestination = new File(getFilesDir(), resourceDirectoryPath);
+        if (directoryAtDestination.exists()) {
+            FileUtils.deleteDirectory(directoryAtDestination);
+        }
+        if (directoryAtDestination.mkdirs() == false) {
+            throw new RuntimeException("Couldn't create destination!");
+        }
+
+        final String manifestFileName = "manifest.csv";
+        String[] files = IOUtils.toString(getClass().getResourceAsStream(resourceDirectoryPath + manifestFileName)).split(",");
+        for(String fileName : files) {
+            readResourceIntoDirectory(resourceDirectoryPath + fileName);
+        }
     }
 
     /**
      * Reads in the resource with the specified resourcePath and then creates a file
      * with the same path in the application's local storage
      * @param resourcePath
-     * @param  nukeDirectoryIfExists
-     * @return
      */
-    private String readResourceIntoDirectory(String resourcePath, boolean nukeDirectoryIfExists) {
+    private void readResourceIntoDirectory(String resourcePath) {
         File resourceFile = new File(getFilesDir(), resourcePath);
-
-        File parentFile = resourceFile.getParentFile();
-
-        if (parentFile.exists() && nukeDirectoryIfExists) {
-            try {
-                FileUtils.deleteDirectory(parentFile);
-            } catch (IOException e) {
-                throw new RuntimeException("couldn't delete parentFile " + parentFile);
-            }
-        }
-
-        if (parentFile.exists() == false) {
-            if (parentFile.mkdirs() == false) {
-                throw new RuntimeException("couldn't create directories!");
-            }
-        }
 
         InputStream resourceInputStream = getClass().getResourceAsStream(resourcePath);
 
@@ -100,8 +103,6 @@ public class AndroidXmlHttpRequestTestActivity extends Activity implements Bridg
                 throw new RuntimeException(e);
             }
         }
-
-        return resourceFile.toURI().toString();
     }
 
     @Override
@@ -143,6 +144,7 @@ public class AndroidXmlHttpRequestTestActivity extends Activity implements Bridg
 
     public void runTest(BridgeTestManager bridgeTestManager, Context androidContext) throws InterruptedException {
         bridgeTestManager.launchTest(bridgeManager, new AndroidEktorpCreateClientBuilder(), this,
+                getClass().getResource(BridgeTestManager.testHtml).toExternalForm(),
                 new ContextInTempDirectory(androidContext), new ContextInTempDirectory(androidContext));
     }
 }

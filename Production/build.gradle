@@ -77,7 +77,7 @@ task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceH
 
 task buildThaliAndroidSdk(type: GradleBuild, dependsOn:'buildThaliDeviceHubAndroid') {
     buildFile = 'ThaliApplicationSDKs/AndroidPouchDbSDK/build.gradle'
-    tasks = ['copyAssets', 'connectedAndroidTest', 'build'] // The first copies files over that are needed for the buidl and the second builds the apk
+    tasks = ['connectedAndroidTest', 'build']
 }
 
 task globalBuild(dependsOn: 'buildThaliAndroidSdk'){}

@@ -13,15 +13,17 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.androidpouchdbsdk.test;
 
+import android.content.*;
+import android.os.Build;
 import android.test.ActivityInstrumentationTestCase2;
-import com.couchbase.lite.JavaContext;
-import com.couchbase.lite.android.AndroidContext;
+import android.webkit.*;
 import com.msopentech.thali.androidpouchdbsdk.app.MainActivity;
-import com.msopentech.thali.utilities.xmlhttprequestbridge.BridgeTestManager;
+import com.msopentech.thali.utilities.android.*;
+import com.msopentech.thali.utilities.xmlhttprequestbridge.*;
 
 import java.io.File;
 
-public class AndroidSmokeTest extends ActivityInstrumentationTestCase2<MainActivity> {
+public class AndroidSmokeTest extends ActivityInstrumentationTestCase2<MainActivity> implements BridgeTestLoadHtml {
     protected BridgeTestManager bridgeTestManager = null;
 
     public AndroidSmokeTest() {
@@ -34,9 +36,28 @@ public class AndroidSmokeTest extends ActivityInstrumentationTestCase2<MainActiv
     }
 
     public void testSmoke() throws InterruptedException {
-        //TODO: FINISH THIS!
-//        bridgeTestManager.launchTest(
-//                getActivity().bridgeManager, new AndroidContext(getActivity().getApplicationContext()));
-//        assertTrue(bridgeTestManager.testResult());
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            throw new RuntimeException("This test only runs in KitKat or higher!");
+        }
+
+        Context androidContext = getActivity().getApplicationContext();
+
+        bridgeTestManager.launchTest(getActivity().bridgeManager, new AndroidEktorpCreateClientBuilder(), this,
+                "file:///android_asset/xhrtest/test.html",
+                new ContextInTempDirectory(androidContext), new ContextInTempDirectory(androidContext));
+        assertTrue(bridgeTestManager.testResult());
+    }
+
+    @Override
+    public void LoadWebPage(final String url) {
+        if (getActivity().webView == null) {
+            throw new RuntimeException("We got called before onCreate!");
+        }
+        getActivity().runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                getActivity().webView.loadUrl(url);
+            }
+        });
     }
 }

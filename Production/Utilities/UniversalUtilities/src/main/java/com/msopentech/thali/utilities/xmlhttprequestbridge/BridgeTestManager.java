@@ -17,6 +17,7 @@ import com.couchbase.lite.Context;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
+import com.msopentech.thali.utilities.universal.test.*;
 import com.msopentech.thali.utilities.webviewbridge.BridgeCallBack;
 import com.msopentech.thali.utilities.webviewbridge.BridgeHandler;
 import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
@@ -24,10 +25,9 @@ import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
 public class BridgeTestManager {
     public static Object waitObject = new Object();
     public static String testHtml = "/xhrtest/test.html";
-    public static String testJs = "/xhrtest/test.js";
     public enum pingStatus { unset, failed, success }
     public static pingStatus seenPing = pingStatus.unset;
-    public ThaliListener thaliListenerStandardPort, thaliListenerPlusOnePort;
+    public ThaliListener thaliListenerFirstHub, thaliListenerSecondHub;
 
     public static class BridgeTest extends BridgeHandler {
         public BridgeTest() {
@@ -62,78 +62,64 @@ public class BridgeTestManager {
         }
     }
 
+    public BridgeTestManager() {
+        // Wacky useful for debugging what's on the wire!
+        //ThaliTestUtilities.configuringLoggingApacheClient();
+    }
+
     /**
-     * Launches the test by running the test javascript that calls a bridge handler configured by this code. This
-     * method is usually called inside of a context (like the Application start) that isn't directly visible to
-     * JUnit. Hence we have the partner method, testResult, that can be called from JUnit that will block until the
-     * test completes.
+     *
      * @param bridgeManager
      * @param createClientBuilder
-     * @param  bridgeTestLoadHtml
-     * @param  contextForStandardPort
-     * @param  contextForPortPlusOne
+     * @param bridgeTestLoadHtml
+     * @param pathToTestHtml
+     * @param contextForFirstHub
+     * @param contextForSecondHub
+     * @throws InterruptedException
      */
-    public void launchTest(
-            BridgeManager bridgeManager, CreateClientBuilder createClientBuilder,
-            BridgeTestLoadHtml bridgeTestLoadHtml, Context contextForStandardPort, Context contextForPortPlusOne)
+    public void launchTest(BridgeManager bridgeManager, CreateClientBuilder createClientBuilder,
+                           BridgeTestLoadHtml bridgeTestLoadHtml, String pathToTestHtml, Context contextForFirstHub,
+                           Context contextForSecondHub)
             throws InterruptedException {
-        startServers(contextForStandardPort, contextForPortPlusOne);
+        startServers(contextForFirstHub, contextForSecondHub);
 
-        BridgeHandler xmlhttpBridge = new Bridge(contextForStandardPort.getFilesDir(), createClientBuilder);
-        bridgeManager.register(xmlhttpBridge);
+        BridgeHandler xmlhttpBridge = new Bridge(contextForFirstHub.getFilesDir(), createClientBuilder);
+        bridgeManager.registerIfNameNotTaken(xmlhttpBridge);
 
         BridgeHandler bridgeTestHandler = new BridgeTest();
-        bridgeManager.register(bridgeTestHandler);
+        bridgeManager.registerIfNameNotTaken(bridgeTestHandler);
 
         BridgeHandler logHandler = new LogHandler();
-        bridgeManager.register(logHandler);
+        bridgeManager.registerIfNameNotTaken(logHandler);
 
-        bridgeTestLoadHtml.LoadWebPage(getClass().getResource(testHtml).toExternalForm());
+        bridgeTestLoadHtml.LoadWebPage(pathToTestHtml);
     }
 
     /**
-     * See description of other launchTest. This one is for situations where the WebView already has a xmlhttpBridge
-     * and has already loaded its web page. So we just run the test.js directly in the existing context.
-     * @param bridgeManager
-     * @param contextForStandardPort
-     * @param contextForPortPlusOne
+     * A blocking method for use with JUnit, it won't return until the test completes.
+     * @return
      * @throws InterruptedException
      */
-    public void launchTest(BridgeManager bridgeManager, Context contextForStandardPort, Context contextForPortPlusOne)
-            throws InterruptedException {
-        startServers(contextForStandardPort, contextForPortPlusOne);
-
-        BridgeHandler bridgeTestHandler = new BridgeTest();
-        bridgeManager.register(bridgeTestHandler);
-
-        BridgeHandler logHandler = new LogHandler();
-        bridgeManager.register(logHandler);
-
-        String testJsString =
-                BridgeManager.turnUTF8InputStreamToString(getClass().getResourceAsStream(testJs));
-        bridgeManager.executeJavascript(testJsString);
-    }
-
     public boolean testResult() throws InterruptedException {
         synchronized(waitObject) {
             while(seenPing == pingStatus.unset) {
                 waitObject.wait();
             }
         }
-        thaliListenerStandardPort.stopServer();
-        thaliListenerPlusOnePort.stopServer();
+        thaliListenerFirstHub.stopServer();
+        thaliListenerSecondHub.stopServer();
         return seenPing == pingStatus.success;
     }
 
-    protected void startServers(Context contextForDefaultPort, Context contextForPlusOnePort) throws InterruptedException {
-        thaliListenerStandardPort = new ThaliListener();
-        thaliListenerStandardPort.startServer(contextForDefaultPort, ThaliListener.DefaultThaliDeviceHubPort);
+    protected void startServers(Context contextForFirstHub, Context contextForSecondHub) throws InterruptedException {
+        thaliListenerFirstHub = new ThaliListener();
+        thaliListenerFirstHub.startServer(contextForFirstHub, ThaliListener.DefaultThaliDeviceHubPort);
 
-        thaliListenerPlusOnePort = new ThaliListener();
-        thaliListenerPlusOnePort.startServer(contextForPlusOnePort, ThaliListener.DefaultThaliDeviceHubPort + 1);
+        thaliListenerSecondHub = new ThaliListener();
+        thaliListenerSecondHub.startServer(contextForSecondHub, ThaliListener.DefaultThaliDeviceHubPort + 1);
 
         // This is a poor man's synch solution to make sure the test doesn't start before the listeners are running.
-        thaliListenerStandardPort.getSocketStatus();
-        thaliListenerPlusOnePort.getSocketStatus();
+        thaliListenerFirstHub.getSocketStatus();
+        thaliListenerSecondHub.getSocketStatus();
     }
 }

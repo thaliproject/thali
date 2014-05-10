@@ -84,6 +84,28 @@ artifacts {
     archives generateJavadocs
 }
 
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
+/**
+ * Sigh... o.k. so I can't figure out how to enumerate the contents of a resource directory in a jar in
+ * Android. And since I'm editing the contents of this directory all the time this is a problem. So my hacky
+ * solution is to generate a manifest of the directory's contents and then read that in Android at run
+ * time so I know what files to load.
+ */
+task generateXhrTestManifest() {
+    def xhrtestPath = "src/main/resources/xhrtest/"
+    def manifestFile = file(new File(xhrtestPath + "manifest.csv"))
+    if (manifestFile.exists()) {
+        assert manifestFile.delete()
+    }
+
+    def xhrDirectoryFile = file(new File(xhrtestPath))
+
+    def fileList = ""
+    xhrDirectoryFile.listFiles().each {File file ->
+        fileList += file.getName() + ","
+    }
+    println("FileList = " + fileList)
+    assert manifestFile.createNewFile()
+    manifestFile.write(fileList)
 }
+
+compileJava.dependsOn generateXhrTestManifest

@@ -30,12 +30,11 @@ public class AndroidXmlHttpRequestTest extends ActivityInstrumentationTestCase2<
         bridgeTestManager = new BridgeTestManager();
     }
 
-    //TODO: TURN THIS BACK ON!
-//    public void testXmlHttpRequest() throws InterruptedException {
-//        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
-//            throw new RuntimeException("This test only runs in KitKat or higher!");
-//        }
-//        getActivity().runTest(bridgeTestManager, getInstrumentation().getContext());
-//        assertTrue(bridgeTestManager.testResult());
-//    }
+    public void testXmlHttpRequest() throws InterruptedException {
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.KITKAT) {
+            throw new RuntimeException("This test only runs in KitKat or higher!");
+        }
+        getActivity().runTest(bridgeTestManager, getInstrumentation().getContext());
+        assertTrue(bridgeTestManager.testResult());
+    }
 }
