@@ -43,7 +43,3 @@ dependencies {
     // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
     compile 'org.slf4j:slf4j-android:1.7.2'
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.10'
-}

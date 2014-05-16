@@ -48,7 +48,3 @@ artifacts {
     archives sourcesJar
     archives generateJavadocs
 }
-
-task wrapper(type: Wrapper) {
-    gradleVersion = '1.11'
-}

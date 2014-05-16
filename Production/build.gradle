@@ -1,7 +1,8 @@
 apply plugin: 'java'
+apply plugin: 'distribution'
 
 sourceCompatibility = 1.6
-version = '1.0'
+version = '0.0.2'
 
 /*
 This script depends on the layout of depots. It assumes a file structure of
@@ -77,7 +78,70 @@ task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceH
 
 task buildThaliAndroidSdk(type: GradleBuild, dependsOn:'buildThaliDeviceHubAndroid') {
     buildFile = 'ThaliApplicationSDKs/AndroidPouchDbSDK/build.gradle'
-    tasks = ['connectedAndroidTest', 'build']
+    tasks = ['connectedAndroidTest', 'build'] // This isn't a library, it's a wrapper project that produces an executable
 }
 
 task globalBuild(dependsOn: 'buildThaliAndroidSdk'){}
+
+
+// BUILD THE PPNET DEMO
+
+distributions {
+    main {
+        baseName = 'ThaliPPNETDemo'
+        contents {
+            from { 'build/PPNET'}
+        }
+    }
+}
+
+task deletePPNETBuildDirectory(type: Delete) {
+    delete 'build/PPNET'
+}
+
+task copyChromeNativeMessagingHost(type: Copy, dependsOn: deletePPNETBuildDirectory) {
+    from 'Utilities/DotNetUtilities/DotNetUtilities/ChromeNativeMessagingHost/bin/debug/'
+    into 'build/PPNET/ChromeNativeMessagingHost'
+}
+
+task copyChromeExtension(type:Copy, dependsOn: copyChromeNativeMessagingHost) {
+    from 'Utilities/DotNetUtilities/DotNetUtilities/ChromeExtension'
+    into 'build/PPNET/ChromeExtension'
+}
+
+task deleteIdeaFolderFromChromeExtension(type: Delete, dependsOn: copyChromeExtension) {
+    delete 'build/PPNET/ChromeExtension/.idea'
+}
+
+task copyAndroidTDH(type: Copy, dependsOn: deleteIdeaFolderFromChromeExtension) {
+    from 'ThaliDeviceHub/android/android/build/apk/android-debug-unaligned.apk'
+    into 'build/PPNET/ThaliDeviceHubs'
+}
+
+// Adapted from http://mrhaki.blogspot.com/2012/06/gradle-goodness-unpacking-archive.html
+task unzipAndCopyJavaTDH(type: Copy, dependsOn: copyAndroidTDH) {
+    from zipTree(file('ThaliDeviceHub/java/build/distributions/java.zip'))
+    into 'build/PPNET/ThaliDeviceHubs/'
+}
+
+task copyPPNETFilesIntoChromeExtension(type: Copy, dependsOn: unzipAndCopyJavaTDH) {
+    from '../../ppnet/'
+    into 'build/PPNET/ChromeExtension/apps'
+}
+
+task copyPouchAPKToOwnDirectory(type: Copy, dependsOn: copyPPNETFilesIntoChromeExtension) {
+    from 'build/PPNET/ChromeExtension/apps/AndroidPouchDbSDK-debug-unaligned.apk'
+    into 'build/PPNET/AndroidClient/'
+}
+
+task deletePouchAPKFromChromeExtension(type: Delete, dependsOn: copyPouchAPKToOwnDirectory) {
+    delete 'build/PPNET/ChromeExtension/apps/AndroidPouchDbSDK-debug-unaligned.apk'
+}
+
+distZip.dependsOn deletePouchAPKFromChromeExtension
+
+task buildPPNETDemo(dependsOn: distZip) {
+}
+
+
+
