@@ -1,15 +1,15 @@
 'use strict';
 
 angular.module('myApp', [
+	'ja.qr',
     'ngTouch',
     'ngRoute',
     'ngAnimate',
     'myApp.controllers',
-    'myApp.memoryServices'
+    'myApp.restServices'
 ]).
 config(['$routeProvider', function ($routeProvider) {
-    $routeProvider.when('/employees', {templateUrl: 'partials/employee-list.html', controller: 'EmployeeListCtrl'});
-    $routeProvider.when('/employees/:employeeId', {templateUrl: 'partials/employee-detail.html', controller: 'EmployeeDetailCtrl'});
-    $routeProvider.when('/employees/:employeeId/reports', {templateUrl: 'partials/report-list.html', controller: 'ReportListCtrl'});
-    $routeProvider.otherwise({redirectTo: '/employees'});
+    $routeProvider.when('/contacts', {templateUrl: 'partials/contact-list.html', controller: 'ContactListCtrl'});
+    $routeProvider.when('/contacts/:contactId', {templateUrl: 'partials/contact-detail.html', controller: 'ContactDetailCtrl'});
+    $routeProvider.otherwise({redirectTo: '/contacts'});
 }]);

@@ -1,0 +1,9 @@
+<div ng-controller="Contacts">
+    <div style="overflow:hidden; height:200px;">
+        <qr-scanner width="300" height="200" ng-success="onSuccess(data)" ng-error="onError(error)" />
+    </div>
+    <div style="padding:20px;">
+        <p><input type="text" ng-model="message" style="width:160px;"/></p>
+        <qr type-number="8" correction-level="'M'" size="160" text="string"></qr>
+    </div>
+</div>

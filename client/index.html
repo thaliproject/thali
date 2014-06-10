@@ -4,16 +4,24 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no, minimum-scale=1.0, maximum-scale=1.0">
     <link href="topcoat/css/topcoat-mobile-light.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/topcoat-icons/0.2.0/font/icomatic.css">
     <link href="css/styles.css" rel="stylesheet">
-    <script src="lib/angular.js"></script>
-    <script src="lib/angular-touch.js"></script>
-    <script src="lib/angular-resource.js"></script>
-    <script src="lib/angular-animate.js"></script>
-    <script src="lib/angular-route.js"></script>
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-touch.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-resource.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-animate.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/angular.js/1.2.16/angular-route.min.js"></script>
+
+    <!-- App specific -->
     <script src="js/app.js"></script>
     <script src="js/controllers.js"></script>
-    <script src="js/memory-services.js"></script>
     <script src="js/rest-services.js"></script>
+
+    <!-- dependencies -->
+    <script src="bower_components/qrcode/lib/qrcode.min.js"></script>
+    <script src="bower_components/angular-qr/angular-qr.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/pouchdb/2.2.3/pouchdb.min.js"></script>
 </head>
 
 <body ng-controller="MainCtrl">

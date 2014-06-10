@@ -1,0 +1,11 @@
+{
+    "name": "thali-address-book",
+    "description": "Thali Addressbook Application",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "qrcode": "latest",
+        "angular-qr": "latest",
+        "pouchdb" : "latest"
+    }
+}

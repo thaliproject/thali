@@ -12,12 +12,23 @@ angular.module('myApp.controllers', [])
           $location.url(path);
         }
     }])
-    .controller('EmployeeListCtrl', ['$scope', 'Employee', function ($scope, Employee) {
-        $scope.employees = Employee.query();
+    .controller('ContactListCtrl', ['$scope', 'Contact', function ($scope, contact) {
+        $scope.contacts = contact.query();
     }])
-    .controller('EmployeeDetailCtrl', ['$scope', '$routeParams', 'Employee', function ($scope, $routeParams, Employee) {
-        $scope.employee = Employee.get({employeeId: $routeParams.employeeId});
-    }])
-    .controller('ReportListCtrl', ['$scope', '$routeParams', 'Report', function ($scope, $routeParams, Report) {
-        $scope.employees = Report.query({employeeId: $routeParams.employeeId});
+    .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
+        $scope.contact = contact.get({contactId: $routeParams.contactId});
     }]);
+    // .controller('ContactEditCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
+    //     $scope.editEvent = function(event) {
+    //         $scope.opts = ['on', 'off'];
+         
+    //         if (event === 'new') {
+    //           $scope.newEvent = true;
+    //           $scope.event = {name: '', uniqueId: ''};
+    //         }
+    //         else {
+    //           $scope.newEvent = false;
+    //           $scope.event = event;
+    //         }
+    //       };
+    // }]);
