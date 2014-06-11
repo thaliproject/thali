@@ -16,7 +16,7 @@ angular.module('myApp.controllers', [])
         $scope.contacts = contact.query();
     }])
     .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
-        $scope.contact = contact.get({contactId: $routeParams.contactId});
+        $scope.contact = contact.get({id: $routeParams.contactId});
     }]);
     // .controller('ContactEditCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
     //     $scope.editEvent = function(event) {

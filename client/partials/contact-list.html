@@ -17,9 +17,10 @@
     <ul class="topcoat-list list">
         <li ng-repeat="contact in contacts | filter:query | orderBy:orderProp" class="topcoat-list__item">
             <a ng-click="go('/contacts/' + contact.id)">
-                <p>{{contact.id}}</p>
-                <p>{{contact.name}}</p>
-                <qr text="data-to-encode" size="84" style="float:left;margin:10px"></qr>
+                <div>
+                    <h3>{{contact.name}}</h3>
+                    <!-- <qr text="contact.uniqueId" type="8" style="float:left;margin:10px"></qr> -->
+                </div>
             </a>
         </li>
     </ul>
