@@ -23,7 +23,7 @@ angular.module('myApp.controllers', [])
                 $scope.contact = contact;
             }
         };
-        contact.query().then(function(contacts) {
+        contact.retrieve().then(function(contacts) {
             console.log("Getting contacts.");
             $scope.contacts = contacts;
         }, function(reason) {

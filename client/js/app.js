@@ -50,7 +50,10 @@ angular.module('myApp', [
 .factory('Contact', function($q, $rootScope) {
     var db = new PouchDB('thali-contacts');
     return {
-	    query: function() {
+    	create: function () {
+
+    	},
+    	retrieve: function (contactId) {
 	    	var deferred = $q.defer();
 	        db.allDocs({include_docs:true}, function(err,response) {
 	        	$rootScope.$apply(function() {
@@ -59,8 +62,13 @@ angular.module('myApp', [
 		 			if (response) {
 		 				console.log("Getting results.");
 		 				var map = Array.prototype.map;
-		 				var contacts = map.call(response.rows, function(x) { return x.doc;});
-		 				deferred.resolve(contacts);
+			 			var contacts = map.call(response.rows, function(x) { return x.doc;});
+		 				if (contactId) {
+		 					var contact = contacts.filter(function(contact) { return contact.id === contactId })[0];
+		 					deferred.resolve(contact);
+		 				} else {
+			 				deferred.resolve(contacts);		 					
+		 				}
 		 			} else {
 		 				console.log("Error getting all contacts: " + err);
 		 				deferred.reject(err);
@@ -68,7 +76,14 @@ angular.module('myApp', [
 	        	});
 	        });
 	        return deferred.promise;
-	    },
+
+    	}, 
+    	update: function () {
+
+    	},
+    	delete: function () {
+
+    	},
 	    get: function(contactId) {
 	    	console.log("Getting a contact!");
 	        return findById(parseInt(contactId));
