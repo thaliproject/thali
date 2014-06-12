@@ -12,11 +12,36 @@ angular.module('myApp.controllers', [])
           $location.url(path);
         }
     }])
-    .controller('ContactListCtrl', ['$scope', 'Contact', function ($scope, contact) {
-        $scope.contacts = contact.query();
+    .controller('ContactListCtrl', ['$scope', 'Contact', function ($scope, contact, $q) {
+        $scope.editContact = function(contact) {
+            $scope.opts = ['on', 'off'];
+            if (event === 'new') {
+                $scope.newContact = true;
+                $scope.contact = {name: '', uniqueId: ''};
+            } else {
+                $scope.newContact = false;
+                $scope.contact = contact;
+            }
+        };
+        contact.query().then(function(contacts) {
+            console.log("Getting contacts.");
+            $scope.contacts = contacts;
+        }, function(reason) {
+            console.log("Failed: " + reason);
+        }, function(update) {
+            console.log("Got update: " + update);
+        });
     }])
-    .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
-        $scope.contact = contact.get({id: $routeParams.contactId});
+    .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact, $q) {
+        $scope.contact = contact.get($routeParams.contactId);
+        // contact.get({id: $routeParams.contactId}).then(function(contact) {
+        //     console.log("Getting contacts.");
+        //     $scope.contact = contact;
+        // }, function(reason) {
+        //     console.log("Failed: " + reason);
+        // }, function(update) {
+        //     console.log("Got update: " + update);
+        // });
     }]);
     // .controller('ContactEditCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
     //     $scope.editEvent = function(event) {

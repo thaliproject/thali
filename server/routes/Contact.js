@@ -1,14 +1,3 @@
-// var PouchDB = require('pouchdb');
-// var pouchClient = new PouchDB('contacts');
-
-// pouchClient.allDocs({}, function(err, response) {
-//     console.log("Pouch retrieved:");
-//     console.log(response);
-//     if (response.total_rows == 0) {
-//         populateDB();
-//     }
-// });
-
 var MongoClient = require('mongodb').MongoClient,
     Server = require('mongodb').Server,
     db;
@@ -73,9 +62,6 @@ var populateDB = function() {
         {"id": 9, "name": "Jon Udell",     "uniqueId": "ssh-rsa AAAAB3NzaC1yc2EAAAABJQAAAgEAo2DqNlTEPjKqQfVLMmIc119ejThHXEC+wTIWD/SjNcFFXkXB66Y+KHYTVyl1dJjaPiZWu6cX2y197VVQN1CDqbXqFMsKIwhqgx94NSX3+bZVQVHYuPEF4ONZgX5+/1lLREjHoGs+/otgReCfwoQTGXlGwW24YLAVlBPTJilLROit2SF8xjr+3vp+65/xajjzylAGxscrNXSHW16S/uq4+ruTt2xRBsWKuRm4MVjXzxjS3Iui3UMPkdXwp8BQ7b6sytAbqWpPC3Iph56DE7dbBZ2I/XmvC4EfPwyJZ5KkD4iuT9MCW7Ox6w+z40myUze0EAHPVxJ+t44+ro7O+ir+xdPxbOYHoSSOVp1JZ1rgF27V2LSb2APx03oeRGkngQW6QQbQEn3cXSzn4wrJZMSMU4Aey6hFHb9+CV+Qw/7heuV2cvYA7hBgj+SSNJifCPKi+CJVSmwN9iH83FWgmDYjv6AK/n4o8GMJ+jSePfopdvcpwsl8/jpMCIaqnuG7BZ9NsSPdtpcAjPo05W2wFUQthpHIpgvRk4vL8whkx6StH9t/LDfoQ1C76R7Eo24DT9QVbUt5XVDhGb9u7moWExDKJa+Z/BswIMeNmyOE3becLle8qtmKnOLJCOGtAPVdV3YbCqYKJLWb/IEtx1fS4Xh4xLwt//DrM1iV/SqQLLrKrpM= rsa-key-20140610"}
     ];
  
-    // pouchClient.bulkDocs(contacts, function(err, response) {
-    //     console.log("Created test users in pouch.");
-    // });
     db.collection('contacts', function(err, collection) {
         collection.insert(contacts, {safe:true}, function(err, result) {});
     });        

@@ -1,17 +1,41 @@
 <div class="topcoat-navigation-bar">
     <div class="topcoat-navigation-bar__item left quarter">
-        <a class="topcoat-icon-button--quiet back-button" href="" ng-click="back()">
-            <span class="topcoat-icon topcoat-icon--back"></span>
-        </a>
+        <button class="topcoat-icon-button--quiet" href="" ng-click="back()">
+            <span class="topcoat-icon icomatic">back</span>
+        </button>
     </div>
     <div class="topcoat-navigation-bar__item center half">
         <h1 class="topcoat-navigation-bar__title">{{contact.name}}</h1>
     </div>
 </div>
 
+<div class='modal-header'>
+  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+  <h3 ng-hide='newContact'>Edit Contact: {{event.name}}</h3>
+  <h3 ng-show='newContact'>New Contact</h3>
+</div>
+<form>
+    <fieldset>
+        <div class='modal-body'>
+            <label>Name</label>
+            <input type='text' ng-model="contact.name"/>
+            <div style="overflow:hidden; height:200px;">
+                <qr-scanner width="300" height="200" ng-success="onSuccess(data)" ng-error="onError(error)" />
+            </div>
+            <label>Unique ID</label>
+            <input type='text' ng-model="contact.uniqueId"/>
+        </div>
+        <div class='modal-footer'>
+            <button type='submit' class="btn btn-danger" data-dismiss="modal" ng-click="delete()">Delete</button>
+            <button type='submit' class="btn btn-primary" data-dismiss="modal" ng-click="save()">Save</button>
+        </div>
+    </fieldset>
+</form>
+
+
 <div style="margin:10px">
     <h1>{{contact.name}}</h1>
-    <qr text="contact.uniqueId" type="8"></qr>
+    <qr text="contact.uniqueId" type="8" size="512"></qr>
     <!-- <h4>Id: {{contact.id}}</h4> -->
     <!-- <h4>Key: {{contact.uniqueId}}</h4> -->
 </div>
