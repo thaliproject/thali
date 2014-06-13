@@ -1,19 +1,30 @@
-<div class='modal-header'>
-  <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
-  <h3 ng-hide='newContact'>Edit Contact: {{event.name}}</h3>
-  <h3 ng-show='newContact'>New Contact</h3>
+<div class="topcoat-navigation-bar">
+    <div class="topcoat-navigation-bar__item left quarter">
+         <button class="topcoat-icon-button--large--quiet" href="" ng-click="back()">
+            <span class="topcoat-icon icomatic">back</span>
+        </button>
+    </div>
+
+    <div class="topcoat-navigation-bar__item center half">
+        <h1 class="topcoat-navigation-bar__title">New Contact</h1>
+    </div>
 </div>
+
 <form>
   <fieldset>
-    <div class='modal-body'>
-      <label>Name</label>
-      <input type='text' ng-model="contact.name"/>
-      <label>Unique ID</label>
-      <input type='text' ng-model="event.uniqueId"/>
-    </div>
-    <div class='modal-footer'>
-      <button type='submit' class="btn btn-danger" data-dismiss="modal" ng-click="delete()">Delete</button>
-      <button type='submit' class="btn btn-primary" data-dismiss="modal" ng-click="save()">Save</button>
-    </div>
+        <article class="component center">
+            <section style="margin-bottom: 5px">
+                <qr-scanner style="width:100%" width="320" ng-success="onSuccess(data)" ng-error="onError(error)" style="float:left"></qr-scanner>
+            </section>
+            <section style="margin-bottom: 5px">
+                <input class="topcoat-text-input--large" type='text' ng-model="contactId" placeholder="Unique ID from QR Code" style="width:100%"/>
+            </section>
+            <section style="margin-bottom: 10px">
+                <input class="topcoat-text-input--large" type='text' ng-model="contactName" style="width:100%" placeholder="Please enter a contact name."/>
+            </section>
+            <section>
+                <button type='submit' class="topcoat-icon-button--large" ng-click="save(contactId, contactName, videoStream)" style="float:right">Save</button>
+            </section>
+        </article>
   </fieldset>
 </form>

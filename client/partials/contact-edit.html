@@ -1,6 +1,6 @@
 <div class="topcoat-navigation-bar">
     <div class="topcoat-navigation-bar__item left quarter">
-        <button class="topcoat-icon-button--large--quiet" href="" ng-click="back()">
+        <button class="topcoat-icon-button--quiet" href="" ng-click="back()">
             <span class="topcoat-icon icomatic">back</span>
         </button>
     </div>
@@ -10,8 +10,8 @@
 </div>
 <div style="margin:10px">
     <h1 ng-bind="contact.name"></h1>
-    <h4>Id: <span ng-bind="contact._id"></span></h4>
+    <h4>Id: <span ng-bind="contact.id"></span></h4>
     <h4>Key: <span ng-bind="contact.uniqueId"></span></h4>
     <span ng-bind="qrcodeString"></span>
-    <qr text="contact.uniqueId" style="float:left;margin:10px"></qr>
+    <qr text="qrcodeString" style="float:left;margin:10px"></qr>
 </div>

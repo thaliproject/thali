@@ -12,48 +12,39 @@ angular.module('myApp.controllers', [])
           $location.url(path);
         }
     }])
-    .controller('ContactListCtrl', ['$scope', 'Contact', function ($scope, contact, $q) {
-        $scope.editContact = function(contact) {
-            $scope.opts = ['on', 'off'];
-            if (event === 'new') {
-                $scope.newContact = true;
-                $scope.contact = {name: '', uniqueId: ''};
-            } else {
-                $scope.newContact = false;
-                $scope.contact = contact;
-            }
-        };
+    .controller('ContactListCtrl', ['$scope', 'Contact', '$location', function ($scope, contact, $location) {
         contact.retrieve().then(function(contacts) {
-            console.log("Getting contacts.");
             $scope.contacts = contacts;
         }, function(reason) {
             console.log("Failed: " + reason);
-        }, function(update) {
-            console.log("Got update: " + update);
         });
     }])
-    .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact, $q) {
-        $scope.contact = contact.get($routeParams.contactId);
-        // contact.get({id: $routeParams.contactId}).then(function(contact) {
-        //     console.log("Getting contacts.");
-        //     $scope.contact = contact;
-        // }, function(reason) {
-        //     console.log("Failed: " + reason);
-        // }, function(update) {
-        //     console.log("Got update: " + update);
-        // });
+    .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
+        contact.retrieve($routeParams.contactId).then(function(contact) {
+            $scope.contact = contact;
+        }, function(reason) {
+            console.log("Failed: " + reason);
+        });
+    }])
+    .controller('ContactNewCtrl', ['$scope', 'Contact', function($scope, contact) {
+        $scope.contactId = '';
+        $scope.contactName = '';
+        $scope.onSuccess = function(data) {
+            $scope.contactId = data;
+            console.log(data);
+        };
+        $scope.onError = function(error) {
+            console.log(error);
+        };
+        $scope.onVideoError = function(error) {
+            console.log(error);
+        };
+        $scope.save = function(contactId, contactName) {
+            console.log("Saving new contact for: " + contactId + " -> " + contactName);
+            contact.create({name: contactName, uniqueId: contactId}).then(function() {
+                console.log("Saved contact.");
+            }, function(reason) {
+                console.log("Failed to save contact: " + reason);
+            });
+        }
     }]);
-    // .controller('ContactEditCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
-    //     $scope.editEvent = function(event) {
-    //         $scope.opts = ['on', 'off'];
-         
-    //         if (event === 'new') {
-    //           $scope.newEvent = true;
-    //           $scope.event = {name: '', uniqueId: ''};
-    //         }
-    //         else {
-    //           $scope.newEvent = false;
-    //           $scope.event = event;
-    //         }
-    //       };
-    // }]);
