@@ -21,7 +21,6 @@ angular.module('myApp.controllers', [])
         $scope.delete = function(contactToDelete) {
             console.log("Got delete: " + contactToDelete);
             contact.delete(contactToDelete).then(function() {
-                console.log("Deleted contact.");
                 $scope.contacts.remove($scope.contacts.indexOf(contactToDelete));
             }, function(reason) {
                 console.log("Delete failed.");
@@ -50,9 +49,7 @@ angular.module('myApp.controllers', [])
             console.log(error);
         };
         $scope.save = function(contactId, contactName) {
-            console.log("Saving new contact for: " + contactId + " -> " + contactName);
             contact.create({name: contactName, uniqueId: contactId}).then(function() {
-                console.log("Saved contact.");
                 $location.path('/contacts');
             }, function(reason) {
                 console.log("Failed to save contact: " + reason);
