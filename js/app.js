@@ -98,12 +98,13 @@ angular.module('myApp', [
     		});
     		return deferred.promise;
     	},
-    	delete: function (contactId) {
+    	delete: function (contact) {
+    		console.log("In delete!");
     		var deferred = $q.defer();
-    		db.remove(contactId, function(err, response) {
+    		db.remove(contact, function(err, response) {
     			$rootScope.$apply(function() {
-    				if (response.ok) {
-    					console.log("Deleted contact: " + response.id);
+    				if (response) {
+    					console.log("Deleted contact: " + response);
     					deferred.resolve(response);
     				} else {
     					console.log("Failed to delete contact: " + err);

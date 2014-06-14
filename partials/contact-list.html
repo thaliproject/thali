@@ -13,13 +13,14 @@
     <ul class="topcoat-list list">
         <li ng-repeat="contact in contacts | filter:query | orderBy:orderProp" class="topcoat-list__item">
             <a ng-click="go('/contacts/' + '{{contact._id}}')">
-                <div>
+                <p>
                     <h3 ng-bind="contact.name"></h3>
-                    <h4 ng-bind="contact._id"></h4>
-                    <h4 ng-bind="contact.uniqueId"></h4>
-                    <qr text="contact.uniqueId" style="float:left;margin:10px"></qr>
-                </div>
+                    <!-- <h4 ng-bind="contact._id"></h4> -->
+                    <!-- <h4 ng-bind="contact.uniqueId"></h4> -->
+                    <!-- <qr text="contact.uniqueId" style="float:left;margin:10px"></qr> -->
+                </p>
             </a>
+            <span class="action-icon icomatic" ng-click="delete(contact)">delete</span>
         </li>
     </ul>
 </div>

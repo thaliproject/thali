@@ -18,6 +18,15 @@ angular.module('myApp.controllers', [])
         }, function(reason) {
             console.log("Failed: " + reason);
         });
+        $scope.delete = function(contactToDelete) {
+            console.log("Got delete: " + contactToDelete);
+            contact.delete(contactToDelete).then(function() {
+                console.log("Deleted contact.");
+                $scope.contacts.remove($scope.contacts.indexOf(contactToDelete));
+            }, function(reason) {
+                console.log("Delete failed.");
+            });
+        }
     }])
     .controller('ContactDetailCtrl', ['$scope', '$routeParams', 'Contact', function ($scope, $routeParams, contact) {
         contact.retrieve($routeParams.contactId).then(function(contact) {
