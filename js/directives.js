@@ -29,7 +29,13 @@ angular.module('myApp.directives', [])
                 angular.element(element).append(video);
                 angular.element(element).append(canvas);
                 var context = canvas.getContext('2d');
+
                 var videoStream;
+
+                element.on('$destroy', function() {
+                    videoStream.stop();
+                    videoStream = null;
+                });
 
                 var scan = function() {
                     if (videoStream) {
@@ -46,12 +52,10 @@ angular.module('myApp.directives', [])
                 var successCallback = function(stream) {
                     video.src = (window.URL && window.URL.createObjectURL(stream)) || stream;
                     videoStream = stream;
-                    scope.$emit('video-stream', scope.qrScanner);
-
                     video.play();
                     $timeout(scan, 1000);
                 }
-
+                
                 // Call the getUserMedia method with our callback functions
                 if (navigator.getUserMedia) {
                     navigator.getUserMedia({video: true}, successCallback, function(e) {

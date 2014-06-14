@@ -35,9 +35,10 @@ angular.module('myApp.controllers', [])
             console.log("Failed: " + reason);
         });
     }])
-    .controller('ContactNewCtrl', ['$scope', 'Contact', function($scope, contact) {
+    .controller('ContactNewCtrl', ['$scope', 'Contact', '$location', function($scope, contact, $location) {
         $scope.contactId = '';
         $scope.contactName = '';
+        $scope.videoStream = '';
         $scope.onSuccess = function(data) {
             $scope.contactId = data;
             console.log(data);
@@ -52,6 +53,7 @@ angular.module('myApp.controllers', [])
             console.log("Saving new contact for: " + contactId + " -> " + contactName);
             contact.create({name: contactName, uniqueId: contactId}).then(function() {
                 console.log("Saved contact.");
+                $location.path('/contacts');
             }, function(reason) {
                 console.log("Failed to save contact: " + reason);
             });
