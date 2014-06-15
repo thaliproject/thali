@@ -8,10 +8,8 @@
         "angular-resource" : "latest",
         "angular-animate" : "latest",
         "angular-route" : "latest",        
-        "angular-qr": "latest",
-        "qrcode" : "latest",
+        "angular-qr": "git@github.com:irjudson/angular-qr#master",
         "angular-pouchdb" : "latest",
-        "pouchdb" : "latest",
         "topcoat" : "latest",
         "topcoat-icons" : "latest",
         "jsqrcode" : "https://github.com/LazarSoft/jsqrcode.git"
