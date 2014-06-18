@@ -1,0 +1,28 @@
+<div class="topcoat-navigation-bar">
+    <div class="topcoat-navigation-bar__item left quarter">
+        <button class="topcoat-icon-button--large--quiet" ng-click="go('/newcontact')" >
+            <span class="topcoat-icon icomatic">plus</span>
+        </button>
+    </div>
+
+    <div class="topcoat-navigation-bar__item center half">
+        <h1 class="topcoat-navigation-bar__title">Thali Contacts</h1>
+    </div>
+</div>
+<div class="topcoat-list__container scroller">
+    <ul class="topcoat-list list">
+        <li ng-repeat="contact in contacts | filter:query | orderBy:orderProp" class="topcoat-list__item">
+            <a ng-click="go('/contacts/' + '{{contact._id}}')">
+                <p>
+                    <h3 ng-bind="contact.name"></h3>
+                    <!-- <h4 ng-bind="contact._id"></h4> -->
+                    <!-- <h4 ng-bind="contact.uniqueId"></h4> -->
+                    <!-- <qr text="{{contact.uniqueId}}" style="float:left;margin:10px"></qr> -->
+                </p>
+            </a>
+            <!-- <span class="action-icon-1 icomatic" ng-click="edit(contact)">pencil</span> -->
+            <span class="action-icon icomatic" ng-click="delete(contact)">delete</span>
+        </li>
+    </ul>
+</div>
+
