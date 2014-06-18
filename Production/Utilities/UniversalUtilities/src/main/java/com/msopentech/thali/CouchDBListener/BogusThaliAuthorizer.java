@@ -17,7 +17,7 @@ import com.couchbase.lite.auth.Authorizer;
 import com.couchbase.lite.support.HttpClientFactory;
 import com.msopentech.thali.utilities.ThaliHttpClientFactory;
 
-import java.net.URL;
+import java.net.*;
 import java.security.*;
 import java.util.Map;
 
@@ -25,19 +25,14 @@ import java.util.Map;
  * Created by yarong on 1/13/14.
  */
 public class BogusThaliAuthorizer extends Authorizer {
-    private final PublicKey serverPublicKey;
-    private final KeyStore clientKeyStore;
-    private final char[] clientPassPhrase;
     private final HttpClientFactory httpClientFactory;
 
-    public BogusThaliAuthorizer(PublicKey serverPublicKey, KeyStore clientKeyStore, char[] clientPassPhrase) {
+    public BogusThaliAuthorizer(PublicKey serverPublicKey, KeyStore clientKeyStore, char[] clientPassPhrase,
+                                Proxy proxy) {
         assert serverPublicKey != null && clientKeyStore != null && clientPassPhrase != null;
-        this.serverPublicKey = serverPublicKey;
-        this.clientKeyStore = clientKeyStore;
-        this.clientPassPhrase = clientPassPhrase;
 
         try {
-            httpClientFactory = new ThaliHttpClientFactory(serverPublicKey, clientKeyStore, clientPassPhrase);
+            httpClientFactory = new ThaliHttpClientFactory(serverPublicKey, clientKeyStore, clientPassPhrase, proxy);
         } catch (UnrecoverableKeyException e) {
             throw new RuntimeException(e);
         } catch (NoSuchAlgorithmException e) {

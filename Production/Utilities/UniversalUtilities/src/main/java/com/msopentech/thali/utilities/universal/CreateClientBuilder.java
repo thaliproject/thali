@@ -14,9 +14,14 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal;
 
+import org.apache.http.*;
 import org.apache.http.client.HttpClient;
+import org.apache.http.client.params.*;
+import org.apache.http.conn.scheme.*;
 import org.apache.http.conn.ssl.SSLSocketFactory;
+import org.apache.http.params.*;
 
+import java.net.*;
 import java.security.*;
 
 /**
@@ -24,55 +29,66 @@ import java.security.*;
  * build a common test base for both.
  */
 public abstract class CreateClientBuilder {
-    public static final int timeout = 2 * 60 * 1000;
+    public static final int timeout = 2 * 60 * 1000; // TODO: This is for giving us time to debug, we should use something
+                                                     // shorter in production. And yes this should be an external property.
 
     /**
      *
      * @param host
      * @param port
      * @param serverPublicKey If null then the server won't be validated
-     * @param clientKeyStore
-     * @param clientKeyStorePassPhrase
      * @return
      */
-    abstract public HttpClient CreateApacheClient(String host, int port, PublicKey serverPublicKey,
-                                                  KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
-            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
+    public HttpClient CreateApacheClient(String host, int port, PublicKey serverPublicKey,
+                                                  KeyStore clientKeyStore, char[] clientKeyStorePassPhrase, Proxy proxy)
+            throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        //  sslSocketFactory
+        HttpParams params = new BasicHttpParams();
+        HttpProtocolParams.setUseExpectContinue(params, false); // Work around for bug in TJWS, it doesn't properly
+                                                                // support ExpectContinue
+        HttpConnectionParams.setSoTimeout(params, timeout);
+        HttpConnectionParams.setConnectionTimeout(params, timeout);
+        HttpConnectionParams.setTcpNoDelay(params, Boolean.TRUE);
+        params.setParameter(ClientPNames.DEFAULT_HOST, new HttpHost(host, port, "https"));
 
-    public HttpClient CreateApacheClient(
-            HttpKeyURL httpKeyURL, KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
+        HttpKeyHttpClient httpKeyHttpClient = new HttpKeyHttpClient(serverPublicKey, clientKeyStore,
+                clientKeyStorePassPhrase, proxy, params);
+        return httpKeyHttpClient;
+    }
+
+    public HttpClient CreateApacheClient(HttpKeyURL httpKeyURL, KeyStore clientKeyStore,
+                                         char[] clientKeyStorePassPhrase, Proxy proxy)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return CreateApacheClient(httpKeyURL.getHost(), httpKeyURL.getPort(), httpKeyURL.getServerPublicKey(),
-                clientKeyStore, clientKeyStorePassPhrase);
+                clientKeyStore, clientKeyStorePassPhrase, proxy);
     }
 
     abstract public org.ektorp.http.HttpClient CreateEktorpClient(String host, int port, PublicKey serverPublicKey,
-                                                         KeyStore clientKeyStore, char[] clientKeyStorePassPhrase)
+                                                                  KeyStore clientKeyStore,
+                                                                  char[] clientKeyStorePassPhrase, Proxy proxy)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException;
 
-    public org.ektorp.http.HttpClient CreateEktorpClient(HttpKeyURL httpKeyURL, KeyStore clientKeyStore,
-                                                         char[] clientKeyStorePassPhrase)
+    public org.ektorp.http.HttpClient CreateEktorpClient(HttpKeyURL httpKeyURL,  KeyStore clientKeyStore,
+                                                         char[] clientKeyStorePassPhrase, Proxy proxy)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return CreateEktorpClient(httpKeyURL.getHost(), httpKeyURL.getPort(), httpKeyURL.getServerPublicKey(),
-                clientKeyStore, clientKeyStorePassPhrase);
+                clientKeyStore, clientKeyStorePassPhrase, proxy);
     }
 
     /**
      * Creates a SSL Socket Factory that will validate that the server presented a cert chain that roots with the
      * key serverPublicKey and will present to the server (if asked) the key stored in clientKeyStore
      * @param serverPublicKey if set to null then any key will be accepted from the server
-     * @param clientKeyStore make sure there is just one public/private key pair
-     * @param clientPassPhrase
      * @return
      * @throws java.security.NoSuchAlgorithmException
      * @throws java.security.KeyManagementException
      * @throws java.security.UnrecoverableKeyException
      * @throws java.security.KeyStoreException
      */
-    public static SSLSocketFactory getHttpKeySocketFactory(final PublicKey serverPublicKey,
-                                                           final KeyStore clientKeyStore, final char[] clientPassPhrase)
+    public static SSLSocketFactory getHttpKeySocketFactory(final PublicKey serverPublicKey, KeyStore clientKeyStore,
+                                                    char[] clientKeyStorePassPhrase)
             throws NoSuchAlgorithmException, KeyManagementException, UnrecoverableKeyException, KeyStoreException {
-        return new HttpKeySSLSocketFactory(serverPublicKey, clientKeyStore, clientPassPhrase);
+        return new HttpKeySSLSocketFactory(serverPublicKey, clientKeyStore, clientKeyStorePassPhrase);
 
         // This is the code we would use if we didn't have to use the outdated Apache code in Android
 

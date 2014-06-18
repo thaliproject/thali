@@ -16,6 +16,7 @@ package com.msopentech.thali.utilities.xmlhttprequestbridge;
 import com.couchbase.lite.Context;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.test.*;
 import com.msopentech.thali.utilities.webviewbridge.BridgeCallBack;
@@ -58,7 +59,7 @@ public class BridgeTestManager {
 
         @Override
         public void call(String jsonString, BridgeCallBack bridgeCallBack) {
-            Log.e("xhrtest", jsonString);
+            Log.e(CblLogTags.TAG_THALI_BRIDGETESTMANAGER, jsonString);
         }
     }
 
@@ -113,10 +114,10 @@ public class BridgeTestManager {
 
     protected void startServers(Context contextForFirstHub, Context contextForSecondHub) throws InterruptedException {
         thaliListenerFirstHub = new ThaliListener();
-        thaliListenerFirstHub.startServer(contextForFirstHub, ThaliListener.DefaultThaliDeviceHubPort);
+        thaliListenerFirstHub.startServer(contextForFirstHub, ThaliListener.DefaultThaliDeviceHubPort, null);
 
         thaliListenerSecondHub = new ThaliListener();
-        thaliListenerSecondHub.startServer(contextForSecondHub, ThaliListener.DefaultThaliDeviceHubPort + 1);
+        thaliListenerSecondHub.startServer(contextForSecondHub, ThaliListener.DefaultThaliDeviceHubPort + 1, null);
 
         // This is a poor man's synch solution to make sure the test doesn't start before the listeners are running.
         thaliListenerFirstHub.getSocketStatus();

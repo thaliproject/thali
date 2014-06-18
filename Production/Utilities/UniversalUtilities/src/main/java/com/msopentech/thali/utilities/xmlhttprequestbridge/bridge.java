@@ -121,7 +121,8 @@ public class Bridge extends BridgeHandler {
                         localServerUriNoKey.getPort(),
                         null,
                         keyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
         PublicKey serverPublicKey = ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerKey);
 
         PublicKey appKey = ThaliCryptoUtilities.RetrieveAppKeyFromKeyStore(keyStore);
@@ -132,7 +133,8 @@ public class Bridge extends BridgeHandler {
                         localServerUriNoKey.getPort(),
                         serverPublicKey,
                         keyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
         ThaliCouchDbInstance serverCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerKey);
 
         ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(appKey, serverCouchDbInstance);
@@ -156,7 +158,8 @@ public class Bridge extends BridgeHandler {
                         remoteHubUriNoKey.getPort(),
                         null,
                         keyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
         PublicKey remoteHubPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientRemoteHubNoKey);
 
@@ -168,7 +171,8 @@ public class Bridge extends BridgeHandler {
                         remoteHubUriNoKey.getPort(),
                         remoteHubPublicKey,
                         keyStore,
-                        ThaliCryptoUtilities.DefaultPassPhrase);
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
         ThaliCouchDbInstance remoteHubCouchDbInstance = new ThaliCouchDbInstance(remoteHubWithServerKey);
 
         ThaliClientToDeviceHubUtilities
@@ -205,7 +209,7 @@ public class Bridge extends BridgeHandler {
         HttpHost httpHost = new HttpHost(remoteServerThaliUrl.getHost(), remoteServerThaliUrl.getPort(), "https");
 
         HttpClient httpClient = createClientBuilder.CreateApacheClient(remoteServerThaliUrl, keyStore,
-                ThaliCryptoUtilities.DefaultPassPhrase);
+                ThaliCryptoUtilities.DefaultPassPhrase, null);
 
         HttpResponse httpResponse = httpClient.execute(httpHost, basicHttpRequest);
 

@@ -19,7 +19,7 @@ import org.apache.http.params.HttpParams;
 
 import javax.net.ssl.*;
 import java.io.IOException;
-import java.net.Socket;
+import java.net.*;
 import java.security.*;
 import java.security.cert.CertificateException;
 import java.security.cert.X509Certificate;
@@ -93,7 +93,7 @@ public class HttpKeySSLSocketFactory extends SSLSocketFactory {
 
     @Override
     public Socket createSocket() throws IOException {
-         return sslContext.getSocketFactory().createSocket();
+        return sslContext.getSocketFactory().createSocket();
     }
 
     @Override

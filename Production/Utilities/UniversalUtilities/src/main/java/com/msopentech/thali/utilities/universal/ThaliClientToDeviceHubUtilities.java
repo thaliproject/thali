@@ -64,6 +64,7 @@ import org.ektorp.http.HttpClient;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.*;
 import java.security.*;
 
 /**
@@ -76,10 +77,11 @@ public class ThaliClientToDeviceHubUtilities {
      * This creates the CouchDbInstance needed to talk to the local Thali Device Hub. Amongst other things if it
      * detects that there is something wrong with the application's Thali key (like it doesn't exist) then it will
      * create a new key and register it with the Thali Device Hub.
-     * @return
+     * Note that in most cases host should be 127.0.0.1 and proxy should be null. We allow these values to be set
+     * in order to support certain kinds of testing.
      */
     public static ThaliCouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder,
-                                                               String host, int port, char[] passPhrase)
+                                                               String host, int port, char[] passPhrase, Proxy proxy)
             throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException,
             IOException {
         assert filesDir != null && filesDir.exists();
@@ -87,14 +89,14 @@ public class ThaliClientToDeviceHubUtilities {
         KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(filesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);
+                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase, proxy);
 
         PublicKey serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
         HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore, passPhrase);
+                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore, passPhrase, proxy);
 
         ThaliCouchDbInstance thaliCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerValidation);
 

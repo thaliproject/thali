@@ -29,24 +29,21 @@ task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbas
     tasks = ['test', 'uploadArchives']
 }
 
-// The test task is not included because of https://github.com/couchbase/couchbase-lite-java/issues/15
-task buildCouchbaseLiteJava(type: GradleBuild, dependsOn:'buildCouchbaseLiteJavaListener') {
-    buildFile = '../../couchbase-lite-java/build.gradle'
-    tasks = ['uploadArchives']
+task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
+    buildFile = '../../couchbase-lite-android/build.gradle'
+    tasks = ['connectedAndroidTest', 'uploadArchives']
 }
 
-// I had to remove the connectedAndroidTest task because a bunch of the tests fail
-// https://github.com/couchbase/couchbase-lite-android/issues/287#issuecomment-41827162
-task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
-    buildFile = '../../couchbase-lite-android/build.gradle'
-    tasks = ['uploadArchives']
+task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
+    buildFile = '../../couchbase-lite-java/build.gradle'
+    tasks = ['test', 'uploadArchives']
 }
 
 // NOTE: I AM NOT BUILDING EKTORP! We haven't edited it in forever, it uses maven to build and not gradle and I
 // need to check if they finally released the version with our changes so we can stop thinking about it all together (e.g.
 // stop using the snapshot)
 
-task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
+task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
     tasks = ['test', 'uploadArchives']
 }

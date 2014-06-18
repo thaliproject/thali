@@ -14,7 +14,10 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
@@ -37,6 +40,21 @@ public class ThaliTestUtilities {
 
     public static final String TestDatabaseName = "test";
     public static final Random random = new Random();
+
+    public static void turnLoggingTo11() {
+        Log.enableLogging(Log.TAG, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_SYNC, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_QUERY, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_VIEW, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_CHANGE_TRACKER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_BLOB_STORE, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_DATABASE, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_LISTENER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_MULTI_STREAM_WRITER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_REMOTE_REQUEST, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_ROUTER, Log.VERBOSE);
+        CblLogTags.turnTo11();
+    }
 
     /**
      * Turns on various logging interfaces for Apache HTTP Client including the use of SimpleLog
