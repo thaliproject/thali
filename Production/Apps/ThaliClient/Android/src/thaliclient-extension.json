@@ -1,0 +1,5 @@
+{
+  "name":  "ProxyExtensionClient",
+  "class": "com.msopentech.ThaliClient.ProxyExtensionClient",
+  "jsapi": "thaliclient-extension.js"
+}
