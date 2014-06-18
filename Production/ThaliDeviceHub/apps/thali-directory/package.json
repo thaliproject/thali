@@ -1,0 +1,13 @@
+{
+    "name": "thali-address-book",
+    "description": "Thali Addressbook Application",
+    "version": "0.0.1",
+    "private": true,
+    "Author" : "Ivan R. Judson",
+    "scripts" : {
+    	"start" : "node server"
+    },
+    "dependencies" : {
+        "express": "3.x"
+    }
+}
