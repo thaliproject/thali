@@ -61,7 +61,7 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
                     ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),
                     new AndroidEktorpCreateClientBuilder(), this.getClass(), proxy);
 
-            ThaliTestUtilities.turnManagerTo11(testEktorpClient.getThaliTestServerManager());
+            ThaliTestUtilities.turnLoggingTo11();
         }
         testEktorpClient.setUp();
     }
