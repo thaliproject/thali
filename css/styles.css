@@ -124,6 +124,13 @@ a {
     height: 28px;
 }
 
+.action-icon-1 {
+    position: absolute !important;
+    top: 18px;
+    right: 48px !important;
+    width: 28px !important;
+    height: 28px;
+}
 .actions li p:nth-of-type(1) {
     color:  #5DC1FF;
     font-size: 0.9em;
