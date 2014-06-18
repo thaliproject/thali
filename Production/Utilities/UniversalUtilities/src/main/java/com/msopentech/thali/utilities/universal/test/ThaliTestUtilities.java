@@ -14,7 +14,6 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
-import com.couchbase.lite.Manager;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CblLogTags;
@@ -30,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -41,7 +41,19 @@ public class ThaliTestUtilities {
     public static final String TestDatabaseName = "test";
     public static final Random random = new Random();
 
-    public static void turnLoggingTo11() {
+    /**
+     * Tells Java's Logging infrastructure to output whatever it possibly can, this is only needed
+     * in Java, not in Android.
+     */
+    public static void outputAsMuchLoggingAsPossible() {
+        Logger log = Logger.getLogger("com.couchbase.lite");
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        log.addHandler(handler);
+        log.setLevel(Level.ALL);
+    }
+
+    public static void turnCouchbaseLoggingTo11() {
         Log.enableLogging(Log.TAG, Log.VERBOSE);
         Log.enableLogging(Log.TAG_SYNC, Log.VERBOSE);
         Log.enableLogging(Log.TAG_QUERY, Log.VERBOSE);

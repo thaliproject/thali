@@ -14,8 +14,6 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.java.test;
 
 import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Database;
-import com.couchbase.lite.replicator.Replication;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -43,22 +41,14 @@ public class JavaEktorpCreateClientBuilderTest {
     @Before
     public void setUp() throws IOException, InterruptedException, KeyManagementException, UnrecoverableEntryException,
             NoSuchAlgorithmException, KeyStoreException {
-        ThaliTestUtilities.configuringLoggingApacheClient();
-
-        Logger log = Logger.getLogger("com.couchbase.lite");
-        ConsoleHandler handler = new ConsoleHandler();
-        handler.setLevel(Level.ALL);
-        log.addHandler(handler);
-        log.setLevel(Level.ALL);
-
-        System.setProperty(SimpleLogger.DEFAULT_LOG_LEVEL_KEY, "trace");
-        System.setProperty(SimpleLogger.LOG_FILE_KEY, "System.out");
+        //ThaliTestUtilities.outputAsMuchLoggingAsPossible();
+        //ThaliTestUtilities.configuringLoggingApacheClient();
 
         // TODO: The hard coding of the socks proxy and addresses, onion address, etc. are hacks until we put in
         // automated TOR Onion Proxy support. That will be in the next check in.
 
         /*
-        Right now setting up the testing is really dorky because I don't have self hosting for the Tor Onion Proxy.
+        Right /now setting up the testing is really dorky because I don't have self hosting for the Tor Onion Proxy.
         But all the nonsense below is temporary. The checkin after this one will fix this so all of this manual stuff will just
         go away.
 
@@ -107,7 +97,7 @@ public class JavaEktorpCreateClientBuilderTest {
                     ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
                     new JavaEktorpCreateClientBuilder(), this.getClass(), proxy);
 
-            ThaliTestUtilities.turnLoggingTo11();
+            //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }
 
         testEktorpClient.setUp();

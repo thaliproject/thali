@@ -39,8 +39,6 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
     public void setUp() throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException, IOException {
 
-        java.util.logging.Logger.getLogger("com.couchbase.lite").setLevel(Level.ALL);
-
         // TODO: The hard coding of the socks proxy and addresses, onion address, etc. are hacks until we put in
         // automated TOR Onion Proxy support. That will be in the next check in.
 
@@ -61,7 +59,7 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
                     ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),
                     new AndroidEktorpCreateClientBuilder(), this.getClass(), proxy);
 
-            ThaliTestUtilities.turnLoggingTo11();
+            //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }
         testEktorpClient.setUp();
     }
