@@ -21,6 +21,7 @@ sourceCompatibility = 1.6
 dependencies {
     compile project(':Common')
     compile "com.msopentech.thali:ThaliUtilitiesJava:0.0.2"
+    compile 'org.slf4j:slf4j-simple:1.7.5'
 }
 
 mainClassName = "com.msopentech.ThaliClient.ProxyDesktop"

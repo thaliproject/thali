@@ -1,37 +1,59 @@
 
 package com.msopentech.ThaliClient;
 
+import java.awt.*;
 import java.io.File;
 import java.lang.System;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
+
 import com.msopentech.ThaliClientCommon.RelayWebServer;
 import com.msopentech.thali.utilities.java.*;
 import fi.iki.elonen.SimpleWebServer;
 
 public class ProxyDesktop  {
+    private static final int localWebserverPort = 58001;
+
     public RelayWebServer server;
     public SimpleWebServer host;
 
-    public static void main(String[] rgs) throws InterruptedException {
+    public static void main(String[] rgs) throws InterruptedException, URISyntaxException, IOException {
 
         final ProxyDesktop instance = new ProxyDesktop();
         instance.initialize();
 
+        // Attempt to launch the default browser to our page
+        if(Desktop.isDesktopSupported())
+        {
+            Desktop.getDesktop().browse(new URI("http://localhost:" + localWebserverPort));
+        }
+
+        // Register to shutdown the server properly from a sigterm
         Runtime.getRuntime().addShutdownHook(new Thread()
         {
             @Override
             public void run()
             {
                 instance.shutdown();
-                System.out.println("Exiting!");
             }
         });
 
-        while (true)
-        {
-            Thread.sleep(500);
+        // Let user press enter to kill the console session
+        Console console = System.console();
+        if (console != null) {
+            console.format("\nPress ENTER to exit.\n");
+            console.readLine();
+            instance.shutdown();
         }
-
+        else
+        {
+            // Don't exit on your own when running without a console (debugging in an IDE).
+            while (true)
+            {
+                Thread.sleep(500);
+            }
+        }
     }
 
     public void shutdown()
@@ -42,22 +64,24 @@ public class ProxyDesktop  {
 
     public void initialize()
     {
-        // Start the webservers
+        // Initialize the relay
         try {
             server = new RelayWebServer(new JavaEktorpCreateClientBuilder(), new File(System.getProperty("user.dir")));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
+        // Initialize the local web server
         File webRoot = new File(new File(System.getProperty("user.dir")).getParent(), "web");
         System.out.println("Setting web root to: " + webRoot);
-        host = new SimpleWebServer("localhost", 8081, webRoot, false);
+        host = new SimpleWebServer("localhost", localWebserverPort, webRoot, false);
 
+        // Start both listeners
         try {
-            System.out.println("Starting WebServer on " + host.getListeningPort());
+            System.out.println("Starting WebServer at http://localhost:" + localWebserverPort);
             host.start();
 
-            System.out.println("Starting Relay on " + server.getListeningPort());
+            System.out.println("Starting Relay on http://" + RelayWebServer.relayHost + ":" + RelayWebServer.relayPort);
             server.start();
         } catch(IOException ioe) {
             System.out.println("Exception: " + ioe.toString());

@@ -23,30 +23,31 @@ import java.util.Scanner;
 import fi.iki.elonen.NanoHTTPD;
 
 public class RelayWebServer extends NanoHTTPD {
+
+    public static final String relayHost = "localhost";
+    public static final int relayPort = 58000;
+
+    private final String tdhHost = "localhost";
+    private final int tdhPort = 9898;
     private final KeyStore keyStore;
     private final CreateClientBuilder createClientBuilder;
-
-    private final String host = "localhost";
-    private final int port = 9898;
-
     private final PublicKey serverPublicKey;
 
-    // Port 58000 for relayed TDH calls -- change to something else!
     public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-        super("127.0.0.1", 58000);
+        super(relayHost, relayPort);
         keyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(keystoreDirectory);
         createClientBuilder = clientBuilder;
 
         // Prep keys - refactor ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance to reuse this code
        HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(host, port, null, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateApacheClient(tdhHost, tdhPort, null, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
 
         serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
         org.ektorp.http.HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateEktorpClient(tdhHost, tdhPort, serverPublicKey, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
 
         ThaliCouchDbInstance thaliCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerValidation);
 
@@ -89,7 +90,7 @@ public class RelayWebServer extends NanoHTTPD {
 
         System.out.println("uri: " + uri);
         System.out.println("method: " + method.toString());
-        System.out.println("Origin: " + headers.get("origin"));
+        System.out.println("origin: " + headers.get("origin"));
 
         // Handle an OPTIONS request without relaying anything
         if (method.name().equals("OPTIONS"))
@@ -106,11 +107,10 @@ public class RelayWebServer extends NanoHTTPD {
 
         // Make a new request which we will prepare for relaying to TDH
         BasicHttpEntityEnclosingRequest basicHttpRequest;
-        basicHttpRequest = new BasicHttpEntityEnclosingRequest(method.name(), "https://" + host + ":" + port + uri);
+        basicHttpRequest = new BasicHttpEntityEnclosingRequest(method.name(), "https://" + tdhHost + ":" + tdhPort + uri);
 
         // Copy headers from incoming request to new relay request
         for(Map.Entry<String, String> entry : headers.entrySet()) {
-            System.out.println("header: " + entry.getKey() + " : " + entry.getValue());
 
             // Skip content-length, the library does this automatically
             if (!entry.getKey().equals("content-length")) {
@@ -132,7 +132,7 @@ public class RelayWebServer extends NanoHTTPD {
 
 
         // Define an http connection to send the new relay request to the TDH
-        HttpHost httpHost = new HttpHost(host, port, "https");
+        HttpHost httpHost = new HttpHost(tdhHost, tdhPort, "https");
 
         HttpClient httpClient = null;
         HttpClient httpClientNoServerKey = null;
@@ -140,7 +140,7 @@ public class RelayWebServer extends NanoHTTPD {
             System.out.println("Prepping secure HttpClient");
 
             // Prep an HTTPClient to make the call
-            httpClient = createClientBuilder.CreateApacheClient(host, port, serverPublicKey, keyStore,
+            httpClient = createClientBuilder.CreateApacheClient(tdhHost, tdhPort, serverPublicKey, keyStore,
                     ThaliCryptoUtilities.DefaultPassPhrase);
 
         } catch (UnrecoverableKeyException e) {
