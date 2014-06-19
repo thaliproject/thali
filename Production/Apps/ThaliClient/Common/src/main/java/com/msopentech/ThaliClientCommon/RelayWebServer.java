@@ -70,12 +70,27 @@ public class RelayWebServer extends NanoHTTPD {
         Method method = session.getMethod();
         String postBody = null;
 
-        if (Method.PUT.equals(method) || Method.POST.equals(method)) {
+        if (Method.PUT.equals(method)) {
             try {
                 session.parseBody(files);
                 if (files.size() > 0) {
                     String fileName = files.entrySet().iterator().next().getValue();
-                    postBody = new Scanner(new File(fileName)).useDelimiter("\\Z").next();
+                    if (!fileName.isEmpty()) {
+                        postBody = new Scanner(new File(fileName)).useDelimiter("\\Z").next();
+                    }
+                }
+            } catch (IOException ioe) {
+                return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
+            } catch (ResponseException re) {
+                return new Response(re.getStatus(), MIME_PLAINTEXT, re.getMessage());
+            }
+        }
+
+        if (Method.POST.equals(method)) {
+            try {
+                session.parseBody(files);
+                if (files.size() > 0) {
+                    postBody = files.entrySet().iterator().next().getValue();
                 }
             } catch (IOException ioe) {
                 return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: IOException: " + ioe.getMessage());
