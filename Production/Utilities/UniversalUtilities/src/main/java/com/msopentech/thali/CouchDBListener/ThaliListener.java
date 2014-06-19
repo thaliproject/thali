@@ -23,12 +23,13 @@ import com.couchbase.lite.auth.AuthorizerFactory;
 import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
+import com.couchbase.lite.util.Log;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
-import org.slf4j.Logger;
-import org.slf4j.LoggerFactory;
 
 import java.io.IOException;
+import java.net.*;
 import java.security.KeyStore;
 import java.util.ArrayList;
 import java.util.Properties;
@@ -41,7 +42,6 @@ public class ThaliListener {
 
     private LiteListener cblListener = null;
     private boolean serverStarted = false;
-    private final Logger Log = LoggerFactory.getLogger(ThaliListener.class);
     private Manager manager = null;
 
     private void waitTillServerStarts() throws InterruptedException {
@@ -60,7 +60,7 @@ public class ThaliListener {
      * @param context
      * @param port
      */
-    public void startServer(final Context context, final int port) {
+    public void startServer(final Context context, final int port, final Proxy proxy) {
         serverStarted = true;
         if (context == null) {
             throw new RuntimeException();
@@ -75,9 +75,12 @@ public class ThaliListener {
                 // Start the CouchDB Lite manager
                 try {
                     ArrayList<AuthorizerFactory> authorizerFactoryArrayList = new ArrayList<AuthorizerFactory>();
-                    BogusThaliAuthorizerFactory bogusThaliAuthorizerFactory = new BogusThaliAuthorizerFactory(finalClientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                    BogusThaliAuthorizerFactory bogusThaliAuthorizerFactory =
+                            new BogusThaliAuthorizerFactory(finalClientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase,
+                                    proxy);
                     authorizerFactoryArrayList.add(bogusThaliAuthorizerFactory);
-                    AuthorizerFactoryManager authorizerFactoryManager = new AuthorizerFactoryManager(authorizerFactoryArrayList);
+                    AuthorizerFactoryManager authorizerFactoryManager =
+                            new AuthorizerFactoryManager(authorizerFactoryArrayList);
                     ManagerOptions managerOptions =
                             new ManagerOptions(authorizerFactoryManager);
                     manager = new Manager(context, managerOptions);
@@ -85,10 +88,10 @@ public class ThaliListener {
                     // the system in case it doesn't already exist.
                     manager.getDatabase(KeyDatabaseName);
                 } catch (IOException e) {
-                    Log.error("Manager failed to start", e);
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
                     return;
                 } catch (CouchbaseLiteException e) {
-                    Log.error("Manager failed to start", e);
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
                     return;
                 }
 

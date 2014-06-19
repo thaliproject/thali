@@ -23,7 +23,9 @@ public class ThaliDeviceHubService {
 
     public void startService() {
         thaliListener = new ThaliListener();
-        thaliListener.startServer(new ContextInUserHomeDirectory(), ThaliListener.DefaultThaliDeviceHubPort);
+
+        // TODO: We will replace with the proxy with a non-null object once we have deployment under control
+        thaliListener.startServer(new ContextInUserHomeDirectory(), ThaliListener.DefaultThaliDeviceHubPort, null);
     }
 
     public void stopService() {

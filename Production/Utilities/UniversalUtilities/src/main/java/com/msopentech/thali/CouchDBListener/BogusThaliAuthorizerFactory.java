@@ -2,14 +2,12 @@ package com.msopentech.thali.CouchDBListener;
 
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.ReplicatorArguments;
-import com.couchbase.lite.Status;
 import com.couchbase.lite.auth.Authorizer;
 import com.couchbase.lite.auth.AuthorizerFactory;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 
-import java.net.URISyntaxException;
+import java.net.*;
 import java.security.KeyStore;
-import java.util.Map;
 
 /**
  * Created by yarong on 1/13/14.
@@ -17,12 +15,14 @@ import java.util.Map;
 public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
     public final static String thaliFieldName = "BogusThali";
 
-    private KeyStore clientKeyStore;
-    private char[] clientPassPhrase;
+    protected final KeyStore clientKeyStore;
+    protected final char[] clientPassPhrase;
+    protected final Proxy proxy;
 
-    public BogusThaliAuthorizerFactory(KeyStore clientKeyStore, char[] clientPassPhrase) {
+    public BogusThaliAuthorizerFactory(KeyStore clientKeyStore, char[] clientPassPhrase, Proxy proxy) {
         this.clientKeyStore = clientKeyStore;
         this.clientPassPhrase = clientPassPhrase;
+        this.proxy = proxy;
     }
 
     @Override
@@ -70,7 +70,15 @@ public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
                 replicatorArguments.setSource(httpsURL);
             }
 
-            return new BogusThaliAuthorizer(httpKeyURL.getServerPublicKey(), clientKeyStore, clientPassPhrase);
+            // 127.0.0.1 addresses can't be resolved via Tor so we have to nullify the proxy. We would use localhost
+            // when we are replicating between two local database. Unfortunately CouchBase doesn't support local to
+            // local replication so we have to fake it by making one of the source/target look remote
+            // TODO: We really need to support local to local replication in a more secure way, looking to match addresses
+            // just feels like some weird unicode security hole waiting to happen.
+            boolean doNotUseProxy = httpKeyURL.getHost().equals("127.0.0.1");
+
+            return new BogusThaliAuthorizer(httpKeyURL.getServerPublicKey(), clientKeyStore, clientPassPhrase,
+                    doNotUseProxy ? null : proxy);
         } catch (IllegalArgumentException e) {
             return null;
             // TODO: BUGBUG - When we have real security this will be an exception and not just a null
