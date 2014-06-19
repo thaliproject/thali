@@ -27,3 +27,11 @@ allprojects {
         mavenCentral()
     }
 }
+
+task buildAll {
+    println 'Building for all platforms...'
+}
+
+buildAll.dependsOn ':Java:installApp'
+buildAll.dependsOn ':Java:distZip'
+buildAll.dependsOn ':Android:buildApk'
