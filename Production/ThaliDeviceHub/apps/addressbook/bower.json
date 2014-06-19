@@ -8,7 +8,7 @@
         "angular-resource" : "latest",
         "angular-animate" : "latest",
         "angular-route" : "latest",        
-        "angular-qr": "git@github.com:irjudson/angular-qr#master",
+        "angular-qr": "git://github.com/irjudson/angular-qr.git#master",
         "angular-pouchdb" : "latest",
         "topcoat" : "latest",
         "topcoat-icons" : "latest",
