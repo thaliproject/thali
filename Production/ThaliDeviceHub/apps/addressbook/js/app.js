@@ -13,13 +13,13 @@ var demoContacts = [
 
 angular.module('myApp', [
 	'ja.qr',
+	'pouchdb',
 	'ngTouch',
 	'ngRoute',
 	'ngAnimate',
 	'myApp.controllers',
 	'myApp.directives',
 	'myApp.services',
-	'pouchdb'
 ])
 .config(['$routeProvider', function ($routeProvider) {
 	$routeProvider
@@ -42,4 +42,33 @@ angular.module('myApp', [
 		.otherwise({
 			redirectTo: '/contacts'
 		});
+}])
+.constant('$dbname', 'addressbook')
+.constant('$tdhdb', 'http://localhost:58000/addressbook')
+.factory('$db', ['$dbname', '$tdhdb', function($dbname, $tdhdb) {
+		// Make the Pouch.
+        var $db = new PouchDB($dbname);
+
+        // Pull content from the TDH database first
+        $db.replicate.from($tdhdb);
+
+        // Then setup live replication
+        PouchDB.replicate($dbname, $tdhdb, {live:true, create_target:true});
+
+        // Check, if there are no contacts in the TDH, load up demo contacts.
+    	$db.info().then(function(info) {
+    		// Initialize demo data
+    		if (info.doc_count < 1) {
+    			$db.bulkDocs({docs : demoContacts }, function(err, response) {
+    				if (response) {
+    					console.log("Making demo contacts.");
+    					console.log(response);	
+    				} else {
+    					console.log("Error making demo contacts.");
+    					console.log(err);
+    				}
+    			});
+    		}
+    	});
+		return $db
 }]);
