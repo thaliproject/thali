@@ -11,28 +11,31 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-apply plugin: 'maven'
-
-version = '1.0'
-
 targetCompatibility = 1.6
 sourceCompatibility = 1.6
 
-allprojects {
+apply plugin: 'node'
+
+buildscript {
     repositories {
-        mavenLocal()
-        maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
-        maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
-        maven { url 'http://files.couchbase.com/maven2/' }
-        mavenCentral()
+        jcenter()
+    }
+    dependencies {
+        classpath 'com.moowork.gradle:gradle-node-plugin:0.4'
     }
 }
 
-task buildAll {
-    println 'Building for all platforms...'
+/**
+ * Configuring node plugin to download, install and run entirely locally.
+ */
+node {
+    download = true
 }
 
-buildAll.dependsOn ':web:build'
-buildAll.dependsOn ':Java:installApp'
-buildAll.dependsOn ':Java:distZip'
-buildAll.dependsOn ':Android:buildApk'
+/**
+ * This installs bower dependencies for the local application.
+ */
+task build(type: NodeTask, dependsOn: ['npmInstall']) {
+    script = file('node_modules/bower/bin/bower')
+    args = ['install']
+}
