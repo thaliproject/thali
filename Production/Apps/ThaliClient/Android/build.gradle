@@ -1,0 +1,62 @@
+/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
+
+apply plugin: 'java'
+apply plugin: 'maven'
+
+targetCompatibility = 1.6
+sourceCompatibility = 1.6
+
+ant.importBuild 'src/build.xml'
+
+dependencies {
+    compile project(':Universal')
+    compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
+    compile files("src/${ant.lib}/crosswalk-${ant.properties['crosswalk-version']}/libs/xwalk_app_runtime_java.jar")
+    compile files("src/${ant.lib}/android-4.0.1.2.jar")
+}
+
+task cleanXwalkLib(type: Delete) {
+    delete fileTree(dir: 'src/lib', excludes: ['**crosswalk**', '**/android*.jar'] )
+}
+
+// Prep depdencies but manually exclude bits that don't belong in the JAR
+// This is temporary until we replace the crosswalk build scripts with Gradle Android plugin.
+task copyDepToLib(type: Copy, dependsOn: cleanXwalkLib) {
+    into('src/lib')
+    from configurations.compile {
+        exclude 'android*.jar', 'xwalk_app_runtime*.jar', 'java-*.jar', "httpcore*.jar", "httpclient*.jar"
+    }
+}
+
+// Link up our Gradle tasks to existing Crosswalk ANT tasks we haven't ported yet
+tasks.compileJava.dependsOn('download-deps');
+tasks.compileJava.dependsOn('download-crosswalk');
+
+task packageApk(type:Exec, dependsOn: [dist, copyDepToLib]) {
+    String manifest = project(':web').projectDir.toString() + "/manifest.json"
+    String extensions = project(':Android').projectDir.toString() + '\\build\\thaliclient-extension\\'
+    String working = project(':Android').projectDir.toString() + "/src/${ant.lib}/crosswalk-${ant.properties['crosswalk-version']}/"
+
+    workingDir working
+
+    commandLine "python", "make_apk.py", "--manifest=$manifest", "--extensions=$extensions"
+}
+
+task buildApk(type: Copy, dependsOn: packageApk) {
+    into('build/apk')
+    from fileTree(dir: "src/${ant.lib}/crosswalk-${ant.properties['crosswalk-version']}", include: '*.apk')
+}
+
+def webFiles = project(':web').projectDir
+
