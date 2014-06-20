@@ -1,12 +1,11 @@
-angular.module('myApp.services', [])
-    .factory('Contact', function($db, $q, $rootScope) {
+angular.module('addressBook.services', [])
+    .factory('Contact', function($db, $tdhdb, $q, $rootScope) {
         return {
             create: function (contact) {
                 var deferred = $q.defer();
                 $db.post(contact, function(err, response) {
                     $rootScope.$apply(function() {
                         if(response.ok) {
-                            // db.replicate.to(tdhdb);
                             deferred.resolve(response);
                         } else {
                             console.log("Failed to save new contact: " + err);
@@ -26,7 +25,6 @@ angular.module('myApp.services', [])
                             if (contactId) {
                                 returnValue = returnValue.filter(function(contact) { return contact._id == contactId})[0];
                             }
-                            // db.replicate.to(tdhdb);
                             deferred.resolve(returnValue);
                         } else {
                             console.log("Error getting all contacts: " + err);
@@ -41,7 +39,6 @@ angular.module('myApp.services', [])
                 $db.post(contact, function(err, response) {
                     $rootScope.$apply(function() {
                         if(response.ok) {
-                            // db.replicate.to(tdhdb);
                             deferred.resolve(response);
                         } else {
                             console.log("Failed to update contact: " + err);
@@ -57,7 +54,6 @@ angular.module('myApp.services', [])
                 $db.remove(contact, function(err, response) {
                     $rootScope.$apply(function() {
                         if (response) {
-                            // db.replicate.to(tdhdb);
                             deferred.resolve(response);
                         } else {
                             console.log("Failed to delete contact: " + err);
@@ -68,4 +64,5 @@ angular.module('myApp.services', [])
                 return deferred.promise;
             }
         }
-    });
+    })
+;

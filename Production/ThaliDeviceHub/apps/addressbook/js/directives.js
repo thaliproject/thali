@@ -1,6 +1,6 @@
 'use strict';
 
-angular.module('myApp.directives', [])
+angular.module('addressBook.directives', [])
     .directive('qrScanner', ['$timeout', function($timeout) {
         return {
             restrict: 'E',

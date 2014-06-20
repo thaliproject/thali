@@ -1,7 +1,7 @@
 'use strict';
 
-angular.module('myApp.controllers', [])
-    .controller('MainCtrl', ['$scope', '$rootScope', '$window', '$location', function ($scope, $rootScope, $window, $location) {
+angular.module('addressBook.controllers', [])
+    .controller('MainCtrl', ['$scope', '$rootScope', '$window', '$location', '$db', function ($scope, $rootScope, $window, $location, $db) {
         $scope.slide = '';
         $rootScope.back = function() {
           $scope.slide = 'slide-right';
