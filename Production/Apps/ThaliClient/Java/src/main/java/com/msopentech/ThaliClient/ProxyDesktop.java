@@ -8,7 +8,7 @@ import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
 
-import com.msopentech.ThaliClientUniversal.RelayWebServer;
+import com.msopentech.ThaliClientCommon.RelayWebServer;
 import com.msopentech.thali.utilities.java.*;
 import fi.iki.elonen.SimpleWebServer;
 
