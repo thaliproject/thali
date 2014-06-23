@@ -3,12 +3,11 @@
  * found in the LICENSE-APACHE-V2 file. */
 package com.msopentech.ThaliClient;
 
-import fi.iki.elonen.SimpleWebServer;
 import org.xwalk.app.runtime.extension.XWalkExtensionClient;
 import org.xwalk.app.runtime.extension.XWalkExtensionContextClient;
 import java.lang.System;
 import java.io.*;
-import com.msopentech.ThaliClientCommon.RelayWebServer;
+import com.msopentech.ThaliClientUniversal.RelayWebServer;
 import com.msopentech.ThaliAndroidClientUtilities.AndroidEktorpCreateClientBuilder;
 import android.content.Context;
 import android.os.AsyncTask;
