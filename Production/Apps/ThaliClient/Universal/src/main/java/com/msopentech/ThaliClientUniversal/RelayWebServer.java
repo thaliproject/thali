@@ -3,7 +3,6 @@ package com.msopentech.ThaliClientUniversal;
 
 import com.msopentech.thali.utilities.universal.*;
 
-import com.sun.media.jfxmedia.logging.Logger;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
@@ -12,6 +11,8 @@ import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import java.io.File;
 import java.lang.System;
@@ -37,6 +38,8 @@ public class RelayWebServer extends NanoHTTPD {
     private final CreateClientBuilder createClientBuilder;
     private final PublicKey serverPublicKey;
 
+    private final Logger Log = LoggerFactory.getLogger(RelayWebServer.class);
+
     public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         super(relayHost, relayPort);
 
@@ -49,7 +52,7 @@ public class RelayWebServer extends NanoHTTPD {
         // Prepare client public key
         PrepareClientPublicKey();
 
-        System.out.println("RelayWebServer initialized");
+        Log.info("RelayWebServer initialized");
     }
 
     @Override
@@ -59,9 +62,9 @@ public class RelayWebServer extends NanoHTTPD {
         Map<String, String> headers = session.getHeaders();
         String requestBody = null;
 
-        Logger.logMsg(Logger.INFO, "URI: " + uri);
-        Logger.logMsg(Logger.INFO, "METHOD: " + method.toString());
-        Logger.logMsg(Logger.INFO, "ORIGIN: " + headers.get("origin"));
+        Log.info("URI: " + uri);
+        Log.info("METHOD: " + method.toString());
+        Log.info("ORIGIN: " + headers.get("origin"));
 
         // Handle an OPTIONS request without relaying anything
         if (method.name().equals("OPTIONS"))
@@ -91,7 +94,7 @@ public class RelayWebServer extends NanoHTTPD {
         HttpClient httpClient = null;
         HttpClient httpClientNoServerKey = null;
         try {
-            System.out.println("Prepping secure HttpClient");
+            Log.info("Prepping secure HttpClient");
 
             // Prep an HTTPClient to make the call
             httpClient = createClientBuilder.CreateApacheClient(tdhHost, tdhPort, serverPublicKey, keyStore,
@@ -112,11 +115,11 @@ public class RelayWebServer extends NanoHTTPD {
 
         if (httpClient != null) {
             try {
-                System.out.println("Relaying call to TDH: " + httpHost.toURI());
+                Log.info("Relaying call to TDH: " + httpHost.toURI());
                 httpResponse = httpClient.execute(httpHost, basicHttpRequest);
             } catch (IOException e) {
                 // return some error
-                System.out.println("Relay to TDH failed! \n" + ExceptionUtils.getStackTrace(e));
+                Log.info("Relay to TDH failed! \n" + ExceptionUtils.getStackTrace(e));
                 e.printStackTrace();
                 return null;
             }
@@ -129,7 +132,7 @@ public class RelayWebServer extends NanoHTTPD {
                 response = new Response(IOUtils.toString(httpResponse.getEntity().getContent()));
             }
         } catch (IOException e) {
-            System.out.println("Preparing response to client failed! \n" + ExceptionUtils.getStackTrace(e));
+            Log.info("Preparing response to client failed! \n" + ExceptionUtils.getStackTrace(e));
         }
 
         // Add appropriate CORS headers
