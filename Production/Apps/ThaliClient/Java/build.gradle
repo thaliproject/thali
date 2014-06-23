@@ -27,8 +27,9 @@ dependencies {
 mainClassName = "com.msopentech.ThaliClient.ProxyDesktop"
 applicationName = "ThaliClientJava"
 
-def webFiles = project(':web').projectDir
+def webFiles = project(':web').projectDir.toString()+"\\build\\www"
 
 applicationDistribution.from(webFiles) {
     into "web"
+    exclude "node_modules"
 }

@@ -35,7 +35,16 @@ node {
 /**
  * This installs bower dependencies for the local application.
  */
-task build(type: NodeTask, dependsOn: ['npmInstall']) {
+task bowerInstall(type: NodeTask, dependsOn: ['npmInstall']) {
     script = file('node_modules/bower/bin/bower')
     args = ['install']
+}
+
+task deleteTemp(type: Delete) {
+    delete fileTree(dir: 'build/www')
+}
+
+task copyTemp(type: Copy, dependsOn: ['bowerInstall', 'deleteTemp']) {
+    into('build/www')
+    from fileTree(dir: project(':web').projectDir.toString()+"\\src", excludes: ["node_modules", "*.iml", "*.gradle"])
 }
