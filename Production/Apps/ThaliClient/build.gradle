@@ -32,6 +32,7 @@ task buildAll {
     println 'Building for all platforms...'
 }
 
+buildAll.dependsOn ':web:copyTemp'
 buildAll.dependsOn ':Java:installApp'
 buildAll.dependsOn ':Java:distZip'
 buildAll.dependsOn ':Android:buildApk'

@@ -1,0 +1,17 @@
+{
+    "name": "thali-address-book",
+    "description": "Thali Addressbook Application",
+    "version": "0.0.1",
+    "private": true,
+    "dependencies": {
+        "angular-touch" : "latest",
+        "angular-resource" : "latest",
+        "angular-animate" : "latest",
+        "angular-route" : "latest",        
+        "angular-qr": "git://github.com/irjudson/angular-qr.git#master",
+        "angular-pouchdb" : "latest",
+        "topcoat" : "latest",
+        "topcoat-icons" : "latest",
+        "jsqrcode" : "https://github.com/LazarSoft/jsqrcode.git"
+    }
+}
