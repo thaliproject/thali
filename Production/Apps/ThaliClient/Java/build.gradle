@@ -33,3 +33,5 @@ applicationDistribution.from(webFiles) {
     into "web"
     exclude "node_modules"
 }
+
+build.dependsOn ':web:copyTemp'
