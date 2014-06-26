@@ -54,14 +54,12 @@ android {
 }
 
 dependencies {
-    compile 'com.couchbase.lite:android:1.0.0-beta3rc1'
+    compile 'com.couchbase.lite:couchbase-lite-android:1.0.0-beta3rc1'
     compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
 
     //fileTree(dir: 'libs', include: '*.jar')
-    // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
-    // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
-    androidTestCompile 'org.slf4j:slf4j-android:1.7.2'
+    androidTestCompile 'org.slf4j:slf4j-android:1.7.7'
 }
 
 def mavenPath() {

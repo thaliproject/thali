@@ -21,6 +21,7 @@ import com.couchbase.lite.router.Router;
 import com.couchbase.lite.router.URLConnection;
 import com.couchbase.lite.util.Log;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.ThaliPublicKeyComparer;
 
 import javax.net.ssl.SSLPeerUnverifiedException;
@@ -42,7 +43,6 @@ import java.util.List;
  */
 public class BogusRequestAuthorization implements RequestAuthorization {
     protected final String KeyDatabaseName;
-    protected final String tag = "BogusRequestAuthorization";
 
     public BogusRequestAuthorization(String keyDatabaseName) {
         assert keyDatabaseName != null && false == "".equals(keyDatabaseName);
@@ -62,7 +62,8 @@ public class BogusRequestAuthorization implements RequestAuthorization {
         try {
             keyDatabase = manager.getExistingDatabase(KeyDatabaseName);
         } catch (CouchbaseLiteException e) {
-            Log.e(tag, "If the DB doesn't exist we should have gotten null, not an exception. So something went wrong.", e);
+            Log.e(CblLogTags.TAG_THALI_BOGUSREQUESTAUTHORIZATION,
+                    "If the DB doesn't exist we should have gotten null, not an exception. So something went wrong.", e);
         }
 
         // No database? Then no one is authorized.
@@ -139,7 +140,7 @@ public class BogusRequestAuthorization implements RequestAuthorization {
         try {
             urlConnection.getResponseOutputStream().close();
         } catch (IOException e) {
-            Log.e("ThaliTestServer", "Error closing empty output stream");
+            Log.e(CblLogTags.TAG_THALI_BOGUSREQUESTAUTHORIZATION, "Error closing empty output stream");
         }
     }
 }

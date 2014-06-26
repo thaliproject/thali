@@ -49,8 +49,10 @@ public class ThaliDeviceHubService extends Service {
     @Override
     public void onCreate() {
         thaliListener = new ThaliListener();
+        // TODO: We will replace with the proxy with a non-null object once we have deployment under control
         // Embarrassing enough I'm not sure if getApplicationContext is the right context to get. :(
-        thaliListener.startServer(new AndroidContext(getApplicationContext()), ThaliListener.DefaultThaliDeviceHubPort);
+        thaliListener.startServer(new AndroidContext(getApplicationContext()), ThaliListener.DefaultThaliDeviceHubPort,
+                null);
     }
 
     @Override
