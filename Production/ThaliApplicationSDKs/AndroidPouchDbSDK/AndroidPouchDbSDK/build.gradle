@@ -50,9 +50,7 @@ android {
 
 dependencies {
     compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.2"
-    // This is a local build of an unreleased version of slf4j that fixes the double declaration issue they have
-    // that makes it impossible to use Java code compiled with their 'base' JAR work with Android code.
-    compile 'org.slf4j:slf4j-android:1.7.2'
+    compile 'org.slf4j:slf4j-android:1.7.7'
 }
 
 def pathToResourcesInUniversalUtilities = "../../../Utilities/UniversalUtilities/src/main/resources/"

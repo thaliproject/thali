@@ -14,7 +14,9 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
@@ -27,6 +29,7 @@ import java.util.ArrayList;
 import java.util.Collection;
 import java.util.List;
 import java.util.Random;
+import java.util.logging.ConsoleHandler;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 
@@ -37,6 +40,33 @@ public class ThaliTestUtilities {
 
     public static final String TestDatabaseName = "test";
     public static final Random random = new Random();
+
+    /**
+     * Tells Java's Logging infrastructure to output whatever it possibly can, this is only needed
+     * in Java, not in Android.
+     */
+    public static void outputAsMuchLoggingAsPossible() {
+        Logger log = Logger.getLogger("com.couchbase.lite");
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.ALL);
+        log.addHandler(handler);
+        log.setLevel(Level.ALL);
+    }
+
+    public static void turnCouchbaseLoggingTo11() {
+        Log.enableLogging(Log.TAG, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_SYNC, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_QUERY, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_VIEW, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_CHANGE_TRACKER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_BLOB_STORE, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_DATABASE, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_LISTENER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_MULTI_STREAM_WRITER, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_REMOTE_REQUEST, Log.VERBOSE);
+        Log.enableLogging(Log.TAG_ROUTER, Log.VERBOSE);
+        CblLogTags.turnTo11();
+    }
 
     /**
      * Turns on various logging interfaces for Apache HTTP Client including the use of SimpleLog

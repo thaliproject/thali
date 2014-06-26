@@ -17,9 +17,11 @@ import com.couchbase.lite.Context;
 import com.msopentech.thali.utilities.universal.*;
 import org.apache.commons.io.FileUtils;
 import org.ektorp.CouchDbConnector;
+import org.ektorp.http.*;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.*;
 import java.security.*;
 
 /**
@@ -31,12 +33,34 @@ public class ConfigureRequestObjects {
     public final ThaliCouchDbInstance thaliCouchDbInstance;
     public final CouchDbConnector testDatabaseConnector;
     public final CouchDbConnector replicationDatabaseConnector;
+    public final ThaliCouchDbInstance torThaliCouchDbInstance;
+    public final CouchDbConnector torTestDatabaseConnector;
+    public final CouchDbConnector torReplicationDatabaseConnector;
     public final PublicKey clientPublicKey;
     public final PublicKey serverPublicKey;
     public final KeyStore clientKeyStore;
 
-    public ConfigureRequestObjects(String host, int port, char[] passPhrase,
-                                   CreateClientBuilder createClientBuilder, Context context)
+    /**
+     * Sets up a bunch of objects that we need to run tests
+     * @param tdhDirectHost
+     * @param tdhDirectPort
+     * @param tdhOnionHost
+     * @param tdhOnionPort
+     * @param passPhrase
+     * @param createClientBuilder
+     * @param context
+     * @param directProxy Normally null but sometimes not for some odder tests, this is used for what are supposed to
+     *                    be local calls.
+     * @param onionProxy This is the proxy that should be used with values like tdhOnionHost and tdhOnionPort
+     * @throws NoSuchAlgorithmException
+     * @throws IOException
+     * @throws UnrecoverableEntryException
+     * @throws KeyStoreException
+     * @throws KeyManagementException
+     */
+    public ConfigureRequestObjects(String tdhDirectHost, int tdhDirectPort, String tdhOnionHost, int tdhOnionPort,
+                                   char[] passPhrase, CreateClientBuilder createClientBuilder, Context context,
+                                   Proxy directProxy, Proxy onionProxy)
             throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException, KeyStoreException,
             KeyManagementException  {
 
@@ -53,7 +77,7 @@ public class ConfigureRequestObjects {
 
         thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
-                        clientFilesDir, createClientBuilder, host, port, passPhrase);
+                        clientFilesDir, createClientBuilder, tdhDirectHost, tdhDirectPort, passPhrase, directProxy);
 
         thaliCouchDbInstance.deleteDatabase(ThaliTestUtilities.TestDatabaseName);
         thaliCouchDbInstance.deleteDatabase(ThaliTestEktorpClient.ReplicationTestDatabaseName);
@@ -63,7 +87,7 @@ public class ConfigureRequestObjects {
         clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(clientFilesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase);
+                createClientBuilder.CreateApacheClient(tdhDirectHost, tdhDirectPort, null, clientKeyStore, passPhrase, directProxy);
 
         serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
@@ -83,5 +107,12 @@ public class ConfigureRequestObjects {
         // that we are doing replication tests where the database talks to itself. So if its own key isn't
         // in its own authorization database then it won't let itself talk to itself!
         ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(serverPublicKey, thaliCouchDbInstance);
+
+        HttpClient torHttpClient = createClientBuilder.CreateEktorpClient(tdhOnionHost, tdhOnionPort, serverPublicKey,
+                clientKeyStore, passPhrase, onionProxy);
+        torThaliCouchDbInstance = new ThaliCouchDbInstance(torHttpClient);
+        torTestDatabaseConnector = torThaliCouchDbInstance.createConnector(ThaliTestUtilities.TestDatabaseName, false);
+        torReplicationDatabaseConnector =
+                torThaliCouchDbInstance.createConnector(ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
     }
 }

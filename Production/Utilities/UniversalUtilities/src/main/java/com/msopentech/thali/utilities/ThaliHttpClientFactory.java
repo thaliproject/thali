@@ -14,27 +14,37 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities;
 
 import com.couchbase.lite.support.HttpClientFactory;
-import com.msopentech.thali.utilities.universal.HttpKeySSLSocketFactory;
+import com.msopentech.thali.utilities.universal.*;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.client.DefaultHttpClient;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 
+import java.net.*;
 import java.security.*;
 import java.util.List;
 
 public class ThaliHttpClientFactory implements HttpClientFactory {
-    HttpKeySSLSocketFactory httpKeySSLSocketFactory;
+    protected final HttpKeySSLSocketFactory httpKeySSLSocketFactory;
+    protected final PublicKey serverPublicKey;
+    protected final KeyStore clientKeyStore;
+    protected final char[] clientKeyStorePassPhrase;
+    protected final Proxy proxy;
 
     public ThaliHttpClientFactory(final PublicKey serverPublicKey,
-                                  final KeyStore clientKeyStore, final char[] clientPassPhrase)
+                                  final KeyStore clientKeyStore, final char[] clientKeyStorePassPhrase,
+                                  Proxy proxy)
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
-        httpKeySSLSocketFactory = new HttpKeySSLSocketFactory(serverPublicKey, clientKeyStore, clientPassPhrase);
+        httpKeySSLSocketFactory =
+                new HttpKeySSLSocketFactory(serverPublicKey, clientKeyStore, clientKeyStorePassPhrase);
+        this.serverPublicKey = serverPublicKey;
+        this.clientKeyStore = clientKeyStore;
+        this.clientKeyStorePassPhrase = clientKeyStorePassPhrase;
+        this.proxy = proxy;
     }
 
     @Override
@@ -42,8 +52,17 @@ public class ThaliHttpClientFactory implements HttpClientFactory {
         BasicHttpParams basicHttpParams = new BasicHttpParams();
         SchemeRegistry schemeRegistry = new SchemeRegistry();
         schemeRegistry.register(new Scheme("https", httpKeySSLSocketFactory, 443));
-        ClientConnectionManager clientConnectionManager = new ThreadSafeClientConnManager(basicHttpParams, schemeRegistry);
-        return new DefaultHttpClient(clientConnectionManager, basicHttpParams);
+        try {
+            return new HttpKeyHttpClient(serverPublicKey, clientKeyStore, clientKeyStorePassPhrase, proxy, basicHttpParams);
+        } catch (UnrecoverableKeyException e) {
+            throw new RuntimeException(e);
+        } catch (NoSuchAlgorithmException e) {
+            throw new RuntimeException(e);
+        } catch (KeyStoreException e) {
+            throw new RuntimeException(e);
+        } catch (KeyManagementException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     @Override

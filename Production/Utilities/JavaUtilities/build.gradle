@@ -35,7 +35,7 @@ dependencies {
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
 
     testCompile 'junit:junit:4.11'
-    testCompile 'org.slf4j:slf4j-simple:1.7.5'
+    testCompile 'org.slf4j:slf4j-simple:1.7.7'
 }
 
 def mavenPath() {
