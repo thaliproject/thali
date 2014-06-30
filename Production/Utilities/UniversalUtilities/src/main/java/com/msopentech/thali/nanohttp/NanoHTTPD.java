@@ -1,71 +1,54 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
 
 import java.io.*;
-import java.net.InetAddress;
-import java.net.InetSocketAddress;
-import java.net.ServerSocket;
-import java.net.Socket;
-import java.net.SocketException;
-import java.net.SocketTimeoutException;
-import java.net.URLDecoder;
+import java.net.*;
 import java.nio.ByteBuffer;
 import java.nio.channels.FileChannel;
 import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.Date;
-import java.util.HashMap;
-import java.util.HashSet;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Locale;
-import java.util.Map;
-import java.util.Set;
-import java.util.StringTokenizer;
-import java.util.TimeZone;
+import java.util.*;
 
 /**
  * A simple, tiny, nicely embeddable HTTP server in Java
- * <p/>
- * <p/>
+ * 
+ * 
  * NanoHTTPD
- * <p></p>Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias</p>
- * <p/>
- * <p/>
- * <b>Features + limitations: </b>
- * <ul>
- * <p/>
- * <li>Only one Java file</li>
- * <li>Java 5 compatible</li>
- * <li>Released as open source, Modified BSD licence</li>
- * <li>No fixed config files, logging, authorization etc. (Implement yourself if you need them.)</li>
- * <li>Supports parameter parsing of GET and POST methods (+ rudimentary PUT support in 1.25)</li>
- * <li>Supports both dynamic content and file serving</li>
- * <li>Supports file upload (since version 1.2, 2010)</li>
- * <li>Supports partial content (streaming)</li>
- * <li>Supports ETags</li>
- * <li>Never caches anything</li>
- * <li>Doesn't limit bandwidth, request time or simultaneous connections</li>
- * <li>Default code serves files and shows all HTTP parameters and headers</li>
- * <li>File server supports directory listing, index.html and index.htm</li>
- * <li>File server supports partial content (streaming)</li>
- * <li>File server supports ETags</li>
- * <li>File server does the 301 redirection trick for directories without '/'</li>
- * <li>File server supports simple skipping for files (continue download)</li>
- * <li>File server serves also very long files without memory overhead</li>
- * <li>Contains a built-in list of most common mime types</li>
- * <li>All header names are converted lowercase so they don't vary between browsers/clients</li>
- * <p/>
- * </ul>
- * <p/>
- * <p/>
- * <b>How to use: </b>
- * <ul>
- * <p/>
- * <li>Subclass and implement serve() and embed to your own program</li>
- * <p/>
- * </ul>
- * <p/>
+ * Copyright (c) 2012-2013 by Paul S. Hawke, 2001,2005-2013 by Jarno Elonen, 2010 by Konstantinos Togias
+ * 
+ * 
+ * Features + limitations: 
+ * 
+ * 
+ * Only one Java file
+ * Java 5 compatible
+ * Released as open source, Modified BSD licence
+ * No fixed config files, logging, authorization etc. (Implement yourself if you need them.)
+ * Supports parameter parsing of GET and POST methods (+ rudimentary PUT support in 1.25)
+ * Supports both dynamic content and file serving
+ * Supports file upload (since version 1.2, 2010)
+ * Supports partial content (streaming)
+ * Supports ETags
+ * Never caches anything
+ * Doesn't limit bandwidth, request time or simultaneous connections
+ * Default code serves files and shows all HTTP parameters and headers
+ * File server supports directory listing, index.html and index.htm
+ * File server supports partial content (streaming)
+ * File server supports ETags
+ * File server does the 301 redirection trick for directories without '/'
+ * File server supports simple skipping for files (continue download)
+ * File server serves also very long files without memory overhead
+ * Contains a built-in list of most common mime types
+ * All header names are converted lowercase so they don't vary between browsers/clients
+ * 
+ * 
+ * 
+ * 
+ * How to use: 
+ * 
+ * 
+ * Subclass and implement serve() and embed to your own program
+ * 
+ * 
+ * 
  * See the separate "LICENSE.md" file for the distribution license (Modified BSD licence)
  */
 public abstract class NanoHTTPD {
@@ -255,8 +238,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Override this to customize the server.
-     * <p/>
-     * <p/>
+     * 
+     * 
      * (By default, this delegates to serveFile() and allows directory listing.)
      *
      * @param uri     Percent-decoded URI without parameters, for example "/index.cgi"
@@ -273,8 +256,8 @@ public abstract class NanoHTTPD {
 
     /**
      * Override this to customize the server.
-     * <p/>
-     * <p/>
+     * 
+     * 
      * (By default, this delegates to serveFile() and allows directory listing.)
      *
      * @param session The HTTP session
@@ -299,9 +282,9 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * Decode percent encoded <code>String</code> values.
+     * Decode percent encoded String values.
      *
-     * @param str the percent encoded <code>String</code>
+     * @param str the percent encoded String
      * @return expanded form of the input, for example "foo%20bar" becomes "foo bar"
      */
     protected String decodePercent(String str) {
@@ -318,8 +301,8 @@ public abstract class NanoHTTPD {
      * supplied several times, by return lists of values.  In general these lists will contain a single
      * element.
      *
-     * @param parms original <b>NanoHttpd</b> parameters values, as passed to the <code>serve()</code> method.
-     * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
+     * @param parms original NanoHttpd parameters values, as passed to the serve() method.
+     * @return a map of String (parameter name) to List&lt;String&gt; (a list of the values supplied).
      */
     protected Map<String, List<String>> decodeParameters(Map<String, String> parms) {
         return this.decodeParameters(parms.get(QUERY_STRING_PARAMETER));
@@ -331,7 +314,7 @@ public abstract class NanoHTTPD {
      * element.
      *
      * @param queryString a query string pulled from the URL.
-     * @return a map of <code>String</code> (parameter name) to <code>List&lt;String&gt;</code> (a list of the values supplied).
+     * @return a map of String (parameter name) to List&lt;String&gt; (a list of the values supplied).
      */
     protected Map<String, List<String>> decodeParameters(String queryString) {
         Map<String, List<String>> parms = new HashMap<String, List<String>>();
@@ -384,7 +367,7 @@ public abstract class NanoHTTPD {
     }
 
     /**
-     * HTTP Request methods, with the ability to decode a <code>String</code> back to its enum value.
+     * HTTP Request methods, with the ability to decode a String back to its enum value.
      */
     public enum Method {
         GET, PUT, POST, DELETE, HEAD, OPTIONS;
@@ -417,9 +400,9 @@ public abstract class NanoHTTPD {
 
     /**
      * Temp file manager.
-     * <p/>
-     * <p>Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
-     * temporary files created as a result of handling the request.</p>
+     * 
+     * Temp file managers are created 1-to-1 with incoming requests, to create and cleanup
+     * temporary files created as a result of handling the request.
      */
     public interface TempFileManager {
         TempFile createTempFile() throws Exception;
@@ -429,9 +412,9 @@ public abstract class NanoHTTPD {
 
     /**
      * A temp file.
-     * <p/>
-     * <p>Temp files are responsible for managing the actual temporary storage and cleaning
-     * themselves up when no longer needed.</p>
+     * 
+     * Temp files are responsible for managing the actual temporary storage and cleaning
+     * themselves up when no longer needed.
      */
     public interface TempFile {
         OutputStream open() throws Exception;
@@ -443,10 +426,10 @@ public abstract class NanoHTTPD {
 
     /**
      * Default threading strategy for NanoHttpd.
-     * <p/>
-     * <p>By default, the server spawns a new Thread for every incoming request.  These are set
-     * to <i>daemon</i> status, and named according to the request number.  The name is
-     * useful when profiling the application.</p>
+     * 
+     * By default, the server spawns a new Thread for every incoming request.  These are set
+     * to daemon status, and named according to the request number.  The name is
+     * useful when profiling the application.
      */
     public static class DefaultAsyncRunner implements AsyncRunner {
         private long requestCount;
@@ -463,12 +446,12 @@ public abstract class NanoHTTPD {
 
     /**
      * Default strategy for creating and cleaning up temporary files.
-     * <p/>
-     * <p></p>This class stores its files in the standard location (that is,
-     * wherever <code>java.io.tmpdir</code> points to).  Files are added
+     * 
+     * This class stores its files in the standard location (that is,
+     * wherever java.io.tmpdir points to).  Files are added
      * to an internal list, and deleted when no longer needed (that is,
-     * when <code>clear()</code> is invoked at the end of processing a
-     * request).</p>
+     * when clear() is invoked at the end of processing a
+     * request).
      */
     public static class DefaultTempFileManager implements TempFileManager {
         private final String tmpdir;
@@ -500,9 +483,9 @@ public abstract class NanoHTTPD {
 
     /**
      * Default strategy for creating and cleaning up temporary files.
-     * <p/>
-     * <p></p></[>By default, files are created by <code>File.createTempFile()</code> in
-     * the directory specified.</p>
+     * 
+     * [By default, files are created by File.createTempFile() in
+     * the directory specified.
      */
     public static class DefaultTempFile implements TempFile {
         private File file;
@@ -821,7 +804,7 @@ public abstract class NanoHTTPD {
 
         /**
          * Adds the files in the request body to the files map.
-         * @arg files - map to modify
+         *  files - map to modify
          */
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
     }

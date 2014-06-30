@@ -1,8 +1,8 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
 
 import java.util.Map;
 
-import static fi.iki.elonen.NanoHTTPD.Response;
+import static com.msopentech.thali.nanohttp.NanoHTTPD.Response;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)

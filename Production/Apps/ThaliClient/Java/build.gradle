@@ -19,7 +19,7 @@ targetCompatibility = 1.6
 sourceCompatibility = 1.6
 
 dependencies {
-    compile project(':Universal')
+    compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
     compile "com.msopentech.thali:ThaliUtilitiesJava:0.0.2"
     compile 'org.slf4j:slf4j-simple:1.7.5'
 }

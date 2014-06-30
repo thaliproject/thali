@@ -1,5 +1,5 @@
 
-package com.msopentech.ThaliClientUniversal;
+package com.msopentech.thali.relay;
 
 import com.msopentech.thali.utilities.universal.*;
 
@@ -22,7 +22,7 @@ import java.util.Map;
 import java.io.*;
 import java.util.Scanner;
 
-import fi.iki.elonen.NanoHTTPD;
+import com.msopentech.thali.nanohttp.NanoHTTPD;
 
 public class RelayWebServer extends NanoHTTPD {
 
@@ -98,7 +98,7 @@ public class RelayWebServer extends NanoHTTPD {
 
             // Prep an HTTPClient to make the call
             httpClient = createClientBuilder.CreateApacheClient(tdhHost, tdhPort, serverPublicKey, keyStore,
-                    ThaliCryptoUtilities.DefaultPassPhrase);
+                    ThaliCryptoUtilities.DefaultPassPhrase, null);
 
         } catch (UnrecoverableKeyException e) {
             e.printStackTrace();
@@ -234,7 +234,13 @@ public class RelayWebServer extends NanoHTTPD {
 
     private void PrepareClientPublicKey() throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         org.ektorp.http.HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(tdhHost, tdhPort, serverPublicKey, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateEktorpClient(
+                        tdhHost,
+                        tdhPort,
+                        serverPublicKey,
+                        keyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
 
         ThaliCouchDbInstance thaliCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerValidation);
 
@@ -250,7 +256,13 @@ public class RelayWebServer extends NanoHTTPD {
 
     private PublicKey RetrieveServerPublicKey() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(tdhHost, tdhPort, null, keyStore, ThaliCryptoUtilities.DefaultPassPhrase);
+                createClientBuilder.CreateApacheClient(
+                        tdhHost,
+                        tdhPort,
+                        null,
+                        keyStore,
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
 
         return ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerValidation);
     }

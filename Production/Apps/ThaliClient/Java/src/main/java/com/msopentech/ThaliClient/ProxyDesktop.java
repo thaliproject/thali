@@ -1,16 +1,16 @@
 
 package com.msopentech.ThaliClient;
 
+import com.msopentech.thali.nanohttp.SimpleWebServer;
+import com.msopentech.thali.relay.RelayWebServer;
+import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
+
 import java.awt.*;
+import java.io.Console;
 import java.io.File;
-import java.lang.System;
-import java.io.*;
+import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
-
-import com.msopentech.ThaliClientUniversal.RelayWebServer;
-import com.msopentech.thali.utilities.java.*;
-import fi.iki.elonen.SimpleWebServer;
 
 public class ProxyDesktop  {
     private static final int localWebserverPort = 58001;

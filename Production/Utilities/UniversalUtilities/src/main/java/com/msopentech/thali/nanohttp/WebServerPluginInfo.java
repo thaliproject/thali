@@ -1,4 +1,4 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)

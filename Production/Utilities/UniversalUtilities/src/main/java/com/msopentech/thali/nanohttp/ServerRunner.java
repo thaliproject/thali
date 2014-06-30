@@ -1,4 +1,4 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
 
 import java.io.IOException;
 

@@ -7,7 +7,7 @@ import org.xwalk.app.runtime.extension.XWalkExtensionClient;
 import org.xwalk.app.runtime.extension.XWalkExtensionContextClient;
 import java.lang.System;
 import java.io.*;
-import com.msopentech.ThaliClientUniversal.RelayWebServer;
+import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.ThaliAndroidClientUtilities.AndroidEktorpCreateClientBuilder;
 import android.content.Context;
 import android.os.AsyncTask;

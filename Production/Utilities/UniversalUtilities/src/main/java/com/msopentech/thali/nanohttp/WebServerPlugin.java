@@ -1,9 +1,9 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
+
+import com.msopentech.thali.nanohttp.NanoHTTPD.IHTTPSession;
 
 import java.io.File;
 import java.util.Map;
-
-import fi.iki.elonen.NanoHTTPD.IHTTPSession;
 
 /**
  * @author Paul S. Hawke (paul.hawke@gmail.com)

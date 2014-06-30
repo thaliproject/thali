@@ -1,21 +1,8 @@
-package fi.iki.elonen;
+package com.msopentech.thali.nanohttp;
 
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FilenameFilter;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
 import java.net.URLEncoder;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.List;
-import java.util.Map;
-import java.util.ServiceLoader;
-import java.util.StringTokenizer;
+import java.util.*;
 
 public class SimpleWebServer extends NanoHTTPD {
     /**
