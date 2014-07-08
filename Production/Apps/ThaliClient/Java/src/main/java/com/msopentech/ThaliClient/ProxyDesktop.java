@@ -12,6 +12,9 @@ import java.io.IOException;
 import java.net.URI;
 import java.net.URISyntaxException;
 
+// TODO: Convert this to trivial swing app which goes to system tray
+// per http://docs.oracle.com/javase/tutorial/uiswing/misc/systemtray.html
+
 public class ProxyDesktop  {
     private static final int localWebserverPort = 58001;
 
@@ -66,13 +69,13 @@ public class ProxyDesktop  {
     {
         // Initialize the relay
         try {
-            server = new RelayWebServer(new JavaEktorpCreateClientBuilder(), new File(System.getProperty("user.dir")));
+            server = new RelayWebServer(new JavaEktorpCreateClientBuilder(), new File(System.getenv("APP_HOME")));
         } catch (Exception e) {
             e.printStackTrace();
         }
 
         // Initialize the local web server
-        File webRoot = new File(new File(System.getProperty("user.dir")).getParent(), "web");
+        File webRoot = new File(new File(System.getenv("APP_HOME")), "web");
         System.out.println("Setting web root to: " + webRoot);
         host = new SimpleWebServer("localhost", localWebserverPort, webRoot, false);
 

@@ -728,7 +728,7 @@ public abstract class NanoHTTPD {
         public enum Status implements IStatus {
             SWITCH_PROTOCOL(101, "Switching Protocols"), OK(200, "OK"), CREATED(201, "Created"), ACCEPTED(202, "Accepted"), NO_CONTENT(204, "No Content"), PARTIAL_CONTENT(206, "Partial Content"), REDIRECT(301,
                     "Moved Permanently"), NOT_MODIFIED(304, "Not Modified"), BAD_REQUEST(400, "Bad Request"), UNAUTHORIZED(401,
-                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), RANGE_NOT_SATISFIABLE(416,
+                    "Unauthorized"), FORBIDDEN(403, "Forbidden"), NOT_FOUND(404, "Not Found"), METHOD_NOT_ALLOWED(405, "Method Not Allowed"), PRECONDITION_FAILED(412, "Precondition Failed"), RANGE_NOT_SATISFIABLE(416,
                     "Requested Range Not Satisfiable"), INTERNAL_ERROR(500, "Internal Server Error");
             private final int requestStatus;
             private final String description;
@@ -809,7 +809,7 @@ public abstract class NanoHTTPD {
         void parseBody(Map<String, String> files) throws IOException, ResponseException;
     }
 
-    protected class HTTPSession implements IHTTPSession {
+    public class HTTPSession implements IHTTPSession {
         public static final int BUFSIZE = 8192;
         private final TempFileManager tempFileManager;
         private final OutputStream outputStream;

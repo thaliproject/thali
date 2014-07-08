@@ -1,3 +1,15 @@
+/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
 
 package com.msopentech.thali.relay;
 
@@ -55,20 +67,30 @@ public class RelayWebServer extends NanoHTTPD {
         Log.info("RelayWebServer initialized");
     }
 
+    // Simplifies unit testing
+    public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
+        return new HTTPSession(tempFileManager, inputStream, outputStream);
+    }
+
     @Override
     public Response serve(IHTTPSession session) {
         Method method = session.getMethod();
+        String queryString = session.getQueryParameterString();
         String uri = session.getUri();
         Map<String, String> headers = session.getHeaders();
         String requestBody = null;
+
+        // If there is a query string, append it to URI
+        if (!queryString.isEmpty()) {
+            uri = uri.concat("?" + queryString);
+        }
 
         Log.info("URI: " + uri);
         Log.info("METHOD: " + method.toString());
         Log.info("ORIGIN: " + headers.get("origin"));
 
         // Handle an OPTIONS request without relaying anything
-        if (method.name().equals("OPTIONS"))
-        {
+        if (method.name().equals("OPTIONS")) {
             Response optionsResponse = new Response("OK");
             AppendCorsHeaders(optionsResponse, headers);
             optionsResponse.setStatus(Response.Status.OK);
@@ -141,11 +163,17 @@ public class RelayWebServer extends NanoHTTPD {
         // Translate status
         // TODO: Default not be OK, make this more robust
         switch (httpResponse.getStatusLine().getStatusCode()) {
+            case 201:
+                response.setStatus(Response.Status.CREATED);
+                break;
             case 400:
                 response.setStatus(Response.Status.BAD_REQUEST);
                 break;
             case 404:
                 response.setStatus(Response.Status.NOT_FOUND);
+                break;
+            case 412:
+                response.setStatus(Response.Status.PRECONDITION_FAILED);
                 break;
             case 500:
                 response.setStatus(Response.Status.INTERNAL_ERROR);
@@ -155,14 +183,19 @@ public class RelayWebServer extends NanoHTTPD {
                 break;
         }
 
-        // Enable chunked transfer where appropriate
+        // Copy response headers to relayed response
+        // Enable chunked transfer where appropriate and ignore date header
+        // as NanoHTTPD adds this for us
         for(Header responseHeader : httpResponse.getAllHeaders()) {
-            if (responseHeader.getValue().equals("chunked")) {
-                response.setChunkedTransfer(true);
-            }
-            else
-            {
-                response.addHeader(responseHeader.getName(), responseHeader.getValue());
+            if (!responseHeader.getName().equals("date")) {
+                if (responseHeader.getValue().equals("chunked")) {
+                    response.setChunkedTransfer(true);
+                }
+                else if (responseHeader.getName().equals("content-type")) {
+                    response.setMimeType(responseHeader.getValue());
+                } else {
+                    response.addHeader(responseHeader.getName(), responseHeader.getValue());
+                }
             }
         }
 
