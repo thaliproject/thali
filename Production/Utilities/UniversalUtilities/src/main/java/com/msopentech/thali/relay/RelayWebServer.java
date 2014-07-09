@@ -81,7 +81,7 @@ public class RelayWebServer extends NanoHTTPD {
         String requestBody = null;
 
         // If there is a query string, append it to URI
-        if (!queryString.isEmpty()) {
+        if (queryString != null && !queryString.isEmpty()) {
             uri = uri.concat("?" + queryString);
         }
 
