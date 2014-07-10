@@ -25,19 +25,19 @@ repositories {
     mavenCentral()
 }
 
-    dependencies {
-        compile 'org.slf4j:slf4j-api:1.7.7'
-        compile 'org.bouncycastle:bcprov-jdk15on:1.49'
-        compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
-        compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
-        compile 'org.ektorp:org.ektorp:1.4.2-SNAPSHOT'
-        compile 'com.couchbase.lite:couchbase-lite-java-core:1.0.0-beta3rc1'
-        compile 'com.couchbase.lite:couchbase-lite-java-listener:1.0.0-beta3rc1'
-        compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
-        compile 'org.apache.commons:commons-lang3:3.3.1'
+dependencies {
+    compile 'org.slf4j:slf4j-api:1.7.7'
+    compile 'org.bouncycastle:bcprov-jdk15on:1.49'
+    compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
+    compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
+    compile 'org.ektorp:org.ektorp:1.4.2-SNAPSHOT'
+    compile 'com.couchbase.lite:couchbase-lite-java-core:1.0.0-beta3rc1'
+    compile 'com.couchbase.lite:couchbase-lite-java-listener:1.0.0-beta3rc1'
+    compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
+    compile 'org.apache.commons:commons-lang3:3.3.1'
 
-        testCompile 'junit:junit:4.11'
-        testCompile 'org.slf4j:slf4j-simple:1.7.7'
+    testCompile 'junit:junit:4.11'
+    testCompile 'org.slf4j:slf4j-simple:1.7.7'
 }
 
 def mavenPath() {
