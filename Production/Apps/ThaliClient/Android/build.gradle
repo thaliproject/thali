@@ -44,8 +44,8 @@ tasks.compileJava.dependsOn('download-deps');
 tasks.compileJava.dependsOn('download-crosswalk');
 
 task packageApk(type:Exec, dependsOn: ['dist', 'copyDepToLib', ':web:copyTemp']) {
-    String manifest = project(':web').projectDir.toString() + "\\build\\www\\manifest.json"
-    String extensions = project(':Android').projectDir.toString() + '\\build\\thaliclient-extension\\'
+    String manifest = project(':web').projectDir.toString() + "/build/www/manifest.json"
+    String extensions = project(':Android').projectDir.toString() + '/build/thaliclient-extension/'
     String working = project(':Android').projectDir.toString() + "/src/${ant.lib}/crosswalk-${ant.properties['crosswalk-version']}/"
 
     workingDir working

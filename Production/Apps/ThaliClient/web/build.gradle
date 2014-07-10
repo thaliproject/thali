@@ -46,5 +46,5 @@ task deleteTemp(type: Delete) {
 
 task copyTemp(type: Copy, dependsOn: ['bowerInstall', 'deleteTemp']) {
     into('build/www')
-    from fileTree(dir: project(':web').projectDir.toString()+"\\src", excludes: ["node_modules", "*.iml", "*.gradle"])
+    from fileTree(dir: project(':web').projectDir.toString()+"/src", excludes: ["node_modules", "*.iml", "*.gradle"])
 }

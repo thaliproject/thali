@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.relay;
 
+import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.*;
 
 import org.apache.commons.io.IOUtils;
@@ -27,7 +28,6 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.File;
-import java.lang.System;
 import java.security.*;
 import java.util.HashMap;
 import java.util.Map;
@@ -43,8 +43,8 @@ public class RelayWebServer extends NanoHTTPD {
     public static final int relayPort = 58000;
 
     // Host and port for the TDH
-    private final String tdhHost = "localhost";
-    private final int tdhPort = 9898;
+    private final String thaliDeviceHubHost = "localhost";
+    private int thaliDeviceHubPort;
 
     private final KeyStore keyStore;
     private final CreateClientBuilder createClientBuilder;
@@ -53,7 +53,13 @@ public class RelayWebServer extends NanoHTTPD {
     private final Logger Log = LoggerFactory.getLogger(RelayWebServer.class);
 
     public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+         this(clientBuilder, keystoreDirectory, ThaliListener.DefaultThaliDeviceHubPort);
+    }
+
+    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory, int thaliDeviceHubPort) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         super(relayHost, relayPort);
+
+        this.thaliDeviceHubPort = thaliDeviceHubPort;
 
         keyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(keystoreDirectory);
         createClientBuilder = clientBuilder;
@@ -66,6 +72,7 @@ public class RelayWebServer extends NanoHTTPD {
 
         Log.info("RelayWebServer initialized");
     }
+
 
     // Simplifies unit testing
     public HTTPSession createSession(TempFileManager tempFileManager, InputStream inputStream, OutputStream outputStream) {
@@ -111,7 +118,7 @@ public class RelayWebServer extends NanoHTTPD {
         BasicHttpEntityEnclosingRequest basicHttpRequest = buildRelayRequest(method, uri, headers, requestBody);
 
         // Define an http connection to send the new relay request to the TDH
-        HttpHost httpHost = new HttpHost(tdhHost, tdhPort, "https");
+        HttpHost httpHost = new HttpHost(thaliDeviceHubHost, thaliDeviceHubPort, "https");
 
         HttpClient httpClient = null;
         HttpClient httpClientNoServerKey = null;
@@ -119,7 +126,7 @@ public class RelayWebServer extends NanoHTTPD {
             Log.info("Prepping secure HttpClient");
 
             // Prep an HTTPClient to make the call
-            httpClient = createClientBuilder.CreateApacheClient(tdhHost, tdhPort, serverPublicKey, keyStore,
+            httpClient = createClientBuilder.CreateApacheClient(thaliDeviceHubHost, thaliDeviceHubPort, serverPublicKey, keyStore,
                     ThaliCryptoUtilities.DefaultPassPhrase, null);
 
         } catch (UnrecoverableKeyException e) {
@@ -205,7 +212,7 @@ public class RelayWebServer extends NanoHTTPD {
     // Prepares a request which will be forwarded to the TDH by copying headers, body, etc
     private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String uri, Map<String, String> headers, String body) {
         BasicHttpEntityEnclosingRequest basicHttpRequest =
-                new BasicHttpEntityEnclosingRequest(method.name(), "https://" + tdhHost + ":" + tdhPort + uri);
+                new BasicHttpEntityEnclosingRequest(method.name(), "https://" + thaliDeviceHubHost + ":" + thaliDeviceHubPort + uri);
 
         // Copy headers from incoming request to new relay request
         for(Map.Entry<String, String> entry : headers.entrySet()) {
@@ -268,8 +275,8 @@ public class RelayWebServer extends NanoHTTPD {
     private void PrepareClientPublicKey() throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         org.ektorp.http.HttpClient httpClientWithServerValidation =
                 createClientBuilder.CreateEktorpClient(
-                        tdhHost,
-                        tdhPort,
+                        thaliDeviceHubHost,
+                        thaliDeviceHubPort,
                         serverPublicKey,
                         keyStore,
                         ThaliCryptoUtilities.DefaultPassPhrase,
@@ -290,8 +297,8 @@ public class RelayWebServer extends NanoHTTPD {
     private PublicKey RetrieveServerPublicKey() throws UnrecoverableKeyException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
         HttpClient httpClientNoServerValidation =
                 createClientBuilder.CreateApacheClient(
-                        tdhHost,
-                        tdhPort,
+                        thaliDeviceHubHost,
+                        thaliDeviceHubPort,
                         null,
                         keyStore,
                         ThaliCryptoUtilities.DefaultPassPhrase,

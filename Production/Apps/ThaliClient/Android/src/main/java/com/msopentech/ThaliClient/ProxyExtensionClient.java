@@ -1,7 +1,17 @@
-/* Copyright (c) 2014 Intel Corporation. All rights reserved.
- * Use of this source code is governed by an Apache v2 license that can be
- * found in the LICENSE-APACHE-V2 file. */
-package com.msopentech.ThaliClient;
+/*
+Copyright (c) Microsoft Open Technologies, Inc.
+All Rights Reserved
+Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the
+License. You may obtain a copy of the License at http://www.apache.org/licenses/LICENSE-2.0
+
+THIS CODE IS PROVIDED ON AN *AS IS* BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, EITHER EXPRESS OR IMPLIED,
+INCLUDING WITHOUT LIMITATION ANY IMPLIED WARRANTIES OR CONDITIONS OF TITLE, FITNESS FOR A PARTICULAR PURPOSE,
+MERCHANTABLITY OR NON-INFRINGEMENT.
+
+See the Apache 2 License for the specific language governing permissions and limitations under the License.
+*/
+
+ package com.msopentech.ThaliClient;
 
 import org.xwalk.app.runtime.extension.XWalkExtensionClient;
 import org.xwalk.app.runtime.extension.XWalkExtensionContextClient;
