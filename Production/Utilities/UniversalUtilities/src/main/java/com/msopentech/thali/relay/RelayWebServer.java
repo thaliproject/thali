@@ -97,11 +97,21 @@ public class RelayWebServer extends NanoHTTPD {
         Log.info("ORIGIN: " + headers.get("origin"));
 
         // Handle an OPTIONS request without relaying anything
-        if (method.name().equals("OPTIONS")) {
+        if (method.name().equalsIgnoreCase("OPTIONS")) {
             Response optionsResponse = new Response("OK");
             AppendCorsHeaders(optionsResponse, headers);
             optionsResponse.setStatus(Response.Status.OK);
             return optionsResponse;
+        }
+
+        // Handle request for local HTTP Key URL
+        if (uri.equalsIgnoreCase("/relayutility/localhttpkey"))
+        {
+            Response httpKeyResponse = new Response("{'httpkey':'427172846852162286227732782294920302420713842275481985193987416465727827594332841946536424113226184082100799979846263322298149064624948841718223595871002487468854371825902763487876571562308540746622769324666936426716328322661006174187432292824234387672928185522171868214215265962193686663919735268176833103576891577777488691009982184273100527780539366654312983859430294532482669543564769536996694547788895124139427128553090154213261621141595978827486497762585373289857851966036673745423578288467224472884115824176989596378133819214820984895929617664984282716722195955274042499434493624'}");
+            AppendCorsHeaders(httpKeyResponse, headers);
+            httpKeyResponse.setMimeType("application/json");
+            httpKeyResponse.setStatus(Response.Status.OK);
+            return httpKeyResponse;
         }
 
         // Get the body of the request as a string
