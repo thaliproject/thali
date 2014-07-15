@@ -14,6 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.android;
 
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
+import com.msopentech.thali.utilities.universal.ThaliCouchDbInstance;
 import org.apache.http.client.HttpClient;
 import org.ektorp.android.http.AndroidHttpClient;
 
@@ -28,5 +29,10 @@ public class AndroidEktorpCreateClientBuilder extends CreateClientBuilder {
             throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return new AndroidHttpClient(CreateApacheClient(host, port, serverPublicKey, clientKeyStore,
                 clientKeyStorePassPhrase, proxy));
+    }
+
+    @Override
+    public HttpClient extractApacheClientFromThaliCouchDbInstance(ThaliCouchDbInstance thaliCouchDbInstance) {
+        return ((AndroidHttpClient)thaliCouchDbInstance.getConnection()).getClient();
     }
 }

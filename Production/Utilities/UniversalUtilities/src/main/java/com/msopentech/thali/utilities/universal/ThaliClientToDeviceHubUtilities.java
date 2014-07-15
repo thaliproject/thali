@@ -64,7 +64,7 @@ import org.ektorp.http.HttpClient;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.*;
+import java.net.Proxy;
 import java.security.*;
 
 /**

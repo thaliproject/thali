@@ -29,4 +29,9 @@ public class JavaEktorpCreateClientBuilder extends CreateClientBuilder {
         return new StdHttpClient(CreateApacheClient(host, port, serverPublicKey, clientKeyStore,
                 clientKeyStorePassPhrase, proxy));
     }
+
+    @Override
+    public HttpClient extractApacheClientFromThaliCouchDbInstance(ThaliCouchDbInstance thaliCouchDbInstance) {
+        return ((StdHttpClient)thaliCouchDbInstance.getConnection()).getClient();
+    }
 }
