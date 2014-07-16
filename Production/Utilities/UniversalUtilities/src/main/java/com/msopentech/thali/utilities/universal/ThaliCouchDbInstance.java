@@ -26,9 +26,6 @@ import org.ektorp.util.Exceptions;
 
 import java.io.IOException;
 
-/**
- * Created by yarong on 1/17/14.
- */
 public class ThaliCouchDbInstance extends StdCouchDbInstance {
     protected final RestTemplate restTemplate;
     protected final ObjectMapper objectMapper;
