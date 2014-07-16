@@ -30,7 +30,7 @@ dependencies {
     compile 'org.bouncycastle:bcprov-jdk15on:1.49'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
     compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
-    compile 'org.ektorp:org.ektorp:1.4.2-SNAPSHOT'
+    compile 'org.ektorp:org.ektorp:1.4.2'
     compile 'com.couchbase.lite:couchbase-lite-java-core:1.0.0-beta3rc1'
     compile 'com.couchbase.lite:couchbase-lite-java-listener:1.0.0-beta3rc1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'

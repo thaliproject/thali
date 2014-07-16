@@ -13,31 +13,21 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.xmlhttprequestbridge;
 
-import com.fasterxml.jackson.core.JsonGenerator;
-import com.fasterxml.jackson.core.JsonParser;
 import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.core.io.CharacterEscapes;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.SerializationFeature;
 import com.msopentech.thali.utilities.universal.*;
 import com.msopentech.thali.utilities.webviewbridge.BridgeCallBack;
 import com.msopentech.thali.utilities.webviewbridge.BridgeHandler;
-import com.msopentech.thali.utilities.webviewbridge.BridgeManager;
 import org.apache.commons.io.IOUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
-import org.apache.http.client.methods.HttpUriRequest;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.apache.http.message.BasicHttpRequest;
 
-import javax.net.ssl.HttpsURLConnection;
 import java.io.File;
 import java.io.IOException;
-import java.io.UnsupportedEncodingException;
-import java.net.URI;
 import java.net.URISyntaxException;
 import java.security.*;
 import java.util.Locale;
