@@ -75,6 +75,8 @@ public abstract class CreateClientBuilder {
                 clientKeyStore, clientKeyStorePassPhrase, proxy);
     }
 
+    abstract public HttpClient extractApacheClientFromThaliCouchDbInstance(ThaliCouchDbInstance thaliCouchDbInstance);
+
     /**
      * Creates a SSL Socket Factory that will validate that the server presented a cert chain that roots with the
      * key serverPublicKey and will present to the server (if asked) the key stored in clientKeyStore
