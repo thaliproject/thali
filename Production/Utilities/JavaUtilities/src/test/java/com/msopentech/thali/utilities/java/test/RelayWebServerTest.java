@@ -76,9 +76,6 @@ public class RelayWebServerTest {
 
         if (server != null && server.isAlive())
             server.stop();
-
-        if (thaliListener != null)
-            thaliListener.stopServer();
     }
 
     @Test
