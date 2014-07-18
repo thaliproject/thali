@@ -55,7 +55,7 @@ android {
 
 dependencies {
     compile 'com.couchbase.lite:couchbase-lite-android:1.0.0-beta3rc1'
-    compile 'org.ektorp:org.ektorp.android:1.4.2-SNAPSHOT'
+    compile 'org.ektorp:org.ektorp.android:1.4.2'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
 
     //fileTree(dir: 'libs', include: '*.jar')
