@@ -1036,6 +1036,39 @@ public abstract class NanoHTTPD {
             }
         }
 
+        public ByteBuffer getBody() throws IOException, NanoHTTPD.ResponseException {
+            RandomAccessFile randomAccessFile = null;
+            BufferedReader in = null;
+            try {
+
+                randomAccessFile = getTmpBucket();
+
+                long size;
+                if (headers.containsKey("content-length")) {
+                    size = Integer.parseInt(headers.get("content-length"));
+                } else {
+                    return null;
+                }
+
+                // Now read all the body and write it to buffer
+                byte[] buf = new byte[512];
+                while (rlen >= 0 && size > 0) {
+                    rlen = inputStream.read(buf, 0, (int)Math.min(size, 512));
+                    size -= rlen;
+                    if (rlen > 0) {
+                        randomAccessFile.write(buf, 0, rlen);
+                    }
+                }
+
+                // Get the raw body as a byte []
+                return randomAccessFile.getChannel().map(FileChannel.MapMode.READ_ONLY, 0, randomAccessFile.length());
+
+            } finally {
+                if (randomAccessFile != null)
+                    randomAccessFile.close();
+            }
+        }
+
         /**
          * Decodes the sent headers and loads the data into Key/value pairs
          */

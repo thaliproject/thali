@@ -26,16 +26,17 @@ import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
 import org.apache.http.client.HttpClient;
 import org.apache.http.conn.routing.HttpRoute;
+import org.apache.http.entity.ByteArrayEntity;
 import org.apache.http.entity.StringEntity;
 import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.UnsupportedEncodingException;
+import java.io.*;
+import java.net.InetAddress;
+import java.nio.ByteBuffer;
+import java.nio.channels.FileChannel;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -89,11 +90,11 @@ public class RelayWebServer extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
+
         Method method = session.getMethod();
         String queryString = session.getQueryParameterString();
         String uri = session.getUri();
         Map<String, String> headers = session.getHeaders();
-        String requestBody = null;
 
         // If there is a query string, append it to URI
         if (queryString != null && !queryString.isEmpty()) {
@@ -125,13 +126,21 @@ public class RelayWebServer extends NanoHTTPD {
             return httpKeyResponse;
         }
 
-        // Get the body of the request
-        // and return error responses if we can't parse it
-        try {
-            requestBody = parseRequestBody(session);
-        } catch (Exception e) {
-            return GenerateErrorResponse(e.getMessage());
+        // Get the body of the request if appropriate
+        byte[] requestBody = new byte[0];
+        if (method.equals(Method.PUT) || method.equals(Method.POST)) {
+            try {
+                ByteBuffer bodyBuffer = ((HTTPSession) session).getBody();
+                if (bodyBuffer != null) {
+                    requestBody = new byte[bodyBuffer.remaining()];
+                    bodyBuffer.get(requestBody);
+                }
+            } catch (Exception e) {
+                e.printStackTrace();
+                return GenerateErrorResponse(e.getMessage());
+            }
         }
+
 
         // Make a new request which we will prepare for relaying to TDH
         BasicHttpEntityEnclosingRequest basicHttpRequest = null;
@@ -202,7 +211,7 @@ public class RelayWebServer extends NanoHTTPD {
     }
 
     // Prepares a request which will be forwarded to the TDH by copying headers, body, etc
-    private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String uri, Map<String, String> headers, String body) throws UnsupportedEncodingException {
+    private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String uri, Map<String, String> headers, byte[] body) throws UnsupportedEncodingException {
         BasicHttpEntityEnclosingRequest basicHttpRequest =
                 new BasicHttpEntityEnclosingRequest(method.name(), "https://" + thaliDeviceHubHost + ":" + thaliDeviceHubPort + uri);
 
@@ -216,44 +225,12 @@ public class RelayWebServer extends NanoHTTPD {
         }
 
         // Copy data from source request to new relay request
-        if (body != null && !body.isEmpty()) {
-            try {
-                StringEntity stringEntity = new StringEntity(body);
-                basicHttpRequest.setEntity(stringEntity);
-            } catch (UnsupportedEncodingException e) {
-                e.printStackTrace();
-                throw e;
-            }
+        if (body != null && body.length > 0) {
+            ByteArrayEntity bodyEntity = new ByteArrayEntity(body);
+            basicHttpRequest.setEntity(bodyEntity);
         }
 
         return basicHttpRequest;
-    }
-
-    // This is a *very* ugly method of getting the request body out of PUT's and POST's
-    // but needs to be replaced with overloads of appropriate NanoHTTPD methods rather than
-    // leveraging the temporary file handler that is assigned to PUT by default
-    private String parseRequestBody(IHTTPSession session) throws IOException, ResponseException {
-        Map<String, String> files = new HashMap<String, String>();
-        Method method = session.getMethod();
-
-        if (Method.PUT.equals(method)) {
-                session.parseBody(files);
-                if (files.size() > 0) {
-                    String fileName = files.entrySet().iterator().next().getValue();
-                    if (!fileName.isEmpty()) {
-                        return new Scanner(new File(fileName)).useDelimiter("\\Z").next();
-                    }
-                }
-        }
-
-        if (Method.POST.equals(method)) {
-                session.parseBody(files);
-                if (files.size() > 0) {
-                    return files.entrySet().iterator().next().getValue();
-                }
-        }
-
-        return "";
     }
 
     // Oversimplified error response for failures in the relay
@@ -277,6 +254,5 @@ public class RelayWebServer extends NanoHTTPD {
         response.addHeader("Access-Control-Allow-Methods",
                 headers.containsKey("access-control-request-method")?headers.get("access-control-request-method"):"GET, PUT, POST, DELETE, HEAD");
     }
-
 }
 
