@@ -166,7 +166,7 @@ public class RelayWebServer extends NanoHTTPD {
                     clientResponse = new Response(
                             new RelayStatus(tdhResponse.getStatusLine()),
                             NanoHTTPD.MIME_PLAINTEXT,
-                            IOUtils.toString(tdhResponseContent));
+                            IOUtils.toBufferedInputStream(tdhResponseContent));
                 }
 
         } catch (IOException e) {
