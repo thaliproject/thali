@@ -24,19 +24,17 @@ import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
+import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.routing.HttpRoute;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.StringEntity;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
+import org.apache.http.message.BasicStatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
-import java.net.InetAddress;
 import java.nio.ByteBuffer;
-import java.nio.channels.FileChannel;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -55,20 +53,31 @@ public class RelayWebServer extends NanoHTTPD {
 
     private HttpClient httpClient;
     private HttpHost httpHost;
-    private Logger Log = LoggerFactory.getLogger(RelayWebServer.class);;
-    private final List<String> doNotForwardHeaders = Arrays.asList("date", "connection", "keep-alive", "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
+    private Logger LOG = LoggerFactory.getLogger(RelayWebServer.class);
+    private final List<String> doNotForwardHeaders = Arrays.asList("date", "connection", "keep-alive",
+            "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
 
-    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException,
+            KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
          this(clientBuilder, keystoreDirectory, ThaliListener.DefaultThaliDeviceHubPort);
     }
 
-    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory, int thaliDeviceHubPort) throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
+    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory, int thaliDeviceHubPort)
+            throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
+            IOException {
         super(relayHost, relayPort);
 
         this.thaliDeviceHubPort = thaliDeviceHubPort;
 
         // Get local couch DB instance
-        ThaliCouchDbInstance thaliCouchDbInstance = ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(keystoreDirectory, clientBuilder, thaliDeviceHubHost, thaliDeviceHubPort, ThaliCryptoUtilities.DefaultPassPhrase, null);
+        ThaliCouchDbInstance thaliCouchDbInstance =
+                ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
+                        keystoreDirectory,
+                        clientBuilder,
+                        thaliDeviceHubHost,
+                        thaliDeviceHubPort,
+                        ThaliCryptoUtilities.DefaultPassPhrase,
+                        null);
 
         // Get the configured apache HttpClient
         httpClient = clientBuilder.extractApacheClientFromThaliCouchDbInstance(thaliCouchDbInstance);
@@ -81,11 +90,6 @@ public class RelayWebServer extends NanoHTTPD {
 
         // Define an http host to address the new relay request to the TDH
         httpHost = new HttpHost(thaliDeviceHubHost, thaliDeviceHubPort, "https");
-
-        // Set max connections for this route (Default is 2)
-        //ThreadSafeClientConnManager cm = (ThreadSafeClientConnManager)httpClient.getConnectionManager();
-        //cm.setMaxTotal(20);
-        //cm.setMaxForRoute(new HttpRoute(httpHost, null, false), 20);
     }
 
     @Override
@@ -101,9 +105,9 @@ public class RelayWebServer extends NanoHTTPD {
             uri = uri.concat("?" + queryString);
         }
 
-        Log.info("URI: " + uri);
-        Log.info("METHOD: " + method.toString());
-        Log.info("ORIGIN: " + headers.get("origin"));
+        LOG.info("URI: " + uri);
+        LOG.info("METHOD: " + method.toString());
+        LOG.info("ORIGIN: " + headers.get("origin"));
 
         // Handle an OPTIONS request without relaying anything for now
         // TODO: Relay OPTIONS properly, but manage the CORS aspects so
@@ -117,7 +121,7 @@ public class RelayWebServer extends NanoHTTPD {
 
         // Handle request for local HTTP Key URL
         // TODO: Temporary fake values, need to build hook to handle magic URLs and generate proper HTTPKey
-        if (uri.equalsIgnoreCase("/relayutility/localhttpkey"))
+        if (uri.equalsIgnoreCase("/_relayutility/localhttpkey"))
         {
             Response httpKeyResponse = new Response("{'httpkey':'427172846852162286227732782294920302420713842275481985193987416465727827594332841946536424113226184082100799979846263322298149064624948841718223595871002487468854371825902763487876571562308540746622769324666936426716328322661006174187432292824234387672928185522171868214215265962193686663919735268176833103576891577777488691009982184273100527780539366654312983859430294532482669543564769536996694547788895124139427128553090154213261621141595978827486497762585373289857851966036673745423578288467224472884115824176989596378133819214820984895929617664984282716722195955274042499434493624'}");
             AppendCorsHeaders(httpKeyResponse, headers);
@@ -141,7 +145,6 @@ public class RelayWebServer extends NanoHTTPD {
             }
         }
 
-
         // Make a new request which we will prepare for relaying to TDH
         BasicHttpEntityEnclosingRequest basicHttpRequest = null;
         try {
@@ -156,19 +159,36 @@ public class RelayWebServer extends NanoHTTPD {
         InputStream tdhResponseContent = null;
         Response clientResponse = null;
         try {
-            Log.info("Relaying call to TDH: " + httpHost.toURI());
+            LOG.info("Relaying call to TDH: " + httpHost.toURI());
             tdhResponse = httpClient.execute(httpHost, basicHttpRequest);
             tdhResponseContent = tdhResponse.getEntity().getContent();
 
-                // Create response and set status and body
-                // default the MIME_TYPE for now and we'll set it later when we enumerate the headers
-                if (tdhResponse != null) {
-                    clientResponse = new Response(
-                            new RelayStatus(tdhResponse.getStatusLine()),
-                            NanoHTTPD.MIME_PLAINTEXT,
-                            IOUtils.toBufferedInputStream(tdhResponseContent));
+            // Create response and set status and body
+            // default the MIME_TYPE for now and we'll set it later when we enumerate the headers
+            if (tdhResponse != null) {
+
+                // This is horrible awful evil code to deal with CouchBase note properly sending CouchDB responses
+                // for some errors. We must fix this in CouchBase - https://github.com/thaliproject/thali/issues/30
+                String responseBodyString = null;
+                if (tdhResponse.containsHeader("content-type") &&
+                        tdhResponse.getFirstHeader("content-type").getValue().equalsIgnoreCase("application/json")) {
+                    if (tdhResponse.getStatusLine().getStatusCode() == 404) {
+                        responseBodyString = "{\"error\":\"not_found\"}";
+                    }
+                    if (tdhResponse.getStatusLine().getStatusCode() == 412) {
+                        responseBodyString = "{\"error\":\"missing_id\"}";
+                    }
                 }
 
+                clientResponse = new Response(
+                        new RelayStatus(tdhResponse.getStatusLine()),
+                        NanoHTTPD.MIME_PLAINTEXT,
+                        responseBodyString != null ?
+                                IOUtils.toInputStream(responseBodyString) :
+                                IOUtils.toBufferedInputStream(tdhResponseContent));
+                // If there is a response body we want to send it chunked to enable streaming
+                clientResponse.setChunkedTransfer(true);
+            }
         } catch (IOException e) {
             String message = "Reading response failed!\n" + ExceptionUtils.getStackTrace(e);
             return GenerateErrorResponse(message);
@@ -179,7 +199,7 @@ public class RelayWebServer extends NanoHTTPD {
                 try {
                     tdhResponseContent.close();
                 } catch (IOException e) {
-                    Log.error(e.getMessage());
+                    LOG.error(e.getMessage());
                 }
         }
 
@@ -195,13 +215,9 @@ public class RelayWebServer extends NanoHTTPD {
     // Enable chunked transfer where appropriate
     // Skip various hop-to-hop headers
     private void CopyHeadersToResponse(Response response, Header[] headers) {
-
         for(Header responseHeader : headers) {
             if (!doNotForwardHeaders.contains(responseHeader.getName().toLowerCase())) {
-                if (responseHeader.getValue().equals("chunked")) {
-                    response.setChunkedTransfer(true);
-                }
-                else if (responseHeader.getName().equals("content-type")) {
+                if (responseHeader.getName().equals("content-type")) {
                     response.setMimeType(responseHeader.getValue());
                 } else {
                     response.addHeader(responseHeader.getName(), responseHeader.getValue());
@@ -213,11 +229,11 @@ public class RelayWebServer extends NanoHTTPD {
     // Prepares a request which will be forwarded to the TDH by copying headers, body, etc
     private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String uri, Map<String, String> headers, byte[] body) throws UnsupportedEncodingException {
         BasicHttpEntityEnclosingRequest basicHttpRequest =
-                new BasicHttpEntityEnclosingRequest(method.name(), "https://" + thaliDeviceHubHost + ":" + thaliDeviceHubPort + uri);
+                new BasicHttpEntityEnclosingRequest(
+                        method.name(), "https://" + thaliDeviceHubHost + ":" + thaliDeviceHubPort + uri);
 
         // Copy headers from incoming request to new relay request
         for(Map.Entry<String, String> entry : headers.entrySet()) {
-
             // Skip content-length, the library does this automatically
             if (!entry.getKey().equals("content-length")) {
                 basicHttpRequest.setHeader(entry.getKey(), entry.getValue());
@@ -236,7 +252,7 @@ public class RelayWebServer extends NanoHTTPD {
     // Oversimplified error response for failures in the relay
     private Response GenerateErrorResponse(String message)
     {
-        Log.error(message);
+        LOG.error(message);
         return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: " + message);
     }
 
