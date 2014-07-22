@@ -13,38 +13,28 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.java.test;
 
-import static com.jayway.restassured.RestAssured.*;
-import static com.jayway.restassured.matcher.RestAssuredMatchers.*;
-import static org.hamcrest.Matchers.*;
-
 import com.couchbase.lite.CouchbaseLiteException;
-import com.jayway.restassured.response.Response;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
-import org.apache.commons.io.output.ByteArrayOutputStream;
+import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
-import java.io.*;
+import java.io.File;
+import java.io.IOException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
-import java.util.ArrayList;
-import java.util.List;
 
-import org.openqa.selenium.By;
-import org.openqa.selenium.WebDriver;
-import org.openqa.selenium.WebElement;
-import org.openqa.selenium.chrome.*;
-import org.openqa.selenium.support.ui.ExpectedCondition;
-import org.openqa.selenium.support.ui.WebDriverWait;
-
-import static org.junit.Assert.*;
+import static com.jayway.restassured.RestAssured.*;
+import static org.hamcrest.Matchers.containsString;
+import static org.hamcrest.Matchers.equalTo;
+import static org.junit.Assert.assertNotNull;
 
 public class RelayWebServerTest {
 
@@ -53,7 +43,8 @@ public class RelayWebServerTest {
     private static ThaliListener thaliListener;
 
     @BeforeClass
-    public static void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException, KeyStoreException, KeyManagementException, InterruptedException {
+    public static void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
+            KeyStoreException, KeyManagementException, InterruptedException {
 
         CreateClientBuilder cb = new JavaEktorpCreateClientBuilder();
 
@@ -143,7 +134,7 @@ public class RelayWebServerTest {
     @Test
     public void RelayUtilityHttpKeyTest() {
 
-        String url = String.format("http://%s:%s/relayutility/localhttpkey", RelayWebServer.relayHost, RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/_relayutility/localhttpkey", RelayWebServer.relayHost, RelayWebServer.relayPort);
 
         // TODO: figure out how to properly check for a JSON key with wildcard value using REST-ASSURED.
         get(url).then()
