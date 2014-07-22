@@ -84,6 +84,7 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
     protected final Proxy proxy;
     protected final SchemeRegistry schemeRegistry;
     protected int torProxyRequestRetryCount = 10;
+    protected int maxConnections = 20;
 
     public HttpKeyHttpClient(PublicKey serverPublicKey, KeyStore clientKeyStore, char[] clientKeyStorePassPhrase,
             Proxy proxy, HttpParams params) throws UnrecoverableKeyException, NoSuchAlgorithmException,
@@ -118,15 +119,23 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
         // which is why we return a standard ThreadSafeClientConnManager when there is no
         // proxy and return a version with createConnectionOperator overridden only when
         // the connection is for SOCKS.
+
+        ThreadSafeClientConnManager connManager;
+
         if (proxy == null) {
-            return new ThreadSafeClientConnManager(getParams(), schemeRegistry);
+            connManager = new ThreadSafeClientConnManager(schemeRegistry);
+        }
+        else {
+            connManager = new ThreadSafeClientConnManager(schemeRegistry) {
+                @Override
+                protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
+                    return new HttpKeySocksProxyClientConnOperator(schreg, proxy);
+                }
+            };
         }
 
-        return new ThreadSafeClientConnManager(getParams(), schemeRegistry) {
-            @Override
-            protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
-                return new HttpKeySocksProxyClientConnOperator(schreg, proxy);
-            }
-        };
+        connManager.setDefaultMaxPerRoute(maxConnections);
+        connManager.setMaxTotal(maxConnections);
+        return connManager;
     }
 }

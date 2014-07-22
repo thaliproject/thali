@@ -16,6 +16,8 @@ apply plugin: 'maven'
 apply from: 'javafx.plugin'
 apply plugin: 'java-library-distribution'
 
+sourceCompatibility = '1.6'
+
 repositories {
     mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
@@ -32,8 +34,10 @@ dependencies {
     compile 'com.couchbase.lite:java:1.0.0-beta3rc1'
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
 
+    testCompile 'com.jayway.restassured:rest-assured:2.3.2'
     testCompile 'junit:junit:4.11'
     testCompile 'org.slf4j:slf4j-simple:1.7.7'
+    testCompile 'org.seleniumhq.selenium:selenium-java:2.42.2'
 }
 
 def mavenPath() {
