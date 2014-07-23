@@ -19,20 +19,19 @@ import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
-import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 import org.junit.AfterClass;
 import org.junit.BeforeClass;
 import org.junit.Test;
 
 import java.io.File;
 import java.io.IOException;
+import java.net.UnknownHostException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 
 import static com.jayway.restassured.RestAssured.*;
-import static org.hamcrest.Matchers.containsString;
 import static org.hamcrest.Matchers.equalTo;
 import static org.junit.Assert.assertNotNull;
 
@@ -52,9 +51,7 @@ public class RelayWebServerTest {
 
         thaliListener.startServer(new CreateContextInTemp(), ThaliListener.DefaultThaliDeviceHubPort, null);
 
-        int tdhPort = thaliListener.getSocketStatus().getPort();
-
-        server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), tdhPort);
+        server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), thaliListener.getHttpKeys());
         tempFileManager = new TestTempFileManager();
 
         server.start();
@@ -132,14 +129,15 @@ public class RelayWebServerTest {
     }
 
     @Test
-    public void RelayUtilityHttpKeyTest() {
+    public void RelayUtilityHttpKeyTest() throws UnknownHostException, InterruptedException {
 
-        String url = String.format("http://%s:%s/_relayutility/localhttpkey", RelayWebServer.relayHost, RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/_relayutility/localhttpkeys", RelayWebServer.relayHost,
+                RelayWebServer.relayPort);
 
-        // TODO: figure out how to properly check for a JSON key with wildcard value using REST-ASSURED.
+        // We should validate the JSON with a schema but, um... next time
         get(url).then()
-                .contentType("application/json")
-                .body(containsString("httpkey"))
+                .body("localMachineIPHttpKeyURL",
+                        equalTo(thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL().toString()))
                 .assertThat().statusCode(200);
     }
 

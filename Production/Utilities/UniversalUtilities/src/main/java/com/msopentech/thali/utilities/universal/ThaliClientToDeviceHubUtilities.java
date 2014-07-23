@@ -95,20 +95,39 @@ public class ThaliClientToDeviceHubUtilities {
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
                         httpClientNoServerValidation);
 
+        return configureClientAndGetCouchDbInstance(createClientBuilder,
+                new HttpKeyURL(serverPublicKey, host, port, null, null, null), passPhrase, proxy, clientKeyStore);
+    }
+
+    public static ThaliCouchDbInstance GetLocalCouchDbInstance(File filesDir, CreateClientBuilder createClientBuilder,
+                                                               HttpKeyURL serverHttpKey, char[] passPhrase,
+                                                               Proxy proxy)
+            throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
+        assert filesDir != null && filesDir.exists();
+
+        KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(filesDir);
+
+        return configureClientAndGetCouchDbInstance(createClientBuilder, serverHttpKey, passPhrase, proxy,
+                clientKeyStore);
+
+    }
+
+    private static ThaliCouchDbInstance configureClientAndGetCouchDbInstance(CreateClientBuilder createClientBuilder,
+                                                                             HttpKeyURL serverHttpKey, char[] passPhrase,
+                                                                             Proxy proxy, KeyStore clientKeyStore)
+            throws NoSuchAlgorithmException, KeyStoreException, KeyManagementException, UnrecoverableEntryException {
         HttpClient httpClientWithServerValidation =
-                createClientBuilder.CreateEktorpClient(host, port, serverPublicKey, clientKeyStore, passPhrase, proxy);
+                createClientBuilder.CreateEktorpClient(serverHttpKey, clientKeyStore, passPhrase, proxy);
 
         ThaliCouchDbInstance thaliCouchDbInstance = new ThaliCouchDbInstance(httpClientWithServerValidation);
 
         // Set up client key in permission database
         KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
-                (KeyStore.PrivateKeyEntry) clientKeyStore.getEntry(ThaliCryptoUtilities.ThaliKeyAlias,
-                        new KeyStore.PasswordProtection(passPhrase));
+                ThaliCryptoUtilities.getThaliListenerKeyStoreEntry(clientKeyStore);
 
         PublicKey clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 
         configureKeyInServersKeyDatabase(clientPublicKey, thaliCouchDbInstance);
-
         return thaliCouchDbInstance;
     }
 

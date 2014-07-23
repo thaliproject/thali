@@ -11,26 +11,21 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-package com.msopentech.thali.devicehub.javahub;
+package com.msopentech.thali.CouchDBListener.java;
 
 import com.couchbase.lite.JavaContext;
 
 import java.io.File;
 
 /**
- * Creates the context files in a .thali directory in the user's home directory
  * Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
  * https://github.com/couchbase/couchbase-lite-java-core/issues/117
  */
-class ContextInUserHomeDirectory extends JavaContext {
+public class JavaThaliListenerContext extends JavaContext {
     private final File rootDirectory;
 
-    public ContextInUserHomeDirectory() {
-        String rootDirectoryBasePath = System.getProperty("user.home");
-        rootDirectory = new File(rootDirectoryBasePath, ".thali/data/data/com.couchbase.cblite.test/files");
-        if (rootDirectory.exists() == false && rootDirectory.mkdirs() == false) {
-            throw new RuntimeException("Couldn't create rootDirectory: " + rootDirectory.getAbsolutePath());
-        }
+    public JavaThaliListenerContext(File rootDirectory) {
+        this.rootDirectory = rootDirectory;
     }
 
     @Override
@@ -40,10 +35,10 @@ class ContextInUserHomeDirectory extends JavaContext {
 
     @Override
     public File getFilesDir() {
-        // Unfortunately subdir is private, not public
+        // Unfortunately subdir is private, not public so I can't reference it directly
         File filesDir = new File(getRootDirectory(), "cblite");
         if (filesDir.exists() == false && filesDir.mkdirs() == false) {
-            throw new RuntimeException("Couldn't create filesDir: " + filesDir.getAbsolutePath());
+            throw new RuntimeException("Could create filesDir: " + filesDir.getAbsolutePath());
         }
         return filesDir;
     }

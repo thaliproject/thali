@@ -13,27 +13,26 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.relay;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.nanohttp.NanoHTTPD;
-import com.msopentech.thali.utilities.universal.CreateClientBuilder;
-import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
-import com.msopentech.thali.utilities.universal.ThaliCouchDbInstance;
-import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
+import com.msopentech.thali.utilities.universal.*;
+import com.sun.jndi.toolkit.url.Uri;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
 import org.apache.http.HttpHost;
 import org.apache.http.HttpResponse;
-import org.apache.http.StatusLine;
 import org.apache.http.client.HttpClient;
 import org.apache.http.entity.ByteArrayEntity;
-import org.apache.http.entity.InputStreamEntity;
 import org.apache.http.message.BasicHttpEntityEnclosingRequest;
-import org.apache.http.message.BasicStatusLine;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -49,7 +48,7 @@ public class RelayWebServer extends NanoHTTPD {
 
     // Host and port for the TDH
     private final String thaliDeviceHubHost = "127.0.0.1";
-    private int thaliDeviceHubPort;
+    private final ThaliListener.HttpKeyTypes httpKeyTypes;
 
     private HttpClient httpClient;
     private HttpHost httpHost;
@@ -57,25 +56,22 @@ public class RelayWebServer extends NanoHTTPD {
     private final List<String> doNotForwardHeaders = Arrays.asList("date", "connection", "keep-alive",
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
 
-    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory) throws UnrecoverableEntryException,
-            KeyManagementException, NoSuchAlgorithmException, KeyStoreException, IOException {
-         this(clientBuilder, keystoreDirectory, ThaliListener.DefaultThaliDeviceHubPort);
-    }
-
-    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory, int thaliDeviceHubPort)
+    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory,
+                          ThaliListener.HttpKeyTypes httpKeyTypes)
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException {
         super(relayHost, relayPort);
 
-        this.thaliDeviceHubPort = thaliDeviceHubPort;
+        this.httpKeyTypes = httpKeyTypes;
+
+        HttpKeyURL serverHttpKey = new HttpKeyURL(httpKeyTypes.getLocalMachineIPHttpKeyURL());
 
         // Get local couch DB instance
         ThaliCouchDbInstance thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
                         keystoreDirectory,
                         clientBuilder,
-                        thaliDeviceHubHost,
-                        thaliDeviceHubPort,
+                        serverHttpKey,
                         ThaliCryptoUtilities.DefaultPassPhrase,
                         null);
 
@@ -89,7 +85,7 @@ public class RelayWebServer extends NanoHTTPD {
         httpClient.getParams().setParameter("http.socket.timeout", new Integer(0));
 
         // Define an http host to address the new relay request to the TDH
-        httpHost = new HttpHost(thaliDeviceHubHost, thaliDeviceHubPort, "https");
+        httpHost = new HttpHost(serverHttpKey.getHost(), serverHttpKey.getPort(), "https");
     }
 
     @Override
@@ -97,15 +93,10 @@ public class RelayWebServer extends NanoHTTPD {
 
         Method method = session.getMethod();
         String queryString = session.getQueryParameterString();
-        String uri = session.getUri();
+        String path = session.getUri();
         Map<String, String> headers = session.getHeaders();
 
-        // If there is a query string, append it to URI
-        if (queryString != null && !queryString.isEmpty()) {
-            uri = uri.concat("?" + queryString);
-        }
-
-        LOG.info("URI: " + uri);
+        LOG.info("URI + Query: " + path + (queryString == null ? "" : "?" + queryString));
         LOG.info("METHOD: " + method.toString());
         LOG.info("ORIGIN: " + headers.get("origin"));
 
@@ -121,9 +112,16 @@ public class RelayWebServer extends NanoHTTPD {
 
         // Handle request for local HTTP Key URL
         // TODO: Temporary fake values, need to build hook to handle magic URLs and generate proper HTTPKey
-        if (uri.equalsIgnoreCase("/_relayutility/localhttpkey"))
+        if (path.equalsIgnoreCase("/_relayutility/localhttpkeys"))
         {
-            Response httpKeyResponse = new Response("{'httpkey':'427172846852162286227732782294920302420713842275481985193987416465727827594332841946536424113226184082100799979846263322298149064624948841718223595871002487468854371825902763487876571562308540746622769324666936426716328322661006174187432292824234387672928185522171868214215265962193686663919735268176833103576891577777488691009982184273100527780539366654312983859430294532482669543564769536996694547788895124139427128553090154213261621141595978827486497762585373289857851966036673745423578288467224472884115824176989596378133819214820984895929617664984282716722195955274042499434493624'}");
+            ObjectMapper mapper = new ObjectMapper();
+            String responseBody = null;
+            try {
+                responseBody = mapper.writeValueAsString(httpKeyTypes);
+            } catch (JsonProcessingException e) {
+                throw new RuntimeException("Could not generate localhttpkeys output", e);
+            }
+            Response httpKeyResponse = new Response(responseBody);
             AppendCorsHeaders(httpKeyResponse, headers);
             httpKeyResponse.setMimeType("application/json");
             httpKeyResponse.setStatus(Response.Status.OK);
@@ -148,10 +146,13 @@ public class RelayWebServer extends NanoHTTPD {
         // Make a new request which we will prepare for relaying to TDH
         BasicHttpEntityEnclosingRequest basicHttpRequest = null;
         try {
-            basicHttpRequest = buildRelayRequest(method, uri, headers, requestBody);
+            basicHttpRequest = buildRelayRequest(method, path, queryString, headers, requestBody);
         } catch (UnsupportedEncodingException e) {
             String message = "Unable to translate body to new request.\n" + ExceptionUtils.getStackTrace(e);
             return GenerateErrorResponse(message);
+        } catch (URISyntaxException e) {
+            return GenerateErrorResponse("Unable to generate the URL for the local TDH.\n" +
+                    ExceptionUtils.getStackTrace(e));
         }
 
         // Actually make the relayed call
@@ -206,7 +207,7 @@ public class RelayWebServer extends NanoHTTPD {
 
         // Prep all headers for our final response
         AppendCorsHeaders(clientResponse, headers);
-        CopyHeadersToResponse(clientResponse, tdhResponse.getAllHeaders());
+        copyHeadersToResponse(clientResponse, tdhResponse.getAllHeaders());
 
         return clientResponse;
     }
@@ -214,7 +215,7 @@ public class RelayWebServer extends NanoHTTPD {
     // Copy response headers to relayed response
     // Enable chunked transfer where appropriate
     // Skip various hop-to-hop headers
-    private void CopyHeadersToResponse(Response response, Header[] headers) {
+    private void copyHeadersToResponse(Response response, Header[] headers) {
         for(Header responseHeader : headers) {
             if (!doNotForwardHeaders.contains(responseHeader.getName().toLowerCase())) {
                 if (responseHeader.getName().equals("content-type")) {
@@ -227,10 +228,14 @@ public class RelayWebServer extends NanoHTTPD {
     }
 
     // Prepares a request which will be forwarded to the TDH by copying headers, body, etc
-    private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String uri, Map<String, String> headers, byte[] body) throws UnsupportedEncodingException {
+    private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String path, String query,
+                                                              Map<String, String> headers, byte[] body)
+            throws UnsupportedEncodingException, URISyntaxException {
+        URI baseHttpsUrl = new URI(new HttpKeyURL(httpKeyTypes.getLocalMachineIPHttpKeyURL()).createHttpsUrl());
+        String fullHttpsUrl = new URI(baseHttpsUrl.getScheme(), null, baseHttpsUrl.getHost(), baseHttpsUrl.getPort(),
+                path, query, null).toString();
         BasicHttpEntityEnclosingRequest basicHttpRequest =
-                new BasicHttpEntityEnclosingRequest(
-                        method.name(), "https://" + thaliDeviceHubHost + ":" + thaliDeviceHubPort + uri);
+                new BasicHttpEntityEnclosingRequest(method.name(), fullHttpsUrl);
 
         // Copy headers from incoming request to new relay request
         for(Map.Entry<String, String> entry : headers.entrySet()) {

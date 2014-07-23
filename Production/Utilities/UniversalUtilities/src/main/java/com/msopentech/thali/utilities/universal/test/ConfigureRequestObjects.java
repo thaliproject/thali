@@ -94,9 +94,7 @@ public class ConfigureRequestObjects {
                         httpClientNoServerValidation);
 
         KeyStore.PrivateKeyEntry clientPrivateKeyEntry =
-                (KeyStore.PrivateKeyEntry)
-                        clientKeyStore.getEntry(
-                                ThaliCryptoUtilities.ThaliKeyAlias, new KeyStore.PasswordProtection(passPhrase));
+                ThaliCryptoUtilities.getThaliListenerKeyStoreEntry(clientKeyStore, passPhrase);
 
         clientPublicKey = clientPrivateKeyEntry.getCertificate().getPublicKey();
 

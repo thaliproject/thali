@@ -13,35 +13,18 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.java.test;
 
-import com.couchbase.lite.JavaContext;
+import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 
 /**
  * Creates context using a temporary directory. It's not clear if this is safe in Android and so it lives in the Java
  * Utilities project.
- * Work around for https://github.com/couchbase/couchbase-lite-java/issues/4 and
- * https://github.com/couchbase/couchbase-lite-java-core/issues/117
  */
-class CreateContextInTemp extends JavaContext {
-    private final File tempDirectory;
-    public CreateContextInTemp() {
-        try {
-            tempDirectory = Files.createTempDirectory("javacoretest").toFile();
-            tempDirectory.deleteOnExit();
-            File filesDir = getFilesDir();
-            if (filesDir.exists() == false && filesDir.mkdirs() == false) {
-                throw new RuntimeException();
-            }
-        } catch (IOException e) {
-            throw new RuntimeException(e);
-        }
-    }
-
-    @Override
-    public File getRootDirectory() {
-        return tempDirectory;
+class CreateContextInTemp extends JavaThaliListenerContext {
+    public CreateContextInTemp() throws IOException {
+        super(Files.createTempDirectory("javacoretest").toFile());
+        getRootDirectory().deleteOnExit();
     }
 }

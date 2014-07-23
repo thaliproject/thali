@@ -92,10 +92,14 @@ public class JavaEktorpCreateClientBuilderTest {
         // I have to create a single global listener for all tests (which is really a mess in terms of bring sure
         // where bugs come from) because of https://github.com/couchbase/couchbase-lite-java-listener/issues/43
         if (testEktorpClient == null) {
+//            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 9898,
+//                    "hrl5z4arnyciqsll.onion", 9999,
+//                    ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
+//                    new JavaEktorpCreateClientBuilder(), this.getClass(), proxy);
+//
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 9898,
-                    "hrl5z4arnyciqsll.onion", 9999,
-                    ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
-                    new JavaEktorpCreateClientBuilder(), this.getClass(), proxy);
+                    null, 0, ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
+                    new JavaEktorpCreateClientBuilder(), this.getClass(), null);
 
             //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }
