@@ -102,7 +102,8 @@ public class ThaliCryptoUtilities {
             KeyStore keyStore = KeyStore.getInstance(PrivateKeyHolderFormat);
             keyStoreFileStream = new FileInputStream(keyStoreFile);
             keyStore.load(keyStoreFileStream, DefaultPassPhrase);
-            KeyStore.Entry thaliKeystoreEntry = keyStore.getEntry(ThaliKeyAlias, new KeyStore.PasswordProtection(DefaultPassPhrase));
+            KeyStore.Entry thaliKeystoreEntry =
+                    getThaliListenerKeyStoreEntry(keyStore);
 
             if (thaliKeystoreEntry == null) {
                 logger.debug("Could not find key in keystore under alias " + ThaliKeyAlias);
@@ -123,7 +124,9 @@ public class ThaliCryptoUtilities {
             }
 
             if (certificates.length != 1) {
-                logger.debug("More than one cert in chain, someday we will support that but not right now. Actual length was " + certificates.length );
+                logger.debug(
+                        "More than one cert in chain, someday we will support that but not right now. Actual length was "
+                                + certificates.length );
                 return null;
             }
 
@@ -183,6 +186,31 @@ public class ThaliCryptoUtilities {
                 }
             }
         }
+    }
+
+    public static KeyStore.PrivateKeyEntry getThaliListenerKeyStoreEntry(KeyStore keyStore) throws NoSuchAlgorithmException,
+            UnrecoverableEntryException, KeyStoreException {
+        return getThaliListenerKeyStoreEntry(keyStore, DefaultPassPhrase);
+    }
+
+    public static KeyStore.PrivateKeyEntry getThaliListenerKeyStoreEntry(KeyStore keyStore, char[] passPhrase)
+            throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException {
+        return (KeyStore.PrivateKeyEntry)
+                keyStore.getEntry(ThaliKeyAlias, new KeyStore.PasswordProtection(passPhrase));
+    }
+
+    /**
+     * This presumes a keystore created by our own utilities and yes we eventually need to come up with a better
+     * wrapper for all of this.
+     * @param keyStore
+     * @return
+     * @throws UnrecoverableKeyException
+     * @throws NoSuchAlgorithmException
+     * @throws KeyStoreException
+     */
+    public static PublicKey getAppKeyFromKeyStore(KeyStore keyStore) throws UnrecoverableKeyException,
+            NoSuchAlgorithmException, KeyStoreException {
+        return keyStore.getCertificate(ThaliKeyAlias).getPublicKey();
     }
 
     /**
@@ -295,19 +323,5 @@ public class ThaliCryptoUtilities {
         } catch (Exception e) {
             throw new RuntimeException(e.getMessage(), e);
         }
-    }
-
-    /**
-     * This presumes a keystore created by our own utilities and yes we eventually need to come up with a better
-     * wrapper for all of this.
-     * @param keyStore
-     * @return
-     * @throws UnrecoverableKeyException
-     * @throws NoSuchAlgorithmException
-     * @throws KeyStoreException
-     */
-    public static PublicKey RetrieveAppKeyFromKeyStore(KeyStore keyStore) throws UnrecoverableKeyException,
-            NoSuchAlgorithmException, KeyStoreException {
-        return keyStore.getCertificate(ThaliKeyAlias).getPublicKey();
     }
 }

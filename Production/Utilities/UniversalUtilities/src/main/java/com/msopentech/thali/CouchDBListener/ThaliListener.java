@@ -24,13 +24,18 @@ import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
 import com.couchbase.lite.util.Log;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.utilities.universal.CblLogTags;
+import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
+import org.apache.commons.io.IOUtils;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
-import java.security.KeyStore;
+import java.security.*;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -40,9 +45,10 @@ public class ThaliListener {
     public static final String DefaultThaliDeviceHubAddress = "127.0.0.1";
     public static final int DefaultThaliDeviceHubPort = 9898;
 
-    private LiteListener cblListener = null;
-    private boolean serverStarted = false;
-    private Manager manager = null;
+    private volatile LiteListener cblListener = null;
+    private volatile boolean serverStarted = false;
+    private volatile Manager manager = null;
+    private volatile PublicKey serverPublicKey = null;
 
     private void waitTillServerStarts() throws InterruptedException {
         while (cblListener == null && serverStarted) {
@@ -60,15 +66,15 @@ public class ThaliListener {
      * @param context
      * @param port
      */
-    public void startServer(final Context context, final int port, final Proxy proxy) {
+    public void startServer(final Context context, final int port, final Proxy proxy) throws
+            UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
         serverStarted = true;
         if (context == null) {
             throw new RuntimeException();
         }
 
-        KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(context.getFilesDir());
-
-        final KeyStore finalClientKeyStore = clientKeyStore;
+        final KeyStore finalClientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(context.getFilesDir());
+        serverPublicKey = ThaliCryptoUtilities.getAppKeyFromKeyStore(finalClientKeyStore);
 
         new Thread(new Runnable() {
             public void run() {
@@ -138,5 +144,25 @@ public class ThaliListener {
         waitTillServerStarts();
 
         return manager;
+    }
+
+    public class HttpKeyTypes {
+        protected final String localMachineIPHttpKeyURL;
+
+        public HttpKeyTypes(HttpKeyURL localMachineIpHttpKeyUrl) {
+            this.localMachineIPHttpKeyURL = localMachineIpHttpKeyUrl.toString();
+        }
+
+        public String getLocalMachineIPHttpKeyURL() {
+            return localMachineIPHttpKeyURL;
+        }
+    }
+
+    public HttpKeyTypes getHttpKeys() throws InterruptedException, UnknownHostException {
+        // Local access address
+        int portToUseForHttpKey = getSocketStatus().getPort();
+        String host = InetAddress.getLocalHost().getHostAddress();
+        HttpKeyURL localHttpKeyURL = new HttpKeyURL(serverPublicKey, host, portToUseForHttpKey, null, null, null);
+        return new HttpKeyTypes(localHttpKeyURL);
     }
 }

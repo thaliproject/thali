@@ -13,19 +13,49 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.devicehub.javahub;
 
+import com.couchbase.lite.Context;
 import com.couchbase.lite.JavaContext;
+import com.fasterxml.jackson.core.JsonGenerationException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.UnknownHostException;
+import java.nio.file.Files;
+import java.nio.file.attribute.PosixFilePermission;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
+import java.util.HashSet;
 
 public class ThaliDeviceHubService {
+    public static final String tdhJavaSubdirectory = ".thaliTdh";
+    public static final String httpKeysFileName = "httpkeys";
     protected ThaliListener thaliListener = null;
 
-    public void startService() {
+    public void startService() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
+            IOException, InterruptedException {
         thaliListener = new ThaliListener();
 
+        File userHomeDirectoryRoot = new File(System.getProperty("user.home"), tdhJavaSubdirectory);
+        JavaContext context = new JavaThaliListenerContext(userHomeDirectoryRoot);
         // TODO: We will replace with the proxy with a non-null object once we have deployment under control
-        thaliListener.startServer(new ContextInUserHomeDirectory(), ThaliListener.DefaultThaliDeviceHubPort, null);
+        thaliListener.startServer(context, ThaliListener.DefaultThaliDeviceHubPort, null);
+
+        // Writing out HttpKeys to root directory so relays and other clients can find them
+        File httpKeysFile = new File(context.getRootDirectory(), httpKeysFileName);
+        if (httpKeysFile.exists() && httpKeysFile.delete() == false) {
+            throw new RuntimeException("Could not delete httpkey file " + httpKeysFile.getAbsolutePath());
+        }
+
+        if (httpKeysFile.createNewFile() == false) {
+            throw new RuntimeException("could not create httpkey file " + httpKeysFile.getAbsolutePath());
+        }
+
+        ObjectMapper mapper = new ObjectMapper();
+        mapper.writeValue(httpKeysFile, thaliListener.getHttpKeys());
     }
 
     public void stopService() {

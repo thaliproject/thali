@@ -84,8 +84,8 @@ public class ThaliTestEktorpClient {
      * @param childClass This is the class object of the test environment that created this object
      */
     public ThaliTestEktorpClient(String tdhDirectHost, int tdhDirectPort, String tdhOnionHost, int tdhOnionPort,
-                                 char[] passPhrase, Context context, CreateClientBuilder createClientBuilder,
-                                 Class childClass, Proxy proxy)
+                                 char[] passPhrase, Context context,
+                                 CreateClientBuilder createClientBuilder, Class childClass, Proxy proxy)
             throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException,
             KeyManagementException, IOException {
 
