@@ -24,15 +24,12 @@ import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
 import com.couchbase.lite.util.Log;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import org.apache.commons.io.IOUtils;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 
-import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
@@ -144,18 +141,6 @@ public class ThaliListener {
         waitTillServerStarts();
 
         return manager;
-    }
-
-    public class HttpKeyTypes {
-        protected final String localMachineIPHttpKeyURL;
-
-        public HttpKeyTypes(HttpKeyURL localMachineIpHttpKeyUrl) {
-            this.localMachineIPHttpKeyURL = localMachineIpHttpKeyUrl.toString();
-        }
-
-        public String getLocalMachineIPHttpKeyURL() {
-            return localMachineIPHttpKeyURL;
-        }
     }
 
     public HttpKeyTypes getHttpKeys() throws InterruptedException, UnknownHostException {

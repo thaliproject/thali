@@ -13,22 +13,16 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.devicehub.javahub;
 
-import com.couchbase.lite.Context;
 import com.couchbase.lite.JavaContext;
-import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.UnknownHostException;
-import java.nio.file.Files;
-import java.nio.file.attribute.PosixFilePermission;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
-import java.util.HashSet;
 
 public class ThaliDeviceHubService {
     public static final String tdhJavaSubdirectory = ".thaliTdh";

@@ -15,10 +15,9 @@ package com.msopentech.thali.relay;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.CouchDBListener.HttpKeyTypes;
 import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.utilities.universal.*;
-import com.sun.jndi.toolkit.url.Uri;
 import org.apache.commons.io.IOUtils;
 import org.apache.commons.lang3.exception.ExceptionUtils;
 import org.apache.http.Header;
@@ -48,7 +47,7 @@ public class RelayWebServer extends NanoHTTPD {
 
     // Host and port for the TDH
     private final String thaliDeviceHubHost = "127.0.0.1";
-    private final ThaliListener.HttpKeyTypes httpKeyTypes;
+    private final HttpKeyTypes httpKeyTypes;
 
     private HttpClient httpClient;
     private HttpHost httpHost;
@@ -57,7 +56,7 @@ public class RelayWebServer extends NanoHTTPD {
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
 
     public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory,
-                          ThaliListener.HttpKeyTypes httpKeyTypes)
+                          HttpKeyTypes httpKeyTypes)
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException {
         super(relayHost, relayPort);

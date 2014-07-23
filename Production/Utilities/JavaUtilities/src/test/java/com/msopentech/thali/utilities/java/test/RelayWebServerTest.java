@@ -137,7 +137,7 @@ public class RelayWebServerTest {
         // We should validate the JSON with a schema but, um... next time
         get(url).then()
                 .body("localMachineIPHttpKeyURL",
-                        equalTo(thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL().toString()))
+                        equalTo(thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL()))
                 .assertThat().statusCode(200);
     }
 
