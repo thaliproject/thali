@@ -20,11 +20,9 @@ import javafx.application.Application;
 import javafx.scene.web.WebEngine;
 import javafx.scene.web.WebView;
 import javafx.stage.Stage;
-import org.junit.Test;
+import junit.framework.TestCase;
 
-import static org.junit.Assert.assertTrue;
-
-public class JavaFXBridgeManagerTest {
+public class JavaFXBridgeManagerTest extends TestCase {
     protected static BridgeManagerTest bridgeManagerTest = null;
 
     public static class AppHosting extends Application {
@@ -37,7 +35,6 @@ public class JavaFXBridgeManagerTest {
         }
     }
 
-    @Test
     public void testBridgeManager() throws InterruptedException {
         bridgeManagerTest = new BridgeManagerTest();
         new Thread() {

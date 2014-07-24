@@ -35,6 +35,7 @@ dependencies {
     compile 'com.couchbase.lite:couchbase-lite-java-listener:1.0.0-beta3rc1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
     compile 'org.apache.commons:commons-lang3:3.3.1'
+    compile 'com.msopentech.thali:ThaliOnionProxyUniversal:0.0.0'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.slf4j:slf4j-simple:1.7.7'

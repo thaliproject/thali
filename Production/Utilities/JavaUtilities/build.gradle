@@ -33,9 +33,10 @@ javafx {
 dependencies {
     compile 'com.couchbase.lite:java:1.0.0-beta3rc1'
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
+    compile 'com.msopentech.thali:ThaliOnionProxyJava:0.0.0'
 
-    testCompile 'com.jayway.restassured:rest-assured:2.3.2'
-    testCompile 'junit:junit:4.11'
+    testCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
+    testCompile 'junit:junit:3.8.2'
     testCompile 'org.slf4j:slf4j-simple:1.7.7'
     testCompile 'org.seleniumhq.selenium:selenium-java:2.42.2'
 }
@@ -84,3 +85,15 @@ artifacts {
     archives generateJavadocs
 }
 
+// Tests are copied over from Android
+task deleteTestFiles(type: Delete) {
+    delete 'src/test/java/com/msopentech/thali/utilities/test'
+}
+
+task copyTestFiles(type: Copy, dependsOn: deleteTestFiles) {
+    from "../AndroidUtilities/AndroidUtilities/src/androidTest/java/com/msopentech/thali/utilities/test"
+    into 'src/test/java/com/msopentech/thali/utilities/test'
+}
+
+build.dependsOn(copyTestFiles)
+uploadArchives.dependsOn(copyTestFiles)

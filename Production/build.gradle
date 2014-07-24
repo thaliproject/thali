@@ -14,7 +14,22 @@ some directory
 In other words that there is a single directory that contains all the relevant depots below including Thali.
  */
 
-task buildCouchbaseLiteJavaNative(type: GradleBuild) {
+task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
+    buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
+    tasks = ['test', 'uploadArchives']
+}
+
+task buildTorOnionProxyLibraryJava(type: GradleBuild) {
+    buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
+    tasks = ['test', 'uploadArchives']
+}
+
+task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
+    buildFile = '../../Tor_Onion_Proxy_Library/android/build.gradle'
+    tasks = ['connectedAndroidTest', 'uploadArchives']
+}
+
+task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
     tasks = ['test', 'uploadArchives']
 }
