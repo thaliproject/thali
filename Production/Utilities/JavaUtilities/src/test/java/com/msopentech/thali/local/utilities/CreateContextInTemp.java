@@ -22,7 +22,7 @@ import java.nio.file.Files;
  * Creates context using a temporary directory. It's not clear if this is safe in Android and so it lives in the Java
  * Utilities project.
  */
-class CreateContextInTemp extends JavaThaliListenerContext {
+public class CreateContextInTemp extends JavaThaliListenerContext {
     public CreateContextInTemp() throws IOException {
         super(Files.createTempDirectory("javacoretest").toFile());
         getRootDirectory().deleteOnExit();
