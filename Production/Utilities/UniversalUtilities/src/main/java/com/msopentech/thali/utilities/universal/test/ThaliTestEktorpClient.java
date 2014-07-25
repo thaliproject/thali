@@ -61,6 +61,9 @@ public class ThaliTestEktorpClient {
 
     public static final int MaximumTestRecords = 10;
 
+    // determine whether or not we should try using Tor
+    public static final boolean EnableTorTests = false;
+
     private final String tdhDirectHost;
     private final String tdhOnionHost;
     private final int tdhOnionPort;
@@ -104,8 +107,8 @@ public class ThaliTestEktorpClient {
         this.tdhDirectPort = thaliTestServer.getSocketStatus().getPort();
 
         configureRequestObjects =
-                new ConfigureRequestObjects(tdhDirectHost, tdhDirectPort, tdhOnionHost, tdhOnionPort, passPhrase,
-                        createClientBuilder, context, null, proxy);
+                    new ConfigureRequestObjects(tdhDirectHost, tdhDirectPort, tdhOnionHost, tdhOnionPort, passPhrase,
+                            createClientBuilder, context, null, proxy);
 
         checkIfChildClassExecutesAllTests(childClass);
     }
@@ -134,16 +137,24 @@ public class ThaliTestEktorpClient {
             InterruptedException, IOException, CouchbaseLiteException, URISyntaxException, UnrecoverableEntryException,
             KeyStoreException, KeyManagementException {
         replicationTestEngine(false, false);
-        setUp();
-        replicationTestEngine(false, true);
+
+        if(EnableTorTests)
+        {
+            setUp();
+            replicationTestEngine(false, true);
+        }
     }
 
     public void testPushReplication() throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException,
             KeyStoreException, IOException, InterruptedException, InvalidKeySpecException, URISyntaxException,
             CouchbaseLiteException {
         replicationTestEngine(true, false);
-        setUp();
-        replicationTestEngine(true, true);
+
+        if(EnableTorTests)
+        {
+            setUp();
+            replicationTestEngine(true, true);
+        }
     }
 
     /**
@@ -254,12 +265,15 @@ public class ThaliTestEktorpClient {
                 MaximumTestRecords, configureRequestObjects.clientPublicKey);
 
         ThaliTestUtilities.validateDatabaseState(configureRequestObjects.testDatabaseConnector, testDocuments);
-        ThaliTestUtilities.validateDatabaseState(configureRequestObjects.torTestDatabaseConnector, testDocuments);
-
         runBadKeyTest(tdhDirectHost, tdhDirectPort, createClientBuilder, configureRequestObjects.serverPublicKey,
-                configureRequestObjects.clientKeyStore, passPhrase, null);
-        runBadKeyTest(tdhOnionHost, tdhOnionPort, createClientBuilder, configureRequestObjects.serverPublicKey,
-                configureRequestObjects.clientKeyStore, passPhrase, proxy);
+               	configureRequestObjects.clientKeyStore, passPhrase, null);
+
+	    if(EnableTorTests)
+	    {
+            ThaliTestUtilities.validateDatabaseState(configureRequestObjects.torTestDatabaseConnector, testDocuments);
+            runBadKeyTest(tdhOnionHost, tdhOnionPort, createClientBuilder, configureRequestObjects.serverPublicKey,
+            	configureRequestObjects.clientKeyStore, passPhrase, proxy);
+	    }
     }
 
     protected void checkIfChildClassExecutesAllTests(Class childClass) {
