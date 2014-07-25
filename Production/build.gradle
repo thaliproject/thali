@@ -88,12 +88,7 @@ task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceH
     tasks = ['connectedAndroidTest', 'build'] // This isn't a library, it's an 'executable', this builds the apk file
 }
 
-task buildThaliAndroidSdk(type: GradleBuild, dependsOn:'buildThaliDeviceHubAndroid') {
-    buildFile = 'ThaliApplicationSDKs/AndroidPouchDbSDK/build.gradle'
-    tasks = ['connectedAndroidTest', 'build'] // This isn't a library, it's a wrapper project that produces an executable
-}
-
-task globalBuild(dependsOn: 'buildThaliAndroidSdk'){}
+task globalBuild(dependsOn: 'buildThaliDeviceHubAndroid'){}
 
 
 // BUILD THE PPNET DEMO

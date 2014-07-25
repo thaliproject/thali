@@ -33,6 +33,8 @@ android {
         exclude 'META-INF/ASL2.0'
         exclude 'META-INF/LICENSE.txt'
         exclude 'META-INF/NOTICE.txt'
+        pickFirst 'BridgeHandlerTest.js' // Causing a double import of ThaliUtilitiesUniversal for no apparent reason
+        pickFirst 'BridgeManager.js' // See previous
     }
 }
 
