@@ -19,7 +19,7 @@ task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
     tasks = ['test', 'uploadArchives']
 }
 
-task buildTorOnionProxyLibraryJava(type: GradleBuild) {
+task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
     tasks = ['test', 'uploadArchives']
 }
