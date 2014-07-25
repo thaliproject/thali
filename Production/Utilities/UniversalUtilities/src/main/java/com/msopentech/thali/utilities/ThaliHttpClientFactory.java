@@ -14,17 +14,16 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities;
 
 import com.couchbase.lite.support.HttpClientFactory;
-import com.msopentech.thali.utilities.universal.*;
+import com.msopentech.thali.utilities.universal.HttpKeyHttpClient;
+import com.msopentech.thali.utilities.universal.HttpKeySSLSocketFactory;
 import org.apache.http.client.CookieStore;
 import org.apache.http.client.HttpClient;
-import org.apache.http.conn.ClientConnectionManager;
 import org.apache.http.conn.scheme.Scheme;
 import org.apache.http.conn.scheme.SchemeRegistry;
 import org.apache.http.cookie.Cookie;
-import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
 import org.apache.http.params.BasicHttpParams;
 
-import java.net.*;
+import java.net.Proxy;
 import java.security.*;
 import java.util.List;
 

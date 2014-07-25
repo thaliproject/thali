@@ -23,11 +23,7 @@ apply plugin: 'android-library'
 apply plugin: 'maven'
 
 repositories {
-    // http://issues.gradle.org/browse/GRADLE-2984 is, I think, making mavenLocal() not work for aar files
-    // or not, not sure. But in any case forcing mavenLocal using the syntax below makes things work for aar files.
-    // This bug is supposedly fixed in Gradle 1.11.
-    maven { url "${System.getProperty('user.home')}/.m2/repository" }
-    //mavenLocal()
+    mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
     maven { url 'http://files.couchbase.com/maven2/' }
@@ -50,6 +46,9 @@ android {
         exclude 'META-INF/ASL2.0'
         exclude 'META-INF/NOTICE.txt' //https://groups.google.com/forum/#!topic/adt-dev/bl5Rc4Szpzg
         exclude 'META-INF/LICENSE.txt'
+        pickFirst 'BridgeHandlerTest.js' // Causing a double import of ThaliUtilitiesUniversal for no apparent reason
+        pickFirst 'BridgeManager.js' // See previous
+        exclude 'LICENSE.txt' // This is from the hamcrest-library we use for testing brought in by jayway's jsonpath
     }
 }
 
@@ -57,9 +56,12 @@ dependencies {
     compile 'com.couchbase.lite:couchbase-lite-android:1.0.0-beta3rc1'
     compile 'org.ektorp:org.ektorp.android:1.4.2'
     compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
+    compile 'com.msopentech.thali:ThaliOnionProxyAndroid:0.0.0'
 
     //fileTree(dir: 'libs', include: '*.jar')
     androidTestCompile 'org.slf4j:slf4j-android:1.7.7'
+    androidTestCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
+
 }
 
 def mavenPath() {

@@ -14,31 +14,22 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.java.test;
 
 import com.couchbase.lite.CouchbaseLiteException;
-import com.msopentech.thali.CouchDBListener.ThaliListener;
-import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
-import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.test.ThaliTestEktorpClient;
-import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
-import org.junit.After;
-import org.junit.Before;
-import org.junit.Test;
-import org.slf4j.impl.SimpleLogger;
+import junit.framework.TestCase;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.URISyntaxException;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableEntryException;
 import java.security.spec.InvalidKeySpecException;
-import java.util.logging.ConsoleHandler;
-import java.util.logging.Level;
-import java.util.logging.Logger;
 
-public class JavaEktorpCreateClientBuilderTest {
+public class JavaEktorpCreateClientBuilderTest extends TestCase {
     private static ThaliTestEktorpClient testEktorpClient = null;
 
-    @Before
     public void setUp() throws IOException, InterruptedException, KeyManagementException, UnrecoverableEntryException,
             NoSuchAlgorithmException, KeyStoreException {
         //ThaliTestUtilities.outputAsMuchLoggingAsPossible();
@@ -97,36 +88,28 @@ public class JavaEktorpCreateClientBuilderTest {
 //                    ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
 //                    new JavaEktorpCreateClientBuilder(), this.getClass(), proxy);
 //
-            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 9898,
-                    null, 0, ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
-                    new JavaEktorpCreateClientBuilder(), this.getClass(), null);
-
             //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }
 
         testEktorpClient.setUp();
     }
 
-    @After
     public void tearDown() {
         testEktorpClient.tearDown();
     }
 
-    @Test
     public void testPullReplication() throws InterruptedException, NoSuchAlgorithmException, CouchbaseLiteException,
             URISyntaxException, IOException, InvalidKeySpecException, KeyManagementException,
             UnrecoverableEntryException, KeyStoreException {
         testEktorpClient.testPullReplication();
     }
 
-    @Test
     public void testPushReplication() throws IOException, NoSuchAlgorithmException, URISyntaxException,
             UnrecoverableEntryException, InterruptedException, CouchbaseLiteException, KeyStoreException,
             InvalidKeySpecException, KeyManagementException {
         testEktorpClient.testPushReplication();
     }
 
-    @Test
     public void testRetrieve() throws InterruptedException, NoSuchAlgorithmException, IOException,
             KeyManagementException, KeyStoreException, UnrecoverableEntryException, InvalidKeySpecException {
         testEktorpClient.testRetrieve();

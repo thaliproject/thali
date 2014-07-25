@@ -67,7 +67,10 @@ http://www.gnu.org/licenses/lgpl.html
 
 package com.msopentech.thali.utilities.universal;
 
+import com.msopentech.thali.toronionproxy.OsData;
 import org.apache.http.conn.*;
+import org.apache.http.conn.params.ConnManagerParams;
+import org.apache.http.conn.params.ConnPerRouteBean;
 import org.apache.http.conn.scheme.*;
 import org.apache.http.impl.client.*;
 import org.apache.http.impl.conn.tsccm.*;
@@ -115,6 +118,15 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
 
     @Override
     protected ClientConnectionManager createClientConnectionManager() {
+        switch(OsData.getOsType()) {
+            case Android:
+                return androidCreateClientConnectionManager();
+            default:
+                return javaCreateClientConnectionManager();
+        }
+    }
+
+    protected ClientConnectionManager javaCreateClientConnectionManager() {
         // Note that HttpKeySocksProxyClientConnOperator only supports SOCKS connections
         // which is why we return a standard ThreadSafeClientConnManager when there is no
         // proxy and return a version with createConnectionOperator overridden only when
@@ -122,6 +134,12 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
 
         ThreadSafeClientConnManager connManager;
 
+        // It turns out that there is a bug in the Apache code we are using that if you use the argument
+        // constructor below it will ignore anything you set in terms of httpParams and so we only get
+        // 2 connections per destination which doesn't work for the realy who is sending lots of connections
+        // to the local TDH. The work around is to use the single argument constructor below. Unfortunately this
+        // constructor doesn't work in Android who has an even older version of the code, hence why we have to
+        // methods.
         if (proxy == null) {
             connManager = new ThreadSafeClientConnManager(schemeRegistry);
         }
@@ -136,6 +154,32 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
 
         connManager.setDefaultMaxPerRoute(maxConnections);
         connManager.setMaxTotal(maxConnections);
+        return connManager;
+    }
+
+    protected ClientConnectionManager androidCreateClientConnectionManager() {
+        // Note that HttpKeySocksProxyClientConnOperator only supports SOCKS connections
+        // which is why we return a standard ThreadSafeClientConnManager when there is no
+        // proxy and return a version with createConnectionOperator overridden only when
+        // the connection is for SOCKS.
+
+        ThreadSafeClientConnManager connManager;
+        HttpParams httpParams = getParams();
+        httpParams.setParameter(ConnManagerParams.MAX_CONNECTIONS_PER_ROUTE, new ConnPerRouteBean(maxConnections));
+        httpParams.setParameter(ConnManagerParams.MAX_TOTAL_CONNECTIONS, maxConnections);
+
+        if (proxy == null) {
+            connManager = new ThreadSafeClientConnManager(httpParams, schemeRegistry);
+        }
+        else {
+            connManager = new ThreadSafeClientConnManager(httpParams, schemeRegistry) {
+                @Override
+                protected ClientConnectionOperator createConnectionOperator(SchemeRegistry schreg) {
+                    return new HttpKeySocksProxyClientConnOperator(schreg, proxy);
+                }
+            };
+        }
+
         return connManager;
     }
 }
