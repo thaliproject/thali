@@ -19,6 +19,7 @@ import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.relay.RelayWebServer;
 
 import java.io.IOException;
+import java.net.URLEncoder;
 import java.util.HashMap;
 
 public class RelayWebServerTest extends UtilitiesTestCase {
@@ -84,6 +85,12 @@ public class RelayWebServerTest extends UtilitiesTestCase {
 
         // Keys from our record should be in the response if 'include_docs' was obeyed
         //get(getUrl).then().assertThat().statusCode(200).body("rows[0].doc.two", equalTo(2));
+        RestTestMethods.testGet(getUrl, null, 200, null, new HashMap<String, Object>(){{ put("$.rows[0].doc.two", 2);}});
+
+        // This tests if we are double encoding. If we do then the %5F will get turned into
+        // %255F and will fail on CouchBase. If we aren't double encoded then it will get properly
+        // decoded and life will be good. We hope.
+        getUrl = url + "/_all%5Fdocs?include_docs=true";
         RestTestMethods.testGet(getUrl, null, 200, null, new HashMap<String, Object>(){{ put("$.rows[0].doc.two", 2);}});
     }
 

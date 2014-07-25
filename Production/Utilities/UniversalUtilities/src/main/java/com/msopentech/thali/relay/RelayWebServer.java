@@ -32,6 +32,7 @@ import org.slf4j.LoggerFactory;
 import java.io.*;
 import java.net.URI;
 import java.net.URISyntaxException;
+import java.net.URLEncoder;
 import java.nio.ByteBuffer;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
@@ -230,9 +231,17 @@ public class RelayWebServer extends NanoHTTPD {
     private BasicHttpEntityEnclosingRequest buildRelayRequest(Method method, String path, String query,
                                                               Map<String, String> headers, byte[] body)
             throws UnsupportedEncodingException, URISyntaxException {
-        URI baseHttpsUrl = new URI(new HttpKeyURL(httpKeyTypes.getLocalMachineIPHttpKeyURL()).createHttpsUrl());
-        String fullHttpsUrl = new URI(baseHttpsUrl.getScheme(), null, baseHttpsUrl.getHost(), baseHttpsUrl.getPort(),
-                path, query, null).toString();
+        HttpKeyURL baseUrl = new HttpKeyURL(httpKeyTypes.getLocalMachineIPHttpKeyURL());
+        // When NanoHTTPD decodes the incoming URL in the session object it breaks the URL into three parts.
+        // There is the path which is URL decoded before being handed over.
+        // There is the query string which is NOT URL decoded before being handed over.
+        // And there are the params which are the query parameters of the URL broken out and decoded
+        // To make sure encoding is handled correctly we have chosen to use the URI class to create the
+        // base and provide the URL decoded path. We then manually append the query parameter which is already
+        // encoded. The reason for taking this approach is that it supports wacky query strings that don't
+        // encode correctly or have other strange behavior.
+        String fullHttpsUrl = new URI("https", null, baseUrl.getHost(), baseUrl.getPort(),
+                path, null, null).toString() + ((query == null || query.isEmpty()) ? "" : "?" + query);
         BasicHttpEntityEnclosingRequest basicHttpRequest =
                 new BasicHttpEntityEnclosingRequest(method.name(), fullHttpsUrl);
 
