@@ -54,7 +54,7 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
         //ThaliListener.DefaultThaliDeviceHubAddress
 
         if (testEktorpClient == null) {
-            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 9600,
+            testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 0,
                     "hrl5z4arnyciqsll.onion", 10000,
                     ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),
                     new AndroidEktorpCreateClientBuilder(), this.getClass(), proxy);

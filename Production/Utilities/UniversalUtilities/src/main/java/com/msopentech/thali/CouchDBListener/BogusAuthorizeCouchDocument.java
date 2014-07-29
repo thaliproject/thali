@@ -29,9 +29,6 @@ import java.security.spec.RSAPublicKeySpec;
 import java.util.HashMap;
 import java.util.Map;
 
-/**
- * Created by yarong on 12/25/13.
- */
 public class BogusAuthorizeCouchDocument extends CouchDbDocument {
     public static final java.lang.String RSAKeyType = "RSAKeyType";
 
@@ -106,6 +103,7 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
     public static void addDocViaManager(Manager manager, final RSAPublicKey publicKeyToAdd) throws CouchbaseLiteException {
         Database keyDatabase = manager.getDatabase(ThaliListener.KeyDatabaseName);
         Document keyDocument = new Document(keyDatabase, generateRsaKeyId(publicKeyToAdd));
+        keyDocument.delete();
         Map<String, Object> properties = new HashMap<String, Object>() {{
             put("keyType", RSAKeyType);
             put("modulus", publicKeyToAdd.getModulus().toString());
