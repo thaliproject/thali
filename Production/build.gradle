@@ -54,7 +54,6 @@ task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLite
     buildFile = '../../couchbase-lite-android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = [/*'connectedAndroidTest',*/ 'uploadArchives']
->>>>>>> upstream/master
 }
 
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
@@ -88,7 +87,7 @@ task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUti
 task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['connectedAndroidTest', 'test', 'uploadArchives']
+    tasks = [/*'connectedAndroidTest',*/ 'test', 'uploadArchives']
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {

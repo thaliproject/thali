@@ -11,16 +11,17 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
+apply plugin: 'android-library'
+apply plugin: 'maven'
+
 buildscript {
     repositories {
         mavenCentral()
     }
     dependencies {
-        classpath 'com.android.tools.build:gradle:0.9.+'
+        classpath 'com.android.tools.build:gradle:0.10.+'
     }
 }
-apply plugin: 'android-library'
-apply plugin: 'maven'
 
 repositories {
     mavenLocal()
@@ -35,7 +36,7 @@ android {
     buildToolsVersion "19.0.1"
 
     defaultConfig {
-        minSdkVersion 18
+        minSdkVersion 19
         targetSdkVersion 19
     }
 
