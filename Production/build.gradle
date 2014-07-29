@@ -29,7 +29,7 @@ task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionP
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
     buildFile = '../../Tor_Onion_Proxy_Library/android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['connectedAndroidTest', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
@@ -53,7 +53,7 @@ task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbas
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
     buildFile = '../../couchbase-lite-android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['connectedAndroidTest', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
@@ -87,7 +87,7 @@ task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUti
 task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['connectedAndroidTest', 'test', 'uploadArchives']
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
@@ -97,9 +97,9 @@ task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubU
 }
 
 task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {
-    buildFile = 'ThaliDeviceHub/android/android/build.gradle'
+    buildFile = 'ThaliDeviceHub/android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['build'] // This isn't a library, it's an 'executable', this builds the apk file
+    tasks = ['connectedAndroidTest', 'build'] // This isn't a library, it's an 'executable', this builds the apk file
 }
 
 task globalBuild(dependsOn: 'buildThaliDeviceHubAndroid'){}
