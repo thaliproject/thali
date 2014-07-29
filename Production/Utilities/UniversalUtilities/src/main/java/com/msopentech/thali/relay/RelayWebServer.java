@@ -52,7 +52,7 @@ public class RelayWebServer extends NanoHTTPD {
 
     // Host and port for the TDH
     private final String thaliDeviceHubHost = "127.0.0.1";
-    private final HttpKeyTypes httpKeyTypes;
+    private volatile HttpKeyTypes httpKeyTypes;
 
     private HttpClient httpClient;
     private HttpHost httpHost;
@@ -92,9 +92,12 @@ public class RelayWebServer extends NanoHTTPD {
         httpHost = new HttpHost(serverHttpKey.getHost(), serverHttpKey.getPort(), "https");
     }
 
+    public void setHttpKeyTypes(HttpKeyTypes httpKeyTypes) {
+        this.httpKeyTypes = httpKeyTypes;
+    }
+
     @Override
     public Response serve(IHTTPSession session) {
-
         Method method = session.getMethod();
         String queryString = session.getQueryParameterString();
         String path = session.getUri();
