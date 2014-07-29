@@ -13,6 +13,10 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.CouchDBListener;
 
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Database;
+import com.couchbase.lite.Document;
+import com.couchbase.lite.Manager;
 import org.ektorp.support.CouchDbDocument;
 
 import java.math.BigInteger;
@@ -22,6 +26,8 @@ import java.security.PublicKey;
 import java.security.interfaces.RSAPublicKey;
 import java.security.spec.InvalidKeySpecException;
 import java.security.spec.RSAPublicKeySpec;
+import java.util.HashMap;
+import java.util.Map;
 
 /**
  * Created by yarong on 12/25/13.
@@ -90,5 +96,22 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
 
     public static String generateRsaKeyId(java.security.interfaces.RSAPublicKey rsaPublicKey) {
         return RSAKeyType + ":" + rsaPublicKey.getModulus().toString() + ":" + rsaPublicKey.getPublicExponent().toString();
+    }
+
+    /**
+     * This is a hack we are using to add the TDH's key to its own database. Eventually this code
+     * will go away when we have a more formal group and acl mechanism.
+     * @param manager
+     */
+    public static void addDocViaManager(Manager manager, final RSAPublicKey publicKeyToAdd) throws CouchbaseLiteException {
+        Database keyDatabase = manager.getDatabase(ThaliListener.KeyDatabaseName);
+        Document keyDocument = new Document(keyDatabase, generateRsaKeyId(publicKeyToAdd));
+        Map<String, Object> properties = new HashMap<String, Object>() {{
+            put("keyType", RSAKeyType);
+            put("modulus", publicKeyToAdd.getModulus().toString());
+            put("exponent", publicKeyToAdd.getPublicExponent().toString());
+        }};
+        keyDocument.putProperties(properties);
+        keyDocument.createRevision();
     }
 }

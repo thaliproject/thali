@@ -101,11 +101,6 @@ public class ConfigureRequestObjects {
         replicationDatabaseConnector = thaliCouchDbInstance.createConnector(
                 ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
 
-        // Last but not least we need to provision the databases own key inside itself. The reason is
-        // that we are doing replication tests where the database talks to itself. So if its own key isn't
-        // in its own authorization database then it won't let itself talk to itself!
-        ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(serverPublicKey, thaliCouchDbInstance);
-
         HttpClient torHttpClient = createClientBuilder.CreateEktorpClient(tdhOnionHost, tdhOnionPort, serverPublicKey,
                 clientKeyStore, passPhrase, onionProxy);
         torThaliCouchDbInstance = new ThaliCouchDbInstance(torHttpClient);
