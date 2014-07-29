@@ -164,5 +164,3 @@ distZip.dependsOn deletePouchAPKFromChromeExtension
 task buildPPNETDemo(dependsOn: distZip) {
 }
 
-
-
