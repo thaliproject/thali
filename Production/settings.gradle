@@ -1,0 +1,7 @@
+include ':Utilities:UniversalUtilities'
+include ':Utilities:JavaUtilities'
+include ':Utilities:AndroidUtilities'
+
+include ':ThaliDeviceHub:Universal'
+include ':ThaliDeviceHub:android'
+include ':ThaliDeviceHub:java'
