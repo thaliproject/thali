@@ -20,11 +20,14 @@
             android:label="@string/app_name" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
-
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
-        <service android:name=".ThaliDeviceHubService" android:exported="false" />
+        <service android:name="com.msopentech.thali.devicehub.android.ThaliDeviceHubService" android:exported="true">
+            <intent-filter>
+                <action android:name="com.msopentech.thali.devicehub.android.ThaliDeviceHubService"></action>
+            </intent-filter>
+        </service>
     </application>
 
 </manifest>

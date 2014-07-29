@@ -15,10 +15,7 @@ package com.msopentech.thali.CouchDBListener;
 
 import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
-import com.couchbase.lite.Context;
-import com.couchbase.lite.CouchbaseLiteException;
-import com.couchbase.lite.Manager;
-import com.couchbase.lite.ManagerOptions;
+import com.couchbase.lite.*;
 import com.couchbase.lite.auth.AuthorizerFactory;
 import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
@@ -90,6 +87,10 @@ public class ThaliListener {
                     // This creates the database used to store the keys of remote applications that are authorized to use
                     // the system in case it doesn't already exist.
                     manager.getDatabase(KeyDatabaseName);
+
+                    // Provision the TDH in its own key database so it can do replications to itself
+                    // https://github.com/thaliproject/thali/issues/45
+                    BogusAuthorizeCouchDocument.addDocViaManager(manager, (java.security.interfaces.RSAPublicKey) serverPublicKey);
                 } catch (IOException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
                     return;

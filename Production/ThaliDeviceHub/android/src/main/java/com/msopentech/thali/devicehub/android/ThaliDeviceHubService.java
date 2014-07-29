@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.devicehub.android;
 
+import android.app.Notification;
 import android.app.Service;
 import android.content.Intent;
 import android.os.IBinder;
@@ -21,6 +22,7 @@ import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 
+import java.net.UnknownHostException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
 import java.security.UnrecoverableKeyException;
@@ -50,7 +52,13 @@ import java.security.UnrecoverableKeyException;
  * claim the foreground service role.
  */
 public class ThaliDeviceHubService extends Service {
+    public static final String HttpKeysNotification = "com.msopentech.thali.devicehub.android.httpkeys";
+    public static final String LocalMachineIPHttpKeyURLName = "LocalMachineIPHttpKeyURL";
     protected ThaliListener thaliListener = null;
+
+    // These values are used for testing
+    public volatile boolean thaliListenerRunning = false;
+    public volatile boolean httpKeysSentByBroadcast = false;
 
     @Override
     public void onCreate() {
@@ -60,6 +68,8 @@ public class ThaliDeviceHubService extends Service {
         try {
             thaliListener.startServer(new AndroidContext(getApplicationContext()), ThaliListener.DefaultThaliDeviceHubPort,
                     null);
+            thaliListenerRunning = true;
+            return;
         } catch (UnrecoverableKeyException e) {
             Log.e(CblLogTags.TAG_THALI_LISTENER, "Couldn't start", e);
         } catch (NoSuchAlgorithmException e) {
@@ -67,17 +77,39 @@ public class ThaliDeviceHubService extends Service {
         } catch (KeyStoreException e) {
             Log.e(CblLogTags.TAG_THALI_LISTENER, "Couldn't start", e);
         }
+        thaliListenerRunning = false;
     }
 
     @Override
     public void onDestroy() {
         if (thaliListener != null) {
             thaliListener.stopServer();
+            thaliListenerRunning = false;
+            httpKeysSentByBroadcast = false;
         }
     }
 
     @Override
     public int onStartCommand(Intent intent, int flags, int startId) {
+        // onStartCommand is called on the main thread and getHttpKeys calls getStatus which blocks so we
+        // spawn another thread.
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Intent httpKeysIntent = new Intent(HttpKeysNotification);
+                try {
+                    httpKeysIntent.putExtra(LocalMachineIPHttpKeyURLName, thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());
+                    sendBroadcast(httpKeysIntent);
+                    httpKeysSentByBroadcast = true;
+                    return;
+                } catch (InterruptedException e) {
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "We could not get http keys from the listener.", e);
+                } catch (UnknownHostException e) {
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "We could not get http keys from the listener.", e);
+                }
+                httpKeysSentByBroadcast = false;
+            }
+        }).start();
         return START_STICKY;
     }
 

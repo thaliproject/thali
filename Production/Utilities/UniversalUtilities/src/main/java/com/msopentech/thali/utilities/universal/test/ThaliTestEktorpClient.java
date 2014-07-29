@@ -107,7 +107,7 @@ public class ThaliTestEktorpClient {
         this.tdhDirectPort = thaliTestServer.getSocketStatus().getPort();
 
         configureRequestObjects =
-                    new ConfigureRequestObjects(tdhDirectHost, tdhDirectPort, tdhOnionHost, tdhOnionPort, passPhrase,
+                    new ConfigureRequestObjects(tdhDirectHost, this.tdhDirectPort, tdhOnionHost, tdhOnionPort, passPhrase,
                             createClientBuilder, context, null, proxy);
 
         checkIfChildClassExecutesAllTests(childClass);
