@@ -122,7 +122,7 @@ if (gradle.startParameter.taskNames.contains("globalBuild")) {
 }
 
 task globalBuild(
-    dependsOn: [buildThaliDependencies],
+    dependsOn: [buildThali],
     description: 'Builds, tests, uploads artifacts for Thali, Couchbase, Tor projects'
 )
 
