@@ -116,13 +116,14 @@ ext.buildThaliDependencies = [
     'buildThaliUniversalUtilities',
 ]
 
+
 task buildThali(
     dependsOn: [buildThaliDependencies],
     description: 'Builds, tests, uploads artifacts for Thali'
 )
 
 task globalBuild(
-    dependsOn: [buildThaliDependencies, buildCouchbaseLiteJava],
+    dependsOn: [buildCouchbaseLiteJava, buildThaliDependencies],
     description: 'Builds, tests, uploads artifacts for Thali, Couchbase, Tor projects'
 )
 
