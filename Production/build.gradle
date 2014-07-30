@@ -17,13 +17,13 @@ In other words that there is a single directory that contains all the relevant d
 task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
     buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
@@ -32,22 +32,22 @@ task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOni
     tasks = [/*'connectedAndroidTest',*/ 'uploadArchives']
 }
 
-task buildCouchbaseLiteJavaNative(type: GradleBuild) {
+task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
     buildFile = '../../couchbase-lite-java-core/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
     buildFile = '../../couchbase-lite-java-listener/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
@@ -59,7 +59,7 @@ task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLite
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
     buildFile = '../../couchbase-lite-java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 // NOTE: I AM NOT BUILDING EKTORP! We haven't edited it in forever, it uses maven to build and not gradle and I
@@ -69,7 +69,7 @@ task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAnd
 task buildThaliUniversalUtilities(type: GradleBuild) {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliJavaUtilities(type: GradleBuild) {
@@ -122,7 +122,7 @@ if (gradle.startParameter.taskNames.contains("globalBuild")) {
 }
 
 task globalBuild(
-    dependsOn: [buildThali],
+    dependsOn: [buildThaliDependencies],
     description: 'Builds, tests, uploads artifacts for Thali, Couchbase, Tor projects'
 )
 
