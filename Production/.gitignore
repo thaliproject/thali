@@ -1,6 +1,22 @@
+# Android Studio
 .idea
-.gradle
-*.iml
+.iml
 
-out
-build
+# Mac
+.DS_Store
+
+# Maven
+log/
+target/
+
+# Eclipse
+.classpath
+.project
+.settings/
+
+# Gradle
+.gradle
+build/
+local.properties
+
+out/
