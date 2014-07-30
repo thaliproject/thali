@@ -17,6 +17,7 @@ import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.Database;
 import com.couchbase.lite.Document;
 import com.couchbase.lite.Manager;
+import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import org.ektorp.support.CouchDbDocument;
 
 import java.math.BigInteger;
@@ -30,11 +31,9 @@ import java.util.HashMap;
 import java.util.Map;
 
 public class BogusAuthorizeCouchDocument extends CouchDbDocument {
-    public static final java.lang.String RSAKeyType = "RSAKeyType";
-
     private String modulus = null;
     private String exponent = null;
-    private String keyType = RSAKeyType;
+    private String keyType = HttpKeyURL.rsaKeyType;
 
     public BogusAuthorizeCouchDocument() {
         this(null);
@@ -69,7 +68,7 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
      * @return
      */
     public PublicKey generatePublicKey() throws NoSuchAlgorithmException, InvalidKeySpecException {
-        if (RSAKeyType.equals(this.keyType) == false) {
+        if (HttpKeyURL.rsaKeyType.equals(this.keyType) == false) {
             throw new RuntimeException("Unsupported key type");
         }
 
@@ -92,7 +91,7 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
     }
 
     public static String generateRsaKeyId(java.security.interfaces.RSAPublicKey rsaPublicKey) {
-        return RSAKeyType + ":" + rsaPublicKey.getModulus().toString() + ":" + rsaPublicKey.getPublicExponent().toString();
+        return HttpKeyURL.rsaKeyToHttpKeyString(rsaPublicKey);
     }
 
     /**
@@ -103,9 +102,11 @@ public class BogusAuthorizeCouchDocument extends CouchDbDocument {
     public static void addDocViaManager(Manager manager, final RSAPublicKey publicKeyToAdd) throws CouchbaseLiteException {
         Database keyDatabase = manager.getDatabase(ThaliListener.KeyDatabaseName);
         Document keyDocument = new Document(keyDatabase, generateRsaKeyId(publicKeyToAdd));
-        keyDocument.delete();
+        if (keyDocument.getCurrentRevision() != null) {
+            return; // Key is already there.
+        }
         Map<String, Object> properties = new HashMap<String, Object>() {{
-            put("keyType", RSAKeyType);
+            put("keyType", HttpKeyURL.rsaKeyType);
             put("modulus", publicKeyToAdd.getModulus().toString());
             put("exponent", publicKeyToAdd.getPublicExponent().toString());
         }};
