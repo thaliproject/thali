@@ -26,13 +26,13 @@ def runAndroidTest(buildTask, runTest = true) {
 task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
     buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
@@ -41,22 +41,22 @@ task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOni
     tasks = runAndroidTest('uploadArchives')
 }
 
-task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
+task buildCouchbaseLiteJavaNative(type: GradleBuild) {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
     buildFile = '../../couchbase-lite-java-core/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
     buildFile = '../../couchbase-lite-java-listener/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
@@ -74,7 +74,7 @@ task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAnd
 task buildThaliUniversalUtilities(type: GradleBuild) {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = ['uploadArchives']
 }
 
 task buildThaliJavaUtilities(type: GradleBuild) {
@@ -122,8 +122,12 @@ task buildThali(
     description: 'Builds, tests, uploads artifacts for Thali'
 )
 
+if (gradle.startParameter.taskNames.contains("globalBuild")) {
+    buildThali.dependsOn buildCouchbaseLiteJava 
+}
+
 task globalBuild(
-    dependsOn: [buildCouchbaseLiteJava, buildThaliDependencies],
+    dependsOn: [buildThali],
     description: 'Builds, tests, uploads artifacts for Thali, Couchbase, Tor projects'
 )
 
