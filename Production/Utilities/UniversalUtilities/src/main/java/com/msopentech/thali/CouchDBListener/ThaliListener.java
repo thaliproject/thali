@@ -61,7 +61,7 @@ public class ThaliListener {
      * @param port
      */
     public void startServer(final Context context, final int port, final Proxy proxy) throws
-            UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+            UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException{
         serverStarted = true;
         if (context == null) {
             throw new RuntimeException();
@@ -90,7 +90,8 @@ public class ThaliListener {
 
                     // Provision the TDH in its own key database so it can do replications to itself
                     // https://github.com/thaliproject/thali/issues/45
-                    BogusAuthorizeCouchDocument.addDocViaManager(manager, (java.security.interfaces.RSAPublicKey) serverPublicKey);
+                    BogusAuthorizeCouchDocument.addDocViaManager(manager,
+                            (java.security.interfaces.RSAPublicKey) serverPublicKey);
                 } catch (IOException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
                     return;
@@ -123,6 +124,14 @@ public class ThaliListener {
                 cblListener.start();
             }
         }).start();
+
+        try {
+            Log.w(CblLogTags.TAG_THALI_LISTENER, "Local address is: " + getHttpKeys().getLocalMachineIPHttpKeyURL());
+        } catch (InterruptedException e) {
+            Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
+        } catch (UnknownHostException e) {
+            Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
+        }
     }
 
     public void stopServer() {
