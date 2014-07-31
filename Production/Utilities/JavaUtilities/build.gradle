@@ -91,9 +91,11 @@ task deleteTestFiles(type: Delete) {
 }
 
 task copyTestFiles(type: Copy, dependsOn: deleteTestFiles) {
-    from "../AndroidUtilities/AndroidUtilities/src/androidTest/java/com/msopentech/thali/utilities/test"
+    println 'Copying Tests from /AndroidUtilities'
+    from "../AndroidUtilities/src/androidTest/java/com/msopentech/thali/utilities/test"
     into 'src/test/java/com/msopentech/thali/utilities/test'
 }
 
-build.dependsOn(copyTestFiles)
-uploadArchives.dependsOn(copyTestFiles)
+compileTestJava.dependsOn copyTestFiles
+build.dependsOn copyTestFiles
+uploadArchives.dependsOn copyTestFiles
