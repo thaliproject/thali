@@ -41,7 +41,7 @@ public class UtilitiesTestCase extends AndroidTestCase {
 
         thaliListener = new ThaliListener();
 
-        thaliListener.startServer(new AndroidContext(getContext()), ThaliListener.DefaultThaliDeviceHubPort, null);
+        thaliListener.startServer(new AndroidContext(getContext()), 0, null);
 
         server = new RelayWebServer(cb, getContext().getFilesDir(), thaliListener.getHttpKeys());
         tempFileManager = new RelayWebServerTest.TestTempFileManager();
