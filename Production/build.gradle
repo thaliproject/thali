@@ -34,7 +34,7 @@ task buildThaliAndroidUtilities(type: GradleBuild) {
 task buildThaliDeviceHubUniversal(type: GradleBuild) {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = [/*'connectedAndroidTest',*/ 'test', 'uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild) {
