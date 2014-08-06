@@ -14,7 +14,7 @@ some directory
 In other words that there is a single directory that contains all the relevant depots below including Thali.
  */
 
-// You can pass in -pskipAndroidTest on the command line to skip android tests
+// You can pass in -PskipAndroidTest on the command line to skip android tests
 def runAndroidTest(buildTask, runTest = true) {
    if (runTest == false || project.hasProperty('skipAndroidTest')) {
        return [ buildTask ];
@@ -71,43 +71,68 @@ task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAnd
     tasks = [/*'test',*/ 'uploadArchives']
 }
 
-task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
+// NOTE: I AM NOT BUILDING EKTORP! We haven't edited it in forever, it uses maven to build and not gradle and I
+// need to check if they finally released the version with our changes so we can stop thinking about it all together (e.g.
+// stop using the snapshot)
+
+task buildThaliUniversalUtilities(type: GradleBuild) {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['test', 'uploadArchives']
 }
 
-task buildThaliJavaUtilities(type: GradleBuild, dependsOn: 'buildThaliUniversalUtilities') {
+task buildThaliJavaUtilities(type: GradleBuild) {
     buildFile = 'Utilities/JavaUtilities/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['test', 'uploadArchives']
 }
 
-task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUtilities') {
+task buildThaliAndroidUtilities(type: GradleBuild) {
     buildFile = 'Utilities/AndroidUtilities/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('uploadArchives')
 }
 
-task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
+task buildThaliDeviceHubUniversal(type: GradleBuild) {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
+    tasks = [/*'connectedAndroidTest',*/ 'test', 'uploadArchives']
 }
 
-task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
+task buildThaliDeviceHubJava(type: GradleBuild) {
     buildFile = 'ThaliDeviceHub/java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = ['test', 'distZip'] // This isn't a library, it's an 'executable', this builds the distribution
 }
 
-task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {
-    buildFile = 'ThaliDeviceHub/android/android/build.gradle'
+task buildThaliDeviceHubAndroid(type: GradleBuild) {
+    buildFile = 'ThaliDeviceHub/android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('build') // This isn't a library, it's an 'executable', this builds the apk file
 }
 
-task globalBuild(dependsOn: 'buildThaliDeviceHubAndroid'){}
+ext.buildThaliDependencies = [
+    'buildThaliDeviceHubAndroid',
+    'buildThaliDeviceHubJava',
+    'buildThaliDeviceHubUniversal',
+    'buildThaliAndroidUtilities',
+    'buildThaliJavaUtilities',
+    'buildThaliUniversalUtilities',
+]
+
+task buildThali(
+    dependsOn: [buildThaliDependencies],
+    description: 'Builds, tests, uploads artifacts for Thali'
+)
+
+if (gradle.startParameter.taskNames.contains("globalBuild")) {
+    buildThali.dependsOn buildCouchbaseLiteJava 
+}
+
+task globalBuild(
+    dependsOn: [buildThali],
+    description: 'Builds, tests, uploads artifacts for Thali, Couchbase, Tor projects'
+)
 
 // BUILD THE PPNET DEMO
 
@@ -167,6 +192,4 @@ distZip.dependsOn deletePouchAPKFromChromeExtension
 
 task buildPPNETDemo(dependsOn: distZip) {
 }
-
-
 

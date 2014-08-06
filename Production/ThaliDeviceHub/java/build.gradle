@@ -14,7 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'maven'
-apply from: 'javafx.plugin'
+//apply from: 'javafx.plugin'
 
 mainClassName = "com.msopentech.thali.devicehub.javahub.main"
 
@@ -27,12 +27,13 @@ repositories {
 }
 
 dependencies {
-    compile 'com.msopentech.thali:ThaliUtilitiesJava:0.0.2'
-    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
+    compile project(':Utilities:JavaUtilities')
+    compile project(':ThaliDeviceHub:Universal')
     compile 'org.slf4j:slf4j-simple:1.7.7'
 
     testCompile 'junit:junit:4.11'
 }
+
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
@@ -41,7 +42,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 task generateJavadocs(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    source = sourceSets.main.java.srcDirs
+    ext.source = sourceSets.main.java.srcDirs
 }
 
 artifacts {
