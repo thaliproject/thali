@@ -36,7 +36,7 @@ task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
 task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../Tor_Onion_Proxy_Library/java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = [/*'test',*/ 'uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
@@ -72,11 +72,8 @@ task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLite
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
     buildFile = '../couchbase-lite-java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = [/*'test',*/ 'uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
-// NOTE: I AM NOT BUILDING EKTORP! We haven't edited it in forever, it uses maven to build and not gradle and I
-// need to check if they finally released the version with our changes so we can stop thinking about it all together (e.g.
-// stop using the snapshot)
 
 task buildThali(type: GradleBuild) {
     buildFile = 'Production/build.gradle'

@@ -4,16 +4,6 @@ apply plugin: 'distribution'
 sourceCompatibility = 1.6
 version = '0.0.2'
 
-/*
-This script depends on the layout of depots. It assumes a file structure of
-some directory
-    couchbase-list-java-native
-    ...
-    thali
-
-In other words that there is a single directory that contains all the relevant depots below including Thali.
- */
-
 // You can pass in -PskipAndroidTest on the command line to skip android tests
 def runAndroidTest(buildTask, runTest = true) {
    if (runTest == false || project.hasProperty('skipAndroidTest')) {
@@ -21,54 +11,6 @@ def runAndroidTest(buildTask, runTest = true) {
    } else {
        return ['connectedAndroidTest', buildTask];
    }
-}
-
-task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
-    buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
-}
-
-task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
-    buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
-}
-
-task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
-    buildFile = '../../Tor_Onion_Proxy_Library/android/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = runAndroidTest('uploadArchives')
-}
-
-task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
-    buildFile = '../../couchbase-lite-java-native/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
-}
-
-task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
-    buildFile = '../../couchbase-lite-java-core/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
-}
-
-task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
-    buildFile = '../../couchbase-lite-java-listener/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = ['test', 'uploadArchives']
-}
-
-task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
-    buildFile = '../../couchbase-lite-android/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = runAndroidTest('uploadArchives', false)
-}
-
-task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
-    buildFile = '../../couchbase-lite-java/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = [/*'test',*/ 'uploadArchives']
 }
 
 task buildThaliUniversalUtilities(type: GradleBuild) {
@@ -92,7 +34,7 @@ task buildThaliAndroidUtilities(type: GradleBuild) {
 task buildThaliDeviceHubUniversal(type: GradleBuild) {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
-    tasks = [/*'connectedAndroidTest',*/ 'test', 'uploadArchives']
+    tasks = ['test', 'uploadArchives']
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild) {
