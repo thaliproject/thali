@@ -14,12 +14,12 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.utilities.test;
 
 import com.couchbase.lite.CouchbaseLiteException;
+import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.local.utilities.UtilitiesTestCase;
 import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.relay.RelayWebServer;
 
 import java.io.IOException;
-import java.net.URLEncoder;
 import java.util.HashMap;
 
 public class RelayWebServerTest extends UtilitiesTestCase {
@@ -95,7 +95,6 @@ public class RelayWebServerTest extends UtilitiesTestCase {
     }
 
     public void testRelayUtilityHttpKey() throws IOException, InterruptedException {
-
         String url = String.format("http://%s:%s/_relayutility/localhttpkeys", RelayWebServer.relayHost,
                 RelayWebServer.relayPort);
 
@@ -107,6 +106,24 @@ public class RelayWebServerTest extends UtilitiesTestCase {
         RestTestMethods.testGet(url, null, 200, null,
                 new HashMap<String, Object>(){{
                     put("$.localMachineIPHttpKeyURL", thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());}});
+    }
+
+    public void testTranslateOnionAddress() throws InterruptedException, IOException {
+        // Test against a server that is configured to trust us
+        onionAddressTest(thaliListener);
+        // Now test against a server that is not configured to trust us
+        onionAddressTest(noSecurityThaliListener);
+    }
+
+    private void onionAddressTest(ThaliListener thaliListener) throws InterruptedException, IOException {
+        final String httpKeyUrl = thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL();
+        final String onionAddress = httpKeyUrl.split("/")[2];
+        String url = String.format("http://%s:%s/_relayutility/translateonion?%s", RelayWebServer.relayHost,
+                RelayWebServer.relayPort, onionAddress);
+        RestTestMethods.testGet(url, null, 200, null,
+                new HashMap<String, Object>() {{
+                    put("$.httpKeyUrl", httpKeyUrl);
+                }});
     }
 
     /*@Test

@@ -62,8 +62,9 @@ public class ThaliCryptoUtilities {
         // Unrecoverable error with the keystore (or it doesn't exist) so lets nuke and start over
         if (clientKeyStore == null) {
             File keyFile = ThaliCryptoUtilities.getThaliKeyStoreFileObject(filesDir);
-            if (keyFile.exists()) {
-                keyFile.delete();
+            if (keyFile.exists() && keyFile.delete() == false) {
+                throw new RuntimeException("Could not successfully delete key store file as part of recovery - " +
+                keyFile.getAbsolutePath());
             }
 
             clientKeyStore = ThaliCryptoUtilities.createNewThaliKeyInKeyStore(filesDir);
