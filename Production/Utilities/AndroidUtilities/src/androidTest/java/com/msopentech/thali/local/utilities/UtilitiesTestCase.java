@@ -13,10 +13,12 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.local.utilities;
 
+import android.content.Context;
 import android.test.AndroidTestCase;
 import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.relay.RelayWebServer;
+import com.msopentech.thali.toronionproxy.FileUtilities;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.test.RelayWebServerTest;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
@@ -32,6 +34,9 @@ public class UtilitiesTestCase extends AndroidTestCase {
     protected RelayWebServer server;
     protected RelayWebServerTest.TestTempFileManager tempFileManager;
     protected ThaliListener thaliListener;
+    // This listener is used by a relay test to make sure that we can get a server key even from a server
+    // we are not configured to be trusted by.
+    protected ThaliListener noSecurityThaliListener;
 
     @Override
     public void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
@@ -40,8 +45,11 @@ public class UtilitiesTestCase extends AndroidTestCase {
         CreateClientBuilder cb = new AndroidEktorpCreateClientBuilder();
 
         thaliListener = new ThaliListener();
-
         thaliListener.startServer(new AndroidContext(getContext()), 0, null);
+
+        noSecurityThaliListener = new ThaliListener();
+        noSecurityThaliListener.startServer(
+                new AndroidContextChangeFilesDir(getContext(), "noSecurityThaliListener"), 0, null);
 
         server = new RelayWebServer(cb, getContext().getFilesDir(), thaliListener.getHttpKeys());
         tempFileManager = new RelayWebServerTest.TestTempFileManager();
@@ -54,10 +62,16 @@ public class UtilitiesTestCase extends AndroidTestCase {
 
         tempFileManager._clear();
 
-        if (server != null && server.isAlive())
+        if (server != null && server.isAlive()) {
             server.stop();
+        }
 
-        if (thaliListener != null)
+        if (thaliListener != null) {
             thaliListener.stopServer();
+        }
+
+        if (noSecurityThaliListener != null) {
+            noSecurityThaliListener.stopServer();
+        }
     }
 }

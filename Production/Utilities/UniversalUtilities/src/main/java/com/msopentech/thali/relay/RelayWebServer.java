@@ -13,6 +13,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.relay;
 
+import com.couchbase.lite.util.Log;
+import com.fasterxml.jackson.annotation.JsonCreator;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.CouchDBListener.HttpKeyTypes;
@@ -36,10 +38,7 @@ import java.io.UnsupportedEncodingException;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Map;
@@ -51,21 +50,24 @@ public class RelayWebServer extends NanoHTTPD {
     public static final int relayPort = 58000;
 
     // Host and port for the TDH
-    private final String thaliDeviceHubHost = "127.0.0.1";
     private volatile HttpKeyTypes httpKeyTypes;
 
-    private HttpClient httpClient;
-    private HttpHost httpHost;
-    private Logger LOG = LoggerFactory.getLogger(RelayWebServer.class);
+    private final CreateClientBuilder createClientBuilder;
+    private final KeyStore clientKeyStore;
+    private final HttpClient relayHttpClient;
+    private final HttpHost httpHost;
+    private final Logger LOG = LoggerFactory.getLogger(RelayWebServer.class);
     private final List<String> doNotForwardHeaders = Arrays.asList("date", "connection", "keep-alive",
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
 
-    public RelayWebServer(CreateClientBuilder clientBuilder, File keystoreDirectory,
+    public RelayWebServer(CreateClientBuilder createClientBuilder, File keystoreDirectory,
                           HttpKeyTypes httpKeyTypes)
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException {
         super(relayHost, relayPort);
 
+        this.createClientBuilder = createClientBuilder;
+        this.clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(keystoreDirectory);
         this.httpKeyTypes = httpKeyTypes;
 
         HttpKeyURL serverHttpKey = new HttpKeyURL(httpKeyTypes.getLocalMachineIPHttpKeyURL());
@@ -73,20 +75,20 @@ public class RelayWebServer extends NanoHTTPD {
         // Get local couch DB instance
         ThaliCouchDbInstance thaliCouchDbInstance =
                 ThaliClientToDeviceHubUtilities.GetLocalCouchDbInstance(
-                        keystoreDirectory,
-                        clientBuilder,
+                        clientKeyStore,
+                        createClientBuilder,
                         serverHttpKey,
                         ThaliCryptoUtilities.DefaultPassPhrase,
                         null);
 
         // Get the configured apache HttpClient
-        httpClient = clientBuilder.extractApacheClientFromThaliCouchDbInstance(thaliCouchDbInstance);
+        relayHttpClient = createClientBuilder.extractApacheClientFromThaliCouchDbInstance(thaliCouchDbInstance);
 
         // CBL does not currently appear to obey the timeout at all (it is infinite for longpoll requests)
         // so until this bug is resolved or we come up with something smarter we'll also disable socket timeout
         // to give applications a chance at working properly
         // (connection timeout is still configured for a reasonable value)
-        httpClient.getParams().setParameter("http.socket.timeout", new Integer(0));
+        relayHttpClient.getParams().setParameter("http.socket.timeout", new Integer(0));
 
         // Define an http host to address the new relay request to the TDH
         httpHost = new HttpHost(serverHttpKey.getHost(), serverHttpKey.getPort(), "https");
@@ -118,21 +120,14 @@ public class RelayWebServer extends NanoHTTPD {
         }
 
         // Handle request for local HTTP Key URL
-        // TODO: Temporary fake values, need to build hook to handle magic URLs and generate proper HTTPKey
         if (path.equalsIgnoreCase("/_relayutility/localhttpkeys"))
         {
-            ObjectMapper mapper = new ObjectMapper();
-            String responseBody = null;
-            try {
-                responseBody = mapper.writeValueAsString(httpKeyTypes);
-            } catch (JsonProcessingException e) {
-                throw new RuntimeException("Could not generate localhttpkeys output", e);
-            }
-            Response httpKeyResponse = new Response(responseBody);
-            AppendCorsHeaders(httpKeyResponse, headers);
-            httpKeyResponse.setMimeType("application/json");
-            httpKeyResponse.setStatus(Response.Status.OK);
-            return httpKeyResponse;
+            return returnHttpKeyTypes(headers);
+        }
+
+        // Handle request to run onion address into a HTTPKey URL
+        if (path.equalsIgnoreCase("/_relayutility/translateonion")) {
+            return returnHttpKeyUrl(headers, queryString);
         }
 
         // Get the body of the request if appropriate
@@ -163,18 +158,22 @@ public class RelayWebServer extends NanoHTTPD {
         }
 
         // Actually make the relayed call
+        return relayRequestReturnResponse(headers, basicHttpRequest);
+    }
+
+    private Response relayRequestReturnResponse(Map<String, String> headers,
+                                                BasicHttpEntityEnclosingRequest basicHttpRequest) {
         HttpResponse tdhResponse = null;
         InputStream tdhResponseContent = null;
         Response clientResponse = null;
         try {
             LOG.info("Relaying call to TDH: " + httpHost.toURI());
-            tdhResponse = httpClient.execute(httpHost, basicHttpRequest);
+            tdhResponse = relayHttpClient.execute(httpHost, basicHttpRequest);
             tdhResponseContent = tdhResponse.getEntity().getContent();
 
             // Create response and set status and body
             // default the MIME_TYPE for now and we'll set it later when we enumerate the headers
             if (tdhResponse != null) {
-
                 // This is horrible awful evil code to deal with CouchBase note properly sending CouchDB responses
                 // for some errors. We must fix this in CouchBase - https://github.com/thaliproject/thali/issues/30
                 String responseBodyString = null;
@@ -211,12 +210,63 @@ public class RelayWebServer extends NanoHTTPD {
                 }
         }
 
-
         // Prep all headers for our final response
         AppendCorsHeaders(clientResponse, headers);
         copyHeadersToResponse(clientResponse, tdhResponse.getAllHeaders());
 
         return clientResponse;
+    }
+
+    private Response returnHttpKeyTypes(Map<String, String> headers) {
+        ObjectMapper mapper = new ObjectMapper();
+        String responseBody;
+        try {
+            responseBody = mapper.writeValueAsString(httpKeyTypes);
+        } catch (JsonProcessingException e) {
+            return GenerateErrorResponse("Could not generate localhttpkeys output", e);
+        }
+        Response httpKeyTypesResponse = new Response(responseBody);
+        // Technically we shouldn't need the CORS headers since this is a GET
+        AppendCorsHeaders(httpKeyTypesResponse, headers);
+        httpKeyTypesResponse.setMimeType("application/json");
+        httpKeyTypesResponse.setStatus(Response.Status.OK);
+        return httpKeyTypesResponse;
+    }
+
+    private Response returnHttpKeyUrl(Map<String, String> headers, String onionAddress) {
+        assert(headers != null);
+        assert(onionAddress != null && onionAddress.isEmpty() == false);
+        Exception caughtException;
+        ObjectMapper mapper = new ObjectMapper();
+        try {
+            String hostName = onionAddress.split(":")[0];
+            int port = Integer.decode(onionAddress.split(":")[1]);
+            HttpClient httpClientNoServerValidation = createClientBuilder.CreateApacheClient(hostName, port, null,
+                    clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase, null);
+            PublicKey serverPublicKey = ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerValidation);
+            TranslatedOnionAddress translatedOnionAddress =
+                    new TranslatedOnionAddress(new HttpKeyURL(serverPublicKey, hostName, port, null, null, null)
+                            .toString());
+            String responseBody = mapper.writeValueAsString(translatedOnionAddress);
+            Response httpKeyResponse = new Response(responseBody);
+            // Technically we shouldn't need the CORS headers since this is a GET
+            AppendCorsHeaders(httpKeyResponse, headers);
+            httpKeyResponse.setMimeType("application/json");
+            httpKeyResponse.setStatus(Response.Status.OK);
+            return httpKeyResponse;
+            // TODO: We really need to switch to JDK 7 support to get stacked exceptions
+        } catch (IOException e) {
+            caughtException = e;
+        } catch (NoSuchAlgorithmException e) {
+            caughtException = e;
+        } catch (UnrecoverableKeyException e) {
+            caughtException = e;
+        } catch (KeyStoreException e) {
+            caughtException = e;
+        } catch (KeyManagementException e) {
+            caughtException = e;
+        }
+        return GenerateErrorResponse("Could not translate onion address to httpkey", caughtException);
     }
 
     // Copy response headers to relayed response
@@ -273,6 +323,11 @@ public class RelayWebServer extends NanoHTTPD {
     private Response GenerateErrorResponse(String message)
     {
         LOG.error(message);
+        return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: " + message);
+    }
+
+    private Response GenerateErrorResponse(String message, Throwable throwable) {
+        LOG.error(message, throwable);
         return new Response(Response.Status.INTERNAL_ERROR, MIME_PLAINTEXT, "SERVER INTERNAL ERROR: " + message);
     }
 

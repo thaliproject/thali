@@ -88,6 +88,14 @@ public class ThaliClientToDeviceHubUtilities {
 
         KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(filesDir);
 
+        return GetLocalCouchDbInstance(clientKeyStore, createClientBuilder, host, port, passPhrase, proxy);
+    }
+
+    public static ThaliCouchDbInstance GetLocalCouchDbInstance(KeyStore clientKeyStore,
+                                                               CreateClientBuilder createClientBuilder, String host,
+                                                               int port, char[] passPhrase, Proxy proxy)
+            throws UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException, KeyManagementException,
+            IOException {
         org.apache.http.client.HttpClient httpClientNoServerValidation =
                 createClientBuilder.CreateApacheClient(host, port, null, clientKeyStore, passPhrase, proxy);
 
@@ -107,9 +115,16 @@ public class ThaliClientToDeviceHubUtilities {
 
         KeyStore clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(filesDir);
 
+        return GetLocalCouchDbInstance(clientKeyStore, createClientBuilder, serverHttpKey, passPhrase, proxy);
+    }
+
+    public static ThaliCouchDbInstance GetLocalCouchDbInstance(KeyStore clientKeyStore,
+                                                               CreateClientBuilder createClientBuilder,
+                                                               HttpKeyURL serverHttpKey, char[] passPhrase,
+                                                               Proxy proxy) throws UnrecoverableEntryException,
+            NoSuchAlgorithmException, KeyStoreException, KeyManagementException {
         return configureClientAndGetCouchDbInstance(createClientBuilder, serverHttpKey, passPhrase, proxy,
                 clientKeyStore);
-
     }
 
     private static ThaliCouchDbInstance configureClientAndGetCouchDbInstance(CreateClientBuilder createClientBuilder,

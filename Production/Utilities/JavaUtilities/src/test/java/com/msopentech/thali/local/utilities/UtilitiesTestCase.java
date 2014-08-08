@@ -31,6 +31,9 @@ public class UtilitiesTestCase extends TestCase {
     protected static RelayWebServer server;
     protected static RelayWebServerTest.TestTempFileManager tempFileManager;
     protected static ThaliListener thaliListener;
+    // This listener is used by a relay test to make sure that we can get a server key even from a server
+    // we are not configured to be trusted by.
+    protected static ThaliListener noSecurityThaliListener;
     protected static boolean configRan = false;
 
     @Override
@@ -41,8 +44,10 @@ public class UtilitiesTestCase extends TestCase {
             CreateClientBuilder cb = new JavaEktorpCreateClientBuilder();
 
             thaliListener = new ThaliListener();
+            thaliListener.startServer(new CreateContextInTemp(), 0, null);
 
-            thaliListener.startServer(new CreateContextInTemp(), ThaliListener.DefaultThaliDeviceHubPort, null);
+            noSecurityThaliListener = new ThaliListener();
+            noSecurityThaliListener.startServer(new CreateContextInTemp(), 0, null);
 
             server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), thaliListener.getHttpKeys());
             tempFileManager = new RelayWebServerTest.TestTempFileManager();
