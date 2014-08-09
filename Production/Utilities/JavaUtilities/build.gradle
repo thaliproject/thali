@@ -95,5 +95,4 @@ task copyTestFiles(type: Copy, dependsOn: deleteTestFiles) {
     into 'src/test/java/com/msopentech/thali/utilities/test'
 }
 
-build.dependsOn(copyTestFiles)
-uploadArchives.dependsOn(copyTestFiles)
+compileTestJava.dependsOn(copyTestFiles)
