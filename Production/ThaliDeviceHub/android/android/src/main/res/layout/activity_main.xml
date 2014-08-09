@@ -5,7 +5,8 @@
     android:layout_height="match_parent"
     tools:context=".MainActivity"
     tools:ignore="MergeRootFrame">
-    <WebView  android:id="@+id/webview"
+    <WebView  xmlns:android="http://schemas.android.com/apk/res/android"
+              android:id="@+id/webview"
               android:layout_width="fill_parent"
               android:layout_height="fill_parent"
         />

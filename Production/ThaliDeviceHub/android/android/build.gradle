@@ -1,0 +1,45 @@
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+    }
+}
+apply plugin: 'android'
+apply plugin: 'maven'
+
+repositories {
+    mavenLocal()
+    maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
+    maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-release" }
+	maven { url 'http://files.couchbase.com/maven2/' }
+    mavenCentral()
+}
+
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 19
+    }
+
+    // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/LICENSE.txt'
+        exclude 'META-INF/NOTICE.txt'
+        pickFirst 'BridgeHandlerTest.js' // Causing a double import of ThaliUtilitiesUniversal for no apparent reason
+        pickFirst 'BridgeManager.js' // See previous
+    }
+}
+
+dependencies {
+    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
+    compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.2"
+    compile 'org.slf4j:slf4j-android:1.7.7'
+}

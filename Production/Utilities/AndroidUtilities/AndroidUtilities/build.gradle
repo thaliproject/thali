@@ -11,12 +11,16 @@ MERCHANTABLITY OR NON-INFRINGEMENT.
 See the Apache 2 License for the specific language governing permissions and limitations under the License.
 */
 
-apply plugin: 'java'
+buildscript {
+    repositories {
+        mavenCentral()
+    }
+    dependencies {
+        classpath 'com.android.tools.build:gradle:0.9.+'
+    }
+}
+apply plugin: 'android-library'
 apply plugin: 'maven'
-apply from: 'javafx.plugin'
-apply plugin: 'java-library-distribution'
-
-sourceCompatibility = '1.6'
 
 repositories {
     mavenLocal()
@@ -26,19 +30,38 @@ repositories {
     mavenCentral()
 }
 
-javafx {
-    mainClass = 'com.msopentech.thali.utilities.java.JavaFXBridgeManager'
+android {
+    compileSdkVersion 19
+    buildToolsVersion "19.0.1"
+
+    defaultConfig {
+        minSdkVersion 18
+        targetSdkVersion 19
+    }
+
+    // Needed to work around https://code.google.com/p/android/issues/detail?id=61573#c14
+    packagingOptions {
+        exclude 'META-INF/LICENSE'
+        exclude 'META-INF/NOTICE'
+        exclude 'META-INF/ASL2.0'
+        exclude 'META-INF/NOTICE.txt' //https://groups.google.com/forum/#!topic/adt-dev/bl5Rc4Szpzg
+        exclude 'META-INF/LICENSE.txt'
+        pickFirst 'BridgeHandlerTest.js' // Causing a double import of ThaliUtilitiesUniversal for no apparent reason
+        pickFirst 'BridgeManager.js' // See previous
+        exclude 'LICENSE.txt' // This is from the hamcrest-library we use for testing brought in by jayway's jsonpath
+    }
 }
 
 dependencies {
-    compile 'com.couchbase.lite:java:1.0.0-beta3rc1'
-    compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
-    compile 'com.msopentech.thali:ThaliOnionProxyJava:0.0.0'
+    compile 'com.couchbase.lite:couchbase-lite-android:1.0.0-beta3rc1'
+    compile 'org.ektorp:org.ektorp.android:1.4.2'
+    compile "com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2"
+    compile 'com.msopentech.thali:ThaliOnionProxyAndroid:0.0.0'
 
-    testCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
-    testCompile 'junit:junit:3.8.2'
-    testCompile 'org.slf4j:slf4j-simple:1.7.7'
-    testCompile 'org.seleniumhq.selenium:selenium-java:2.42.2'
+    //fileTree(dir: 'libs', include: '*.jar')
+    androidTestCompile 'org.slf4j:slf4j-android:1.7.7'
+    androidTestCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
+
 }
 
 def mavenPath() {
@@ -56,7 +79,7 @@ uploadArchives {
 
             pom.version = "0.0.2"
             pom.groupId = 'com.msopentech.thali'
-            pom.artifactId = 'ThaliUtilitiesJava'
+            pom.artifactId = 'ThaliUtilitiesAndroid'
             pom.project {
                 licenses {
                     license {
@@ -70,30 +93,11 @@ uploadArchives {
     }
 }
 
-task sourcesJar(type: Jar, dependsOn: classes) {
+task sourcesJar(type: Jar) {
     classifier = 'sources'
-    from sourceSets.main.java.srcDirs
-}
-
-task generateJavadocs(type: Jar, dependsOn: javadoc) {
-    classifier = 'javadoc'
-    source = sourceSets.main.java.srcDirs
+    from android.sourceSets.main.java.srcDirs
 }
 
 artifacts {
     archives sourcesJar
-    archives generateJavadocs
 }
-
-// Tests are copied over from Android
-task deleteTestFiles(type: Delete) {
-    delete 'src/test/java/com/msopentech/thali/utilities/test'
-}
-
-task copyTestFiles(type: Copy, dependsOn: deleteTestFiles) {
-    from "../AndroidUtilities/AndroidUtilities/src/androidTest/java/com/msopentech/thali/utilities/test"
-    into 'src/test/java/com/msopentech/thali/utilities/test'
-}
-
-build.dependsOn(copyTestFiles)
-uploadArchives.dependsOn(copyTestFiles)
