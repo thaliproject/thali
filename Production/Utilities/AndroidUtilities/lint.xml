@@ -1,8 +1,0 @@
-<?xml version="1.0" encoding="UTF-8"?>
-<lint>
-    <issue id="InvalidPackage" severity="ignore">
-        <!-- Bouncy Castle references some APIs in its LDAP code that are not available on Android. This causes
-        lint to be rightfully unhappy. But we don't use those APIs so we can safely ignore that error. -->
-        <ignore path="target/classes/org/bouncycastle/jce/provider/X509LDAPCertStoreSpi.class" />
-    </issue>
-</lint>
