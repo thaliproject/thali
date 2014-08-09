@@ -42,7 +42,9 @@ task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOni
 }
 
 // Note that if you get a broken build with link errors the only way to get things going again is
-// to execute a clean in the tasks list below
+// to execute a clean in the tasks list below. Also note that in windows I
+// can only get this to build from a command window, not from the Git MINGW32
+// window I normally use.
 task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
@@ -61,12 +63,18 @@ task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbas
     tasks = ['test', 'uploadArchives']
 }
 
+// See issue 53 in the next task
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
     buildFile = '../../couchbase-lite-android/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('uploadArchives', false)
 }
 
+// Couchbase Lite currently requires syncgateway to test or a special
+// config that supports listener. But in newer releases of the gateway this
+// was all fixed and uses mocks. We aren't going to upgrade right now for
+// stability reasons so we are turning off the tests until we get the upgrade.
+// https://github.com/thaliproject/thali/issues/53
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
     buildFile = '../../couchbase-lite-java/build.gradle'
     startParameter.projectProperties = gradle.startParameter.projectProperties

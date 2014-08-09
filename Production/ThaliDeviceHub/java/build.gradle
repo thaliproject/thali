@@ -14,7 +14,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 apply plugin: 'application'
 apply plugin: 'java'
 apply plugin: 'maven'
-apply from: 'javafx.plugin'
+//apply from: 'javafx.plugin'
 
 mainClassName = "com.msopentech.thali.devicehub.javahub.main"
 
