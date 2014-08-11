@@ -36,8 +36,9 @@ public class main extends Application {
         WebView browser = new WebView();
         WebEngine webEngine = browser.getEngine();
 
-        String rootHtmlFileAsString = ThaliDeviceHubUx.getRootUxHtmlAsString();
-        webEngine.loadContent(rootHtmlFileAsString);
+        //String rootHtmlFileAsString = ThaliDeviceHubUx.getRootUxHtmlAsString();
+        //webEngine.loadContent(rootHtmlFileAsString);
+        webEngine.loadContent("<html><head></head><body></body></html>");
 
         // We will probably want to add functionality like the address book directly to the hub,
         // for now. The bridgeManager is needed for that. Check out JavaFXBridgeManagerTest in
