@@ -24,6 +24,8 @@ import java.security.NoSuchAlgorithmException;
 import java.util.concurrent.ConcurrentHashMap;
 
 import com.couchbase.lite.replicator.Replication;
+import com.couchbase.lite.util.Log;
+import com.msopentech.thali.utilities.universal.CblLogTags;
 
 public class ReplicationManager implements Runnable {
     private static final String replicationDatabaseName = "replicationdb";
@@ -32,9 +34,9 @@ public class ReplicationManager implements Runnable {
     private Manager couchManager;
     private static boolean shutdownServer = false;
 
-    private static final int replicationFrequency = 30; // in seconds
-    private static final int threadSleepTime = 100; // in milliseconds
-    private static final int threadIterations = (replicationFrequency * 1000) / threadSleepTime;
+    private static final int replicationFrequency = 200; // in milliseconds
+    private static final int threadSleepTime = 25; // in milliseconds
+    private static final int threadIterations = replicationFrequency / threadSleepTime;
 
     public ReplicationManager(Manager manager) {
         this.replicationMap = new ConcurrentHashMap<String, Object>();
@@ -118,8 +120,7 @@ public class ReplicationManager implements Runnable {
                 }
             });
         } catch(CouchbaseLiteException e) {
-            // what to do???
-            e.printStackTrace();
+            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error adding/updating replication request.  Source: " + replicationArgs.getSource() + ", Target: " + replicationArgs.getTarget());
         }
     }
 
@@ -170,12 +171,12 @@ public class ReplicationManager implements Runnable {
                 if (argJson != null) {
                     requests.put(row.getDocumentId(), argJson);
                 } else {
-                    System.out.println("request missing -- request body empty");
+                    Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Stored request body missing.  DocID: " + doc.getId());
                 }
             }
         } catch(CouchbaseLiteException e) {
-            // TODO -- query failed to run!!!
-            e.printStackTrace();;
+            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Query to get replication requests failed.", e);
+
         }
         return requests;
     }
@@ -197,10 +198,10 @@ public class ReplicationManager implements Runnable {
                             Replication rep = couchManager.getReplicator(args);
                             rep.start();
                         } catch(CouchbaseLiteException e) {
-                            // TODO -- log something
+                            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
                             continue;
                         } catch(java.lang.NullPointerException e) {
-                            // TODO -- log something -- manager code not checking for null
+                            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
                             continue;
                         }
                     }
@@ -212,12 +213,10 @@ public class ReplicationManager implements Runnable {
             try {
                 Thread.sleep(threadSleepTime);
             } catch(InterruptedException e) {
-                // interupted
+                // interrupted
                 shutdownServer = true;
                 continue;
             }
         }
     }
-
-
 }
