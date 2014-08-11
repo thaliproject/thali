@@ -27,13 +27,12 @@ repositories {
 }
 
 dependencies {
-    compile project(':Utilities:JavaUtilities')
-    compile project(':ThaliDeviceHub:Universal')
+    compile 'com.msopentech.thali:ThaliUtilitiesJava:0.0.2'
+    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
     compile 'org.slf4j:slf4j-simple:1.7.7'
 
     testCompile 'junit:junit:4.11'
 }
-
 
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
@@ -42,7 +41,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 task generateJavadocs(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    ext.source = sourceSets.main.java.srcDirs
+    source = sourceSets.main.java.srcDirs
 }
 
 artifacts {
