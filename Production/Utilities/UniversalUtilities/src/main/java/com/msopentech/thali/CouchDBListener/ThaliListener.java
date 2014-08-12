@@ -45,7 +45,6 @@ public class ThaliListener {
     private volatile Manager manager = null;
     private volatile PublicKey serverPublicKey = null;
     private volatile ReplicationManager replicationManager = null;
-    private Thread replicationManagerThread = null;
 
     private void waitTillServerStarts() throws InterruptedException {
         while (cblListener == null && serverStarted) {
@@ -127,8 +126,7 @@ public class ThaliListener {
 
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
 
-                replicationManagerThread = new Thread(replicationManager);
-                replicationManagerThread.start();
+                replicationManager.start();
 
                 cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
                 cblListener.start();
@@ -147,8 +145,8 @@ public class ThaliListener {
     }
 
     public void stopServer() {
-        if (replicationManagerThread != null) {
-            replicationManager.setShutdownServer();
+        if (replicationManager != null) {
+            replicationManager.stop();
         }
         if (cblListener != null) {
             cblListener.stop();

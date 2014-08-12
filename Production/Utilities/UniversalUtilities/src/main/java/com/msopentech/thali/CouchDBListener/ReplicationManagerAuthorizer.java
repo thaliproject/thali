@@ -27,13 +27,11 @@ import java.util.Map;
 
 public class ReplicationManagerAuthorizer extends Authorizer {
     private ReplicationManager replicationManager;
-    private ReplicatorArguments replicatorArguments;
 
     public ReplicationManagerAuthorizer(ReplicationManager repMgr, ReplicatorArguments args) {
         assert args != null && repMgr != null;
 
         this.replicationManager = repMgr;
-        this.replicatorArguments = args;
 
         try {
             this.replicationManager.processReplicationRequest(args);

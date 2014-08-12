@@ -27,20 +27,25 @@ import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 
-public class ReplicationManager implements Runnable {
-    private static final String replicationDatabaseName = "replicationdb";
+public class ReplicationManager {
+    private static String replicationDatabaseName = "replicationdb";
 
-    private ConcurrentHashMap<String, Object> replicationMap;
     private Manager couchManager;
-    private static boolean shutdownServer = false;
+    private Database replicationDatabase;
+    private Thread replicationManagerThread;
 
     private static final int replicationFrequency = 200; // in milliseconds
     private static final int threadSleepTime = 25; // in milliseconds
     private static final int threadIterations = replicationFrequency / threadSleepTime;
 
     public ReplicationManager(Manager manager) {
-        this.replicationMap = new ConcurrentHashMap<String, Object>();
+        this.replicationManagerThread = null;
         this.couchManager = manager;
+        try {
+            this.replicationDatabase = couchManager.getDatabase(replicationDatabaseName);
+        } catch(CouchbaseLiteException e) {
+            throw new RuntimeException("Unable to open replication database.", e);
+        }
     }
 
     private final String HEXMAP = "0123456789ABCDEF";
@@ -55,9 +60,10 @@ public class ReplicationManager implements Runnable {
         return hex.toString();
     }
 
+    // https://github.com/thaliproject/thali/issues/59
     private String requestKey(String from, String to) {
         if((from == null) || (to == null)) {
-            return null;
+            throw new RuntimeException("From and to are required to generate request key.  From" + from + ", To: " + to);
         }
         String key = null;
         try {
@@ -66,68 +72,42 @@ public class ReplicationManager implements Runnable {
             byte[] hash = digest.digest(text.getBytes("UTF-8"));
             key = convertByteArrayToHexString(hash);
         } catch(NoSuchAlgorithmException e) {
-            key = null;
+            throw new RuntimeException("No such algorithm", e);
         } catch(UnsupportedEncodingException e) {
-            key = null;
+            throw new RuntimeException("Unsupported encoding exception", e);
         }
         return key;
     }
 
-    private synchronized void manageReplicationRequest(ReplicatorArguments replicationArgs, boolean add) throws IllegalArgumentException {
-        String from = replicationArgs.getSource();
-        String to = replicationArgs.getTarget();
-        if((from == null) || (to == null)) {
-            throw new IllegalArgumentException("Replication requires valid source and target.");
+    private Document getReplicationDocument(String docId) {
+        if(docId == null) {
+            throw new IllegalArgumentException("Database and docId must not be null.");
         }
-        String key = requestKey(from, to);
-        if(add) {
-            replicationMap.put(key, replicationArgs);
-        } else {
-            replicationMap.remove(key);
-        }
+        return this.replicationDatabase.getDocument(docId);
     }
 
-    private Database getDatabase() {
-        Database db = null;
-        try {
-            db = couchManager.getDatabase(replicationDatabaseName);
-        } catch(CouchbaseLiteException e) {
-            throw new RuntimeException("Unable to open database.", e);
-        }
-        return db;
-    }
-
-    private Document getReplicationDocument(Database db, String docId) {
-        if((db == null) || (docId == null)) {
-            return null;
-        }
-        return db.getDocument(docId);
-    }
-
-    private void addOrUpdateReplication(ReplicatorArguments replicationArgs) {
+    // TODO --- try actual object -- thali / pull 57 / json/non-json
+    private void addOrUpdateReplication(final ReplicatorArguments replicationArgs) {
         String docId = requestKey(replicationArgs.getSource(), replicationArgs.getTarget());
-        Database db = getDatabase();
-        Document doc = getReplicationDocument(db, docId);
-        final String argJson = replicationArgs.getPropertiesAsJson();
+        Document doc = getReplicationDocument(docId);
         try {
             doc.update(new Document.DocumentUpdater() {
                 @Override
                 public boolean update(UnsavedRevision newRevision) {
                     Map<String, Object> properties = newRevision.getUserProperties();
-                    properties.put("arg_json", argJson);
+                    properties.put("replicationProps", replicationArgs.getRawProperties(true));
                     newRevision.setUserProperties(properties);
                     return true;
                 }
             });
         } catch(CouchbaseLiteException e) {
-            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error adding/updating replication request.  Source: " + replicationArgs.getSource() + ", Target: " + replicationArgs.getTarget());
+            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error adding/updating replication request.  Source: " + replicationArgs.getSource() + ", Target: " + replicationArgs.getTarget(), e);
         }
     }
 
     private void deleteReplication(ReplicatorArguments replicationArgs) {
         String docId = requestKey(replicationArgs.getSource(), replicationArgs.getTarget());
-        Database db = getDatabase();
-        Document doc = getReplicationDocument(db, docId);
+        Document doc = getReplicationDocument(docId);
         if((doc != null) && (!doc.isDeleted()) && (doc.getCurrentRevisionId() != null)) {
             try {
                 doc.delete();
@@ -135,16 +115,6 @@ public class ReplicationManager implements Runnable {
                 throw new RuntimeException("Unable to delete replication request", e);
             }
         }
-    }
-
-    private void removeReplicationRequest(ReplicatorArguments replicationArgs) throws IllegalArgumentException
-    {
-        manageReplicationRequest(replicationArgs, false);
-    }
-
-    private void addReplicationRequest(ReplicatorArguments replicationArgs) throws IllegalArgumentException
-    {
-        manageReplicationRequest(replicationArgs, true);
     }
 
     public void processReplicationRequest(ReplicatorArguments replicationArgs) throws IllegalArgumentException {
@@ -157,66 +127,81 @@ public class ReplicationManager implements Runnable {
         }
     }
 
-    private Map<String, String> getReplicationRequests() {
-        Map<String, String> requests = new HashMap<String, String>();
-        Database db = getDatabase();
-        Query query = db.createAllDocumentsQuery();
+    private Map<String, ReplicatorArguments> getReplicationRequests() {
+        Map<String, ReplicatorArguments> requests = new HashMap<String, ReplicatorArguments>();
+        Query query = this.replicationDatabase.createAllDocumentsQuery();
         query.setAllDocsMode(Query.AllDocsMode.ALL_DOCS);
         try {
             QueryEnumerator result = query.run();
+            // NOTE -- can't use foreach - IntelliJ gives the error:
+            // -- foreach not applicable to type 'com.couchbase.lite.QueryEnumerator
             for(Iterator<QueryRow> it = result; it.hasNext(); ) {
                 QueryRow row = it.next();
                 Document doc = row.getDocument();
-                String argJson = (String)doc.getProperty("arg_json");
-                if (argJson != null) {
-                    requests.put(row.getDocumentId(), argJson);
+                Map<String, Object> rawProps = (Map<String, Object>)doc.getProperty("replicationProps");
+                if (rawProps != null) {
+                    ReplicatorArguments arg = new ReplicatorArguments(rawProps, couchManager, null);
+                    requests.put(row.getDocumentId(), arg);
                 } else {
                     Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Stored request body missing.  DocID: " + doc.getId());
                 }
             }
         } catch(CouchbaseLiteException e) {
             Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Query to get replication requests failed.", e);
-
         }
         return requests;
     }
 
-    public void setShutdownServer() {
-        shutdownServer = true;
-    }
+    public void start() {
+        if(replicationManagerThread == null) {
+            replicationManagerThread = new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    int iterations = 0;
+                    while (!Thread.currentThread().isInterrupted()) {
+                        if (iterations == threadIterations) {
+                            // do the check every ten seconds
+                            Map<String, ReplicatorArguments> requests = getReplicationRequests();
+                            if (requests != null && requests.size() > 0) {
+                                for (Map.Entry<String, ReplicatorArguments> entry : requests.entrySet()) {
+                                    try {
+                                        Replication rep = couchManager.getReplicator(entry.getValue());
+                                        rep.start();
+                                    } catch (CouchbaseLiteException e) {
+                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
+                                        continue;
+                                    } catch (java.lang.NullPointerException e) {
+                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
+                                        continue;
+                                    }
+                                }
+                            }
+                            iterations = 0;
+                        }
+                        iterations++;
 
-    public void run() {
-        int iterations = 0;
-        while(!shutdownServer) {
-            if(iterations == threadIterations) {
-                // do the check every ten seconds
-                Map<String, String> requests = getReplicationRequests();
-                if(requests != null && requests.size() > 0) {
-                    for(Map.Entry<String, String> entry : requests.entrySet()) {
                         try {
-                            ReplicatorArguments args = ReplicatorArguments.getReplicatorArgumentsFromJson(entry.getValue(), couchManager, null);
-                            Replication rep = couchManager.getReplicator(args);
-                            rep.start();
-                        } catch(CouchbaseLiteException e) {
-                            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
-                            continue;
-                        } catch(java.lang.NullPointerException e) {
-                            Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
-                            continue;
+                            Thread.sleep(threadSleepTime);
+                        } catch (InterruptedException e) {
+                            Thread.currentThread().interrupt();
                         }
                     }
                 }
-                iterations = 0;
-            }
-            iterations++;
+            });
 
+            replicationManagerThread.start();
+        }
+    }
+
+    public void stop() {
+        if (replicationManagerThread != null) {
+            replicationManagerThread.interrupt();
             try {
-                Thread.sleep(threadSleepTime);
+                replicationManagerThread.join();
             } catch(InterruptedException e) {
-                // interrupted
-                shutdownServer = true;
-                continue;
+                // shutting down anyway, punt
             }
+            replicationManagerThread = null;
         }
     }
 }
