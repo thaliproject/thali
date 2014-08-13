@@ -18,11 +18,16 @@ public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
     protected final KeyStore clientKeyStore;
     protected final char[] clientPassPhrase;
     protected final Proxy proxy;
+    protected ReplicationManager replicationManager;
 
     public BogusThaliAuthorizerFactory(KeyStore clientKeyStore, char[] clientPassPhrase, Proxy proxy) {
         this.clientKeyStore = clientKeyStore;
         this.clientPassPhrase = clientPassPhrase;
         this.proxy = proxy;
+    }
+
+    public void setReplicationManager(ReplicationManager repMgr) {
+        this.replicationManager = repMgr;
     }
 
     @Override
@@ -57,6 +62,11 @@ public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
 //        } catch (ClassCastException e) {
 //            throw new CouchbaseLiteException(thaliFieldName + " must be a JSON object", new Status(Status.BAD_REQUEST));
 //        }
+
+        // is this a managed replication?
+        if(replicatorArguments.getManagedReplication()) {
+            return new ReplicationManagerAuthorizer(replicationManager, replicatorArguments);
+        }
 
         String remoteHttpKeyURL =
                 replicatorArguments.getPush() ? replicatorArguments.getTarget() : replicatorArguments.getSource();

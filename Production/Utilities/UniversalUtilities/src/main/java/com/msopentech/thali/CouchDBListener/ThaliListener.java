@@ -30,6 +30,7 @@ import org.bouncycastle.crypto.RuntimeCryptoException;
 import java.io.IOException;
 import java.net.*;
 import java.security.*;
+import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
 import java.util.Properties;
 
@@ -43,6 +44,7 @@ public class ThaliListener {
     private volatile boolean serverStarted = false;
     private volatile Manager manager = null;
     private volatile PublicKey serverPublicKey = null;
+    private volatile ReplicationManager replicationManager = null;
 
     private void waitTillServerStarts() throws InterruptedException {
         while (cblListener == null && serverStarted) {
@@ -88,10 +90,15 @@ public class ThaliListener {
                     // the system in case it doesn't already exist.
                     manager.getDatabase(KeyDatabaseName);
 
+                    // replication manager -- add to Thali bogus authorizer.
+                    replicationManager = new ReplicationManager(manager);
+                    bogusThaliAuthorizerFactory.setReplicationManager(replicationManager);
+
+
                     // Provision the TDH in its own key database so it can do replications to itself
                     // https://github.com/thaliproject/thali/issues/45
                     BogusAuthorizeCouchDocument.addDocViaManager(manager,
-                            (java.security.interfaces.RSAPublicKey) serverPublicKey);
+                            (RSAPublicKey) serverPublicKey);
                 } catch (IOException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
                     return;
@@ -119,9 +126,12 @@ public class ThaliListener {
 
                 BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
 
-                cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
+                replicationManager.start();
 
+                cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
                 cblListener.start();
+
+
             }
         }).start();
 
@@ -135,6 +145,9 @@ public class ThaliListener {
     }
 
     public void stopServer() {
+        if (replicationManager != null) {
+            replicationManager.stop();
+        }
         if (cblListener != null) {
             cblListener.stop();
         }
@@ -151,6 +164,12 @@ public class ThaliListener {
         waitTillServerStarts();
 
         return manager;
+    }
+
+    public ReplicationManager getReplicationManager() throws InterruptedException {
+        waitTillServerStarts();
+
+        return replicationManager;
     }
 
     public HttpKeyTypes getHttpKeys() throws InterruptedException, UnknownHostException {

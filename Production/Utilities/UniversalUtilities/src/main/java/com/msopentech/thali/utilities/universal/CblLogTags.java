@@ -28,10 +28,12 @@ public class CblLogTags {
     public static final String TAG_THALI_LISTENER = "ThaliListener";
     public static final String TAG_THALI_BOGUSREQUESTAUTHORIZATION = "ThaliBogusRequestAuthorization";
     public static final String TAG_THALI_BRIDGETESTMANAGER = "ThaliBridgeTestManager";
+    public static final String TAG_THALI_REPLICATION_MANAGER = "ReplicationManager";
 
     public static void turnTo11() {
         Log.enableLogging(TAG_THALI_LISTENER, VERBOSE);
         Log.enableLogging(TAG_THALI_BOGUSREQUESTAUTHORIZATION, VERBOSE);
         Log.enableLogging(TAG_THALI_BRIDGETESTMANAGER, VERBOSE);
+        Log.enableLogging(TAG_THALI_REPLICATION_MANAGER, VERBOSE);
     }
 }
