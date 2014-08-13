@@ -22,6 +22,7 @@ import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
 import com.couchbase.lite.util.Log;
 import com.fasterxml.jackson.annotation.JsonCreator;
+import com.msopentech.thali.toronionproxy.OsData;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -136,7 +137,11 @@ public class ThaliListener {
         }).start();
 
         try {
-            Log.w(CblLogTags.TAG_THALI_LISTENER, "Local address is: " + getHttpKeys().getLocalMachineIPHttpKeyURL());
+            // Can't do this in Android because it would be on the main thread and caused an AndroidBlockGuardPolicy.onNetwork
+            // If we ever care we can always just run it on a separate thread but it doesn't seem worth it.
+            if (OsData.getOsType() != OsData.OsType.Android ) {
+                Log.w(CblLogTags.TAG_THALI_LISTENER, "Local address is: " + getHttpKeys().getLocalMachineIPHttpKeyURL());
+            }
         } catch (InterruptedException e) {
             Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
         } catch (UnknownHostException e) {
