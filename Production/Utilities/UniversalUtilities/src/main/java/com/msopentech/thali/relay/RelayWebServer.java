@@ -100,6 +100,12 @@ public class RelayWebServer extends NanoHTTPD {
 
     @Override
     public Response serve(IHTTPSession session) {
+        Response response = processRequest(session);
+        AppendCorsHeaders(response, session.getHeaders());
+        return response;
+    }
+
+    public Response processRequest(IHTTPSession session) {
         Method method = session.getMethod();
         String queryString = session.getQueryParameterString();
         String path = session.getUri();
@@ -114,7 +120,6 @@ public class RelayWebServer extends NanoHTTPD {
         // we don't introduce dependencies on couch CORS configuration
         if (method.name().equalsIgnoreCase("OPTIONS")) {
             Response optionsResponse = new Response("OK");
-            AppendCorsHeaders(optionsResponse, headers);
             optionsResponse.setStatus(Response.Status.OK);
             return optionsResponse;
         }
@@ -122,12 +127,12 @@ public class RelayWebServer extends NanoHTTPD {
         // Handle request for local HTTP Key URL
         if (path.equalsIgnoreCase("/_relayutility/localhttpkeys"))
         {
-            return returnHttpKeyTypes(headers);
+            return returnHttpKeyTypes();
         }
 
         // Handle request to run onion address into a HTTPKey URL
         if (path.equalsIgnoreCase("/_relayutility/translateonion")) {
-            return returnHttpKeyUrl(headers, queryString);
+            return returnHttpKeyUrl(queryString);
         }
 
         // Get the body of the request if appropriate
@@ -158,11 +163,10 @@ public class RelayWebServer extends NanoHTTPD {
         }
 
         // Actually make the relayed call
-        return relayRequestReturnResponse(headers, basicHttpRequest);
+        return relayRequestReturnResponse(basicHttpRequest);
     }
 
-    private Response relayRequestReturnResponse(Map<String, String> headers,
-                                                BasicHttpEntityEnclosingRequest basicHttpRequest) {
+    private Response relayRequestReturnResponse(BasicHttpEntityEnclosingRequest basicHttpRequest) {
         HttpResponse tdhResponse = null;
         InputStream tdhResponseContent = null;
         Response clientResponse = null;
@@ -211,13 +215,12 @@ public class RelayWebServer extends NanoHTTPD {
         }
 
         // Prep all headers for our final response
-        AppendCorsHeaders(clientResponse, headers);
         copyHeadersToResponse(clientResponse, tdhResponse.getAllHeaders());
 
         return clientResponse;
     }
 
-    private Response returnHttpKeyTypes(Map<String, String> headers) {
+    private Response returnHttpKeyTypes() {
         ObjectMapper mapper = new ObjectMapper();
         String responseBody;
         try {
@@ -226,15 +229,12 @@ public class RelayWebServer extends NanoHTTPD {
             return GenerateErrorResponse("Could not generate localhttpkeys output", e);
         }
         Response httpKeyTypesResponse = new Response(responseBody);
-        // Technically we shouldn't need the CORS headers since this is a GET
-        AppendCorsHeaders(httpKeyTypesResponse, headers);
         httpKeyTypesResponse.setMimeType("application/json");
         httpKeyTypesResponse.setStatus(Response.Status.OK);
         return httpKeyTypesResponse;
     }
 
-    private Response returnHttpKeyUrl(Map<String, String> headers, String onionAddress) {
-        assert(headers != null);
+    private Response returnHttpKeyUrl(String onionAddress) {
         assert(onionAddress != null && onionAddress.isEmpty() == false);
         Exception caughtException;
         ObjectMapper mapper = new ObjectMapper();
@@ -249,8 +249,6 @@ public class RelayWebServer extends NanoHTTPD {
                             .toString());
             String responseBody = mapper.writeValueAsString(translatedOnionAddress);
             Response httpKeyResponse = new Response(responseBody);
-            // Technically we shouldn't need the CORS headers since this is a GET
-            AppendCorsHeaders(httpKeyResponse, headers);
             httpKeyResponse.setMimeType("application/json");
             httpKeyResponse.setStatus(Response.Status.OK);
             return httpKeyResponse;
