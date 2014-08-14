@@ -105,7 +105,8 @@ public class RelayWebServerTest extends UtilitiesTestCase {
 //                .assertThat().statusCode(200);
         RestTestMethods.testGet(url, null, 200, null,
                 new HashMap<String, Object>(){{
-                    put("$.localMachineIPHttpKeyURL", thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());}});
+                    put("$.localMachineIPHttpKeyURL", thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());
+                    put("$.onionHttpKeyURL", thaliListener.getHttpKeys().getOnionHttpKeyURL());}});
     }
 
     public void testTranslateOnionAddress() throws InterruptedException, IOException {

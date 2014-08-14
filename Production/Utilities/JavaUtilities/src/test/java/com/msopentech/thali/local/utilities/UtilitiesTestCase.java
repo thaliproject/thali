@@ -14,6 +14,8 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.local.utilities;
 
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyContext;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyManager;
 import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.test.RelayWebServerTest;
@@ -43,11 +45,19 @@ public class UtilitiesTestCase extends TestCase {
         if (configRan == false) {
             CreateClientBuilder cb = new JavaEktorpCreateClientBuilder();
 
+            JavaOnionProxyManager javaOnionProxyManagerThaliListener =
+                    new JavaOnionProxyManager(new JavaOnionProxyContext("thaliListener"));
             thaliListener = new ThaliListener();
-            thaliListener.startServer(new CreateContextInTemp(), 0, null);
+            thaliListener.startServer(new CreateContextInTemp(), 0, javaOnionProxyManagerThaliListener);
+            // Makes sure the test only runs once the server is up and running.
+            thaliListener.waitTillHiddenServiceStarts();
 
+            JavaOnionProxyManager javaOnionProxyManagerNoSecurity =
+                    new JavaOnionProxyManager(new JavaOnionProxyContext("noSecurityThaliListener"));
             noSecurityThaliListener = new ThaliListener();
-            noSecurityThaliListener.startServer(new CreateContextInTemp(), 0, null);
+            noSecurityThaliListener.startServer(new CreateContextInTemp(), 0, javaOnionProxyManagerNoSecurity);
+            // Makes sure the test only runs once the server is up and running.
+            noSecurityThaliListener.waitTillHiddenServiceStarts();
 
             server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), thaliListener.getHttpKeys());
             tempFileManager = new RelayWebServerTest.TestTempFileManager();

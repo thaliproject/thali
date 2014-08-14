@@ -14,20 +14,16 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.local.utilities;
 
 import android.content.Context;
-import com.couchbase.lite.android.AndroidContext;
+import android.content.ContextWrapper;
 import com.msopentech.thali.toronionproxy.FileUtilities;
 
 import java.io.File;
 
-/**
- * Overrides the default filesDir to let us run two Thali Listeners side by side
- */
-public class AndroidContextChangeFilesDir extends AndroidContext {
+public class AndroidContextChangeFilesDir extends ContextWrapper {
     private final String subFolderName;
     private File filesDir = null;
-
-    public AndroidContextChangeFilesDir(Context wrappedContext, String subfolderName) {
-        super(wrappedContext);
+    public AndroidContextChangeFilesDir(Context base, String subfolderName) {
+        super(base);
         this.subFolderName = subfolderName;
     }
 

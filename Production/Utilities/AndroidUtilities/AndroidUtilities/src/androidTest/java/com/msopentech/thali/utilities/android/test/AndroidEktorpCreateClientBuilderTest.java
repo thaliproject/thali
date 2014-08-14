@@ -18,6 +18,7 @@ import com.couchbase.lite.Context;
 import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.test.ThaliTestEktorpClient;
@@ -38,26 +39,11 @@ public class AndroidEktorpCreateClientBuilderTest extends AndroidTestCase {
     @Override
     public void setUp() throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException,
             KeyStoreException, KeyManagementException, IOException {
-
-        // TODO: The hard coding of the socks proxy and addresses, onion address, etc. are hacks until we put in
-        // automated TOR Onion Proxy support. That will be in the next check in.
-
-        /*
-        Please go look at the detailed instructions in JavaUtilites\JavaEktorpCreateClientBuilderTest.java.
-        You will use the Tor Onion Proxy running on the host machine. So make sure it is running. Please
-        copy the SAME IP address and onion address below as you used in Java (assuming you are running your
-        Android client with the same PC host). Also make sure to issue 'adb forward tcp:9600 tcp:9600'.
-         */
-
-        Proxy proxy = new Proxy(Proxy.Type.SOCKS, new InetSocketAddress("192.168.1.188", 9150));
-
-        //ThaliListener.DefaultThaliDeviceHubAddress
-
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 0,
-                    "hrl5z4arnyciqsll.onion", 10000,
                     ThaliCryptoUtilities.DefaultPassPhrase, new AndroidContext(getContext()),
-                    new AndroidEktorpCreateClientBuilder(), this.getClass(), proxy);
+                    new AndroidEktorpCreateClientBuilder(), this.getClass(),
+                    new AndroidOnionProxyManager(getContext(), "Tor OP"));
 
             //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }
