@@ -15,13 +15,16 @@ package com.msopentech.thali.devicehub.android;
 
 import android.app.Notification;
 import android.app.Service;
+import android.content.Context;
 import android.content.Intent;
 import android.os.IBinder;
 import com.couchbase.lite.android.AndroidContext;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -54,6 +57,7 @@ import java.security.UnrecoverableKeyException;
 public class ThaliDeviceHubService extends Service {
     public static final String HttpKeysNotification = "com.msopentech.thali.devicehub.android.httpkeys";
     public static final String LocalMachineIPHttpKeyURLName = "LocalMachineIPHttpKeyURL";
+    public static final String OnionHttpKeyURLName = "OnionHttpKeyURLName";
     protected ThaliListener thaliListener = null;
 
     // These values are used for testing
@@ -62,12 +66,13 @@ public class ThaliDeviceHubService extends Service {
 
     @Override
     public void onCreate() {
-        thaliListener = new ThaliListener();
-        // TODO: We will replace with the proxy with a non-null object once we have deployment under control
         // Embarrassing enough I'm not sure if getApplicationContext is the right context to get. :(
+        Context context = getApplicationContext();
+        AndroidOnionProxyManager androidOnionProxyManager = new AndroidOnionProxyManager(context, "TorOnionProxy");
+        thaliListener = new ThaliListener();
         try {
-            thaliListener.startServer(new AndroidContext(getApplicationContext()), ThaliListener.DefaultThaliDeviceHubPort,
-                    null);
+            thaliListener.startServer(new AndroidContext(context), ThaliListener.DefaultThaliDeviceHubPort,
+                    androidOnionProxyManager);
             thaliListenerRunning = true;
             return;
         } catch (UnrecoverableKeyException e) {
@@ -99,12 +104,15 @@ public class ThaliDeviceHubService extends Service {
                 Intent httpKeysIntent = new Intent(HttpKeysNotification);
                 try {
                     httpKeysIntent.putExtra(LocalMachineIPHttpKeyURLName, thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());
+                    httpKeysIntent.putExtra(OnionHttpKeyURLName, thaliListener.getHttpKeys().getOnionHttpKeyURL());
                     sendBroadcast(httpKeysIntent);
                     httpKeysSentByBroadcast = true;
                     return;
                 } catch (InterruptedException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "We could not get http keys from the listener.", e);
                 } catch (UnknownHostException e) {
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "We could not get http keys from the listener.", e);
+                } catch (IOException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "We could not get http keys from the listener.", e);
                 }
                 httpKeysSentByBroadcast = false;

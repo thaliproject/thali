@@ -26,10 +26,12 @@ import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import com.msopentech.thali.utilities.universal.test.ThaliTestEktorpClient;
 import junit.framework.TestCase;
 
+import java.io.File;
 import java.io.IOException;
 import java.net.InetSocketAddress;
 import java.net.Proxy;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -46,11 +48,12 @@ public class JavaEktorpCreateClientBuilderTest extends TestCase {
 
         // I have to create a single global listener for all tests (which is really a mess in terms of bring sure
         // where bugs come from) because of https://github.com/couchbase/couchbase-lite-java-listener/issues/43
+        File torDirectory = Files.createTempDirectory("Tor OP").toFile();
         if (testEktorpClient == null) {
             testEktorpClient = new ThaliTestEktorpClient(ThaliListener.DefaultThaliDeviceHubAddress, 0,
                     ThaliCryptoUtilities.DefaultPassPhrase, new CreateContextInTemp(),
                     new JavaEktorpCreateClientBuilder(), this.getClass(),
-                    new JavaOnionProxyManager(new JavaOnionProxyContext("Tor OP")));
+                    new JavaOnionProxyManager(new JavaOnionProxyContext(torDirectory)));
 
             //ThaliTestUtilities.turnCouchbaseLoggingTo11();
         }

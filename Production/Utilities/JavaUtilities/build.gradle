@@ -34,6 +34,7 @@ dependencies {
     compile 'com.couchbase.lite:java:1.0.0-beta3rc1'
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:0.0.2'
     compile 'com.msopentech.thali:ThaliOnionProxyJava:0.0.0'
+    compile 'com.msopentech.thali:BriarJtorctl:0.0.0'
 
     testCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
     testCompile 'junit:junit:3.8.2'
