@@ -25,19 +25,14 @@ def runAndroidTest(buildTask, runTest = true) {
 
 tasks.withType(GradleBuild) {
     ext.buildWithArtifacts = 'true'
-    ext.mavenBuildLocal = System.getProperty('MAVEN_BUILD_LOCAL') ?: true
-    ext.mavenRemoteRepoUrl = System.getProperty('MAVEN_REMOTE_REPO_URL') ?: 'http://thaliartifactory.cloudapp.net/artifactory'
-    ext.mavenPath = mavenBuildLocal ?
-            'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
-            mavenRemoteRepoUrl
 
     startParameter.projectProperties = gradle.startParameter.projectProperties
     startParameter.systemPropertiesArgs = [
         'UPLOAD_VERSION_CBLITE'     : version,
         'MAVEN_UPLOAD_VERSION'      : version,
-        'MAVEN_UPLOAD_REPO_URL'     : mavenPath,
-        'MAVEN_UPLOAD_USERNAME'     : System.getProperty('MAVEN_UPLOAD_USERNAME')    ?: 'user',
-        'MAVEN_UPLOAD_PASSWORD'     : System.getProperty('MAVEN_UPLOAD_PASSWORD')    ?: '[*]',
+        'MAVEN_UPLOAD_REPO_URL'     : System.getProperty('MAVEN_UPLOAD_REPO_URL'),
+        'MAVEN_UPLOAD_USERNAME'     : System.getProperty('MAVEN_UPLOAD_USERNAME'),
+        'MAVEN_UPLOAD_PASSWORD'     : System.getProperty('MAVEN_UPLOAD_PASSWORD'),
 
         // flags used in couchbase projects to retrieve dependencies via Maven
         'buildAndroidWithArtifacts' : buildWithArtifacts,
