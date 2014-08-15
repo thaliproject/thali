@@ -17,6 +17,7 @@ import android.content.Context;
 import android.test.AndroidTestCase;
 import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
 import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.thali.toronionproxy.FileUtilities;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
@@ -44,12 +45,24 @@ public class UtilitiesTestCase extends AndroidTestCase {
 
         CreateClientBuilder cb = new AndroidEktorpCreateClientBuilder();
 
+        AndroidContextChangeFilesDir thaliListenerContext =
+                new AndroidContextChangeFilesDir(getContext(), "thaliListener");
+        AndroidOnionProxyManager androidOnionProxyManager =
+                new AndroidOnionProxyManager(thaliListenerContext, "androidOnionProxyManager");
         thaliListener = new ThaliListener();
-        thaliListener.startServer(new AndroidContext(getContext()), 0, null);
+        thaliListener.startServer(new AndroidContext(thaliListenerContext), 0, androidOnionProxyManager);
+        // Makes sure the test only runs once the server is up and running.
+        thaliListener.waitTillHiddenServiceStarts();
 
+        AndroidContextChangeFilesDir noSecurityThaliListenerContext =
+                new AndroidContextChangeFilesDir(getContext(), "noSecurityThaliListener");
+        AndroidOnionProxyManager androidOnionProxyManagerNoSecurity =
+                new AndroidOnionProxyManager(noSecurityThaliListenerContext, "androidNoSecurityOnionProxyManager");
         noSecurityThaliListener = new ThaliListener();
         noSecurityThaliListener.startServer(
-                new AndroidContextChangeFilesDir(getContext(), "noSecurityThaliListener"), 0, null);
+                new AndroidContext(noSecurityThaliListenerContext), 0, androidOnionProxyManagerNoSecurity);
+        // Makes sure the test only runs once the server is up and running.
+        noSecurityThaliListener.waitTillHiddenServiceStarts();
 
         server = new RelayWebServer(cb, getContext().getFilesDir(), thaliListener.getHttpKeys());
         tempFileManager = new RelayWebServerTest.TestTempFileManager();

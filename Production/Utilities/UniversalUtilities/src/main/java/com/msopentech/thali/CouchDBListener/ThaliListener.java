@@ -15,13 +15,16 @@ package com.msopentech.thali.CouchDBListener;
 
 import Acme.Serve.SSLAcceptor;
 import Acme.Serve.Serve;
-import com.couchbase.lite.*;
+import com.couchbase.lite.Context;
+import com.couchbase.lite.CouchbaseLiteException;
+import com.couchbase.lite.Manager;
+import com.couchbase.lite.ManagerOptions;
 import com.couchbase.lite.auth.AuthorizerFactory;
 import com.couchbase.lite.auth.AuthorizerFactoryManager;
 import com.couchbase.lite.listener.LiteListener;
 import com.couchbase.lite.listener.SocketStatus;
 import com.couchbase.lite.util.Log;
-import com.fasterxml.jackson.annotation.JsonCreator;
+import com.msopentech.thali.toronionproxy.OnionProxyManager;
 import com.msopentech.thali.toronionproxy.OsData;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
@@ -29,7 +32,10 @@ import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
 
 import java.io.IOException;
-import java.net.*;
+import java.net.InetAddress;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
+import java.net.UnknownHostException;
 import java.security.*;
 import java.security.interfaces.RSAPublicKey;
 import java.util.ArrayList;
@@ -46,9 +52,45 @@ public class ThaliListener {
     private volatile Manager manager = null;
     private volatile PublicKey serverPublicKey = null;
     private volatile ReplicationManager replicationManager = null;
+    private volatile OnionProxyManager onionProxyManager = null;
+    private volatile HttpKeyURL hiddenServiceAddress = null;
+    private volatile Proxy socksProxy = null;
 
-    private void waitTillServerStarts() throws InterruptedException {
+    /**
+     * waitTillToOnionProxyStarts() + wait for hidden service to be registered.
+     * @throws InterruptedException
+     */
+    public void waitTillHiddenServiceStarts() throws InterruptedException, IOException {
+        waitTillTorOnionProxyStarts();
+
+        while (hiddenServiceAddress == null) {
+            Log.v(CblLogTags.TAG_THALI_LISTENER, "Waiting for Hidden service to be registered");
+            Thread.sleep(100);
+        }
+    }
+
+    /**
+     * waitTillListenerStarts() + Waits for Tor infrastructure to boot strap and be available for SOCKS communication.
+     * @throws InterruptedException
+     * @throws IOException
+     */
+    public void waitTillTorOnionProxyStarts() throws InterruptedException, IOException {
+        waitTillListenerStarts();
+
+        while (onionProxyManager.isRunning() == false || onionProxyManager.isNetworkEnabled() == false ||
+                socksProxy == null) {
+            Log.v(CblLogTags.TAG_THALI_LISTENER, "Waiting for Tor Onion Proxy to start");
+            Thread.sleep(100);
+        }
+    }
+
+    /**
+     * Waits until the local CouchDB server is up and running
+     * @throws InterruptedException
+     */
+    public void waitTillListenerStarts() throws InterruptedException {
         while (cblListener == null && serverStarted) {
+            Log.v(CblLogTags.TAG_THALI_LISTENER, "Waiting for Listener to start");
             Thread.sleep(100);
         }
 
@@ -62,9 +104,12 @@ public class ThaliListener {
      * the specified port.
      * @param context
      * @param port
+     * @param onionProxyManager
      */
-    public void startServer(final Context context, final int port, final Proxy proxy) throws
+    public void startServer(final Context context, final int port,
+                            final OnionProxyManager onionProxyManager) throws
             UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException{
+        this.onionProxyManager = onionProxyManager;
         serverStarted = true;
         if (context == null) {
             throw new RuntimeException();
@@ -75,64 +120,29 @@ public class ThaliListener {
 
         new Thread(new Runnable() {
             public void run() {
-                // Start the CouchDB Lite manager
+                // First start the Tor listener so we know what SOCKS proxy port we are listening on
                 try {
-                    ArrayList<AuthorizerFactory> authorizerFactoryArrayList = new ArrayList<AuthorizerFactory>();
-                    BogusThaliAuthorizerFactory bogusThaliAuthorizerFactory =
-                            new BogusThaliAuthorizerFactory(finalClientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase,
-                                    proxy);
-                    authorizerFactoryArrayList.add(bogusThaliAuthorizerFactory);
-                    AuthorizerFactoryManager authorizerFactoryManager =
-                            new AuthorizerFactoryManager(authorizerFactoryArrayList);
-                    ManagerOptions managerOptions =
-                            new ManagerOptions(authorizerFactoryManager);
-                    manager = new Manager(context, managerOptions);
-                    // This creates the database used to store the keys of remote applications that are authorized to use
-                    // the system in case it doesn't already exist.
-                    manager.getDatabase(KeyDatabaseName);
+                    onionProxyManager.startWithRepeat(120, 3);
+                    onionProxyManager.enableNetwork(true);
+                    socksProxy = new Proxy(
+                            Proxy.Type.SOCKS,
+                            new InetSocketAddress("127.0.0.1", onionProxyManager.getIPv4LocalHostSocksPort()));
 
-                    // replication manager -- add to Thali bogus authorizer.
-                    replicationManager = new ReplicationManager(manager);
-                    bogusThaliAuthorizerFactory.setReplicationManager(replicationManager);
+                    // Now we can configure the listener with the proxy to use to talk to SOCKS
+                    if (configureManagerObjectForListener(finalClientKeyStore, socksProxy, context)) {
+                        configureListener(context, port);
+                    }
 
-
-                    // Provision the TDH in its own key database so it can do replications to itself
-                    // https://github.com/thaliproject/thali/issues/45
-                    BogusAuthorizeCouchDocument.addDocViaManager(manager,
-                            (RSAPublicKey) serverPublicKey);
+                    // Now we can configure the hidden service because we know what local port the listener is using
+                    String onionDomainName =
+                            onionProxyManager.publishHiddenService(DefaultThaliDeviceHubPort, getSocketStatus().getPort());
+                    hiddenServiceAddress =
+                            new HttpKeyURL(serverPublicKey, onionDomainName, DefaultThaliDeviceHubPort, null, null, null);
+                } catch (InterruptedException e) {
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Could not start TOR Onion Proxy", e);
                 } catch (IOException e) {
-                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
-                    return;
-                } catch (CouchbaseLiteException e) {
-                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
-                    return;
+                    Log.e(CblLogTags.TAG_THALI_LISTENER, "Could not start TOR Onion Proxy", e);
                 }
-
-                Properties tjwsProperties = new Properties();
-                tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, TjwsSslAcceptor);
-                tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
-                tjwsProperties.setProperty(
-                        SSLAcceptor.ARG_KEYSTOREFILE,
-                        ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir()).getAbsolutePath());
-                tjwsProperties.setProperty(
-                        SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
-
-                tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
-
-                //Allows us to bind to a particular address if that is interesting
-                //tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultThaliDeviceHubAddress);
-
-                // Needed to work around https://github.com/couchbase/couchbase-lite-java-listener/issues/40
-                tjwsProperties.setProperty(Serve.ARG_KEEPALIVE_TIMEOUT, "1");
-
-                BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
-
-                replicationManager.start();
-
-                cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
-                cblListener.start();
-
-
             }
         }).start();
 
@@ -146,42 +156,130 @@ public class ThaliListener {
             Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
         } catch (UnknownHostException e) {
             Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
+        } catch (IOException e) {
+            Log.e(CblLogTags.TAG_THALI_LISTENER, "Failed trying to log address", e);
         }
+    }
+
+    private void configureListener(Context context, int port) {
+        Properties tjwsProperties = new Properties();
+        tjwsProperties.setProperty(Serve.ARG_ACCEPTOR_CLASS, TjwsSslAcceptor);
+        tjwsProperties.setProperty(SSLAcceptor.ARG_KEYSTORETYPE, ThaliCryptoUtilities.PrivateKeyHolderFormat);
+        tjwsProperties.setProperty(
+                SSLAcceptor.ARG_KEYSTOREFILE,
+                ThaliCryptoUtilities.getThaliKeyStoreFileObject(context.getFilesDir()).getAbsolutePath());
+        tjwsProperties.setProperty(
+                SSLAcceptor.ARG_KEYSTOREPASS, new String(ThaliCryptoUtilities.DefaultPassPhrase));
+
+        tjwsProperties.setProperty(SSLAcceptor.ARG_CLIENTAUTH, "true");
+
+        //Allows us to bind to a particular address if that is interesting
+        //tjwsProperties.setProperty(Serve.ARG_BINDADDRESS, DefaultThaliDeviceHubAddress);
+
+        // Needed to work around https://github.com/couchbase/couchbase-lite-java-listener/issues/40
+        tjwsProperties.setProperty(Serve.ARG_KEEPALIVE_TIMEOUT, "1");
+
+        BogusRequestAuthorization authorize = new BogusRequestAuthorization(KeyDatabaseName);
+
+        replicationManager.start();
+
+        cblListener = new LiteListener(manager, port, tjwsProperties, authorize, null);
+        cblListener.start();
+    }
+
+    /**
+     * Configured Manager object
+     * @param finalClientKeyStore
+     * @param proxy
+     * @param context
+     * @return True if the config worked and false if there is a problem. Since this method is called from inside of
+     * its own thread there is no point in throwing in case of an error. We can only log.
+     */
+    private boolean configureManagerObjectForListener(KeyStore finalClientKeyStore, Proxy proxy, Context context) {
+        // Start the CouchDB Lite manager
+        try {
+            ArrayList<AuthorizerFactory> authorizerFactoryArrayList = new ArrayList<AuthorizerFactory>();
+            BogusThaliAuthorizerFactory bogusThaliAuthorizerFactory =
+                    new BogusThaliAuthorizerFactory(finalClientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase,
+                            proxy);
+            authorizerFactoryArrayList.add(bogusThaliAuthorizerFactory);
+            AuthorizerFactoryManager authorizerFactoryManager =
+                    new AuthorizerFactoryManager(authorizerFactoryArrayList);
+            ManagerOptions managerOptions =
+                    new ManagerOptions(authorizerFactoryManager);
+            manager = new Manager(context, managerOptions);
+            // This creates the database used to store the keys of remote applications that are authorized to use
+            // the system in case it doesn't already exist.
+            manager.getDatabase(KeyDatabaseName);
+
+            // replication manager -- add to Thali bogus authorizer.
+            replicationManager = new ReplicationManager(manager);
+            bogusThaliAuthorizerFactory.setReplicationManager(replicationManager);
+
+            // Provision the TDH in its own key database so it can do replications to itself
+            // https://github.com/thaliproject/thali/issues/45
+            BogusAuthorizeCouchDocument.addDocViaManager(manager,
+                    (RSAPublicKey) serverPublicKey);
+        } catch (IOException e) {
+            Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
+            return false;
+        } catch (CouchbaseLiteException e) {
+            Log.e(CblLogTags.TAG_THALI_LISTENER, "Manager failed to start", e);
+            return false;
+        }
+        return true;
     }
 
     public void stopServer() {
         if (replicationManager != null) {
             replicationManager.stop();
         }
+
         if (cblListener != null) {
             cblListener.stop();
         }
+
+        if (onionProxyManager != null) {
+            try {
+                onionProxyManager.stop();
+            } catch (IOException e) {
+                Log.e(CblLogTags.TAG_THALI_LISTENER, "Something went wrong while stopping the Tor Onion Proxy", e);
+            }
+        }
+
         serverStarted = false;
     }
 
     public SocketStatus getSocketStatus() throws InterruptedException {
-        waitTillServerStarts();
+        waitTillListenerStarts();
 
         return cblListener.getSocketStatus();
     }
 
     public Manager getManager() throws InterruptedException {
-        waitTillServerStarts();
+        waitTillListenerStarts();
 
         return manager;
     }
 
     public ReplicationManager getReplicationManager() throws InterruptedException {
-        waitTillServerStarts();
+        waitTillListenerStarts();
 
         return replicationManager;
     }
 
-    public HttpKeyTypes getHttpKeys() throws InterruptedException, UnknownHostException {
+    public Proxy getSocksProxy() throws InterruptedException, IOException {
+        waitTillTorOnionProxyStarts();
+
+        return socksProxy;
+    }
+
+    public HttpKeyTypes getHttpKeys() throws InterruptedException, IOException {
+        waitTillHiddenServiceStarts();
         // Local access address
         int portToUseForHttpKey = getSocketStatus().getPort();
         String host = InetAddress.getLocalHost().getHostAddress();
         HttpKeyURL localHttpKeyURL = new HttpKeyURL(serverPublicKey, host, portToUseForHttpKey, null, null, null);
-        return new HttpKeyTypes(localHttpKeyURL);
+        return new HttpKeyTypes(localHttpKeyURL, hiddenServiceAddress);
     }
 }

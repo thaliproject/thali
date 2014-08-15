@@ -20,6 +20,7 @@ import android.content.IntentFilter;
 import android.os.Bundle;
 import android.test.ServiceTestCase;
 
+import java.io.IOException;
 import java.net.UnknownHostException;
 
 public class testThaliDeviceHubService extends ServiceTestCase<ThaliDeviceHubService> {
@@ -42,7 +43,7 @@ public class testThaliDeviceHubService extends ServiceTestCase<ThaliDeviceHubSer
         }
     };
 
-    public void testLifeCycle() throws InterruptedException, UnknownHostException {
+    public void testLifeCycle() throws InterruptedException, IOException {
         getContext().registerReceiver(broadcastReceiver, new IntentFilter(ThaliDeviceHubService.HttpKeysNotification));
 
         // We test startService twice to make sure we keep getting the broadcast intent.
@@ -51,7 +52,7 @@ public class testThaliDeviceHubService extends ServiceTestCase<ThaliDeviceHubSer
         exerciseStartService();
     }
 
-    private void exerciseStartService() throws InterruptedException, UnknownHostException {
+    private void exerciseStartService() throws InterruptedException, IOException {
         //Intent startServiceIntent = new Intent(getContext(), ThaliDeviceHubService.class);
         // This represents how most Thali apps would send the intent since they won't have access
         // to the ThaliDeviceHubService.class value

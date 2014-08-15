@@ -14,6 +14,9 @@ See the Apache 2 License for the specific language governing permissions and lim
 package com.msopentech.thali.local.utilities;
 
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyContext;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyManager;
 import com.msopentech.thali.relay.RelayWebServer;
 import com.msopentech.thali.utilities.java.JavaEktorpCreateClientBuilder;
 import com.msopentech.thali.utilities.test.RelayWebServerTest;
@@ -22,6 +25,7 @@ import junit.framework.TestCase;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.security.KeyManagementException;
 import java.security.KeyStoreException;
 import java.security.NoSuchAlgorithmException;
@@ -43,11 +47,23 @@ public class UtilitiesTestCase extends TestCase {
         if (configRan == false) {
             CreateClientBuilder cb = new JavaEktorpCreateClientBuilder();
 
+            JavaThaliListenerContext thaliListenerContext = new CreateContextInTemp();
+            File thaliListenerTorDirectory = new File(thaliListenerContext.getFilesDir(), "thaliListener");
+            JavaOnionProxyManager javaOnionProxyManagerThaliListener =
+                    new JavaOnionProxyManager(new JavaOnionProxyContext(thaliListenerTorDirectory));
             thaliListener = new ThaliListener();
-            thaliListener.startServer(new CreateContextInTemp(), 0, null);
+            thaliListener.startServer(thaliListenerContext, 0, javaOnionProxyManagerThaliListener);
+            // Makes sure the test only runs once the server is up and running.
+            thaliListener.waitTillHiddenServiceStarts();
 
+            JavaThaliListenerContext noSecurityThaliListenerContext = new CreateContextInTemp();
+            File noSecurityThaliListenerTorDirectory = new File(thaliListenerContext.getFilesDir(), "noSecurityThaliListener");
+            JavaOnionProxyManager javaOnionProxyManagerNoSecurity =
+                    new JavaOnionProxyManager(new JavaOnionProxyContext(noSecurityThaliListenerTorDirectory));
             noSecurityThaliListener = new ThaliListener();
-            noSecurityThaliListener.startServer(new CreateContextInTemp(), 0, null);
+            noSecurityThaliListener.startServer(noSecurityThaliListenerContext, 0, javaOnionProxyManagerNoSecurity);
+            // Makes sure the test only runs once the server is up and running.
+            noSecurityThaliListener.waitTillHiddenServiceStarts();
 
             server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), thaliListener.getHttpKeys());
             tempFileManager = new RelayWebServerTest.TestTempFileManager();

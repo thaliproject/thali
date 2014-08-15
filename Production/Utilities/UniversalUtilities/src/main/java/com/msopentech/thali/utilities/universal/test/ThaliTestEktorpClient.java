@@ -19,6 +19,7 @@ import com.couchbase.lite.Database;
 import com.couchbase.lite.Manager;
 import com.couchbase.lite.replicator.Replication;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
+import com.msopentech.thali.toronionproxy.OnionProxyManager;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
@@ -56,21 +57,18 @@ import java.util.concurrent.TimeUnit;
  * that keeps threads (and file locks) when you think you have killed TJWS.
  */
 public class ThaliTestEktorpClient {
-    public static final String KeyId = "key";
     public static final String ReplicationTestDatabaseName = "replicationtest";
 
     public static final int MaximumTestRecords = 10;
 
     // determine whether or not we should try using Tor
-    public static final boolean EnableTorTests = false;
+    public static final boolean EnableTorTests = true;
 
     private final String tdhDirectHost;
     private final String tdhOnionHost;
     private final int tdhOnionPort;
     private final char[] passPhrase;
-    private final Context context;
     private final CreateClientBuilder createClientBuilder;
-    private final Proxy proxy;
     private int tdhDirectPort;
 
     private ThaliListener thaliTestServer = null;
@@ -80,35 +78,36 @@ public class ThaliTestEktorpClient {
     /**
      * Creates a local instance of the Thali Listener to use for testing
      * @param tdhDirectHost
-     * @param tdhOnionHost
      * @param passPhrase
      * @param context
      * @param createClientBuilder
      * @param childClass This is the class object of the test environment that created this object
      */
-    public ThaliTestEktorpClient(String tdhDirectHost, int tdhDirectPort, String tdhOnionHost, int tdhOnionPort,
+    public ThaliTestEktorpClient(String tdhDirectHost, int tdhDirectPort,
                                  char[] passPhrase, Context context,
-                                 CreateClientBuilder createClientBuilder, Class childClass, Proxy proxy)
+                                 CreateClientBuilder createClientBuilder, Class childClass,
+                                 OnionProxyManager onionProxyManager)
             throws InterruptedException, UnrecoverableEntryException, NoSuchAlgorithmException, KeyStoreException,
             KeyManagementException, IOException {
 
         this.tdhDirectHost = tdhDirectHost;
-        this.tdhOnionHost = tdhOnionHost;
-        this.tdhOnionPort = tdhOnionPort;
+
         this.passPhrase = passPhrase;
-        this.context = context;
         this.createClientBuilder = createClientBuilder;
-        this.proxy = proxy;
 
         thaliTestServer = new ThaliListener();
 
-        thaliTestServer.startServer(context, tdhDirectPort, proxy);
+        thaliTestServer.startServer(context, tdhDirectPort, onionProxyManager);
 
         this.tdhDirectPort = thaliTestServer.getSocketStatus().getPort();
 
+        HttpKeyURL onionHttpKeyUrl = new HttpKeyURL(thaliTestServer.getHttpKeys().getOnionHttpKeyURL());
+        tdhOnionHost = onionHttpKeyUrl.getHost();
+        tdhOnionPort = onionHttpKeyUrl.getPort();
+
         configureRequestObjects =
                     new ConfigureRequestObjects(tdhDirectHost, this.tdhDirectPort, tdhOnionHost, tdhOnionPort, passPhrase,
-                            createClientBuilder, context, null, proxy);
+                            createClientBuilder, context, null, thaliTestServer.getSocksProxy());
 
         checkIfChildClassExecutesAllTests(childClass);
     }
@@ -272,7 +271,7 @@ public class ThaliTestEktorpClient {
 	    {
             ThaliTestUtilities.validateDatabaseState(configureRequestObjects.torTestDatabaseConnector, testDocuments);
             runBadKeyTest(tdhOnionHost, tdhOnionPort, createClientBuilder, configureRequestObjects.serverPublicKey,
-            	configureRequestObjects.clientKeyStore, passPhrase, proxy);
+            	configureRequestObjects.clientKeyStore, passPhrase, thaliTestServer.getSocksProxy());
 	    }
     }
 

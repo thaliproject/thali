@@ -34,6 +34,7 @@ dependencies {
     compile 'com.couchbase.lite:java:' + System.getProperty('MAVEN_UPLOAD_VERSION')
     compile 'com.msopentech.thali:ThaliUtilitiesUniversal:' + System.getProperty('MAVEN_UPLOAD_VERSION')
     compile 'com.msopentech.thali:ThaliOnionProxyJava:' + System.getProperty('MAVEN_UPLOAD_VERSION')
+    compile 'com.msopentech.thali:BriarJtorctl:' + System.getProperty('MAVEN_UPLOAD_VERSION')
 
     testCompile 'com.jayway.jsonpath:json-path-assert:0.9.1'
     testCompile 'junit:junit:3.8.2'

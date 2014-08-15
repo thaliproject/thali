@@ -17,6 +17,8 @@ import com.couchbase.lite.JavaContext;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyContext;
+import com.msopentech.thali.java.toronionproxy.JavaOnionProxyManager;
 
 import java.io.File;
 import java.io.IOException;
@@ -34,9 +36,11 @@ public class ThaliDeviceHubService {
         thaliListener = new ThaliListener();
 
         File userHomeDirectoryRoot = new File(System.getProperty("user.home"), tdhJavaSubdirectory);
+        File userTorOnionProxyRoot = new File(userHomeDirectoryRoot, "TorOnionProxy");
+
+        JavaOnionProxyManager javaOnionProxyManager = new JavaOnionProxyManager(new JavaOnionProxyContext(userTorOnionProxyRoot));
         JavaContext context = new JavaThaliListenerContext(userHomeDirectoryRoot);
-        // TODO: We will replace with the proxy with a non-null object once we have deployment under control
-        thaliListener.startServer(context, ThaliListener.DefaultThaliDeviceHubPort, null);
+        thaliListener.startServer(context, ThaliListener.DefaultThaliDeviceHubPort, javaOnionProxyManager);
 
         // Writing out HttpKeys to root directory so relays and other clients can find them
         File httpKeysFile = new File(context.getRootDirectory(), httpKeysFileName);
