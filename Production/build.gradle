@@ -14,8 +14,13 @@ some directory
 In other words that there is a single directory that contains all the relevant depots below including Thali.
  */
 
+// You can pass in -PcleanAll on the command line to do a clean
 // You can pass in -PskipAndroidTest on the command line to skip android tests
 def runAndroidTest(buildTask, runTest = true) {
+   if (project.hasProperty('cleanAll')) {
+	   return [ 'clean' ];
+   }
+   
    if (runTest == false || project.hasProperty('skipAndroidTest') || project.hasProperty('skipAllTest')) {
        return [ buildTask ];
    } else {
@@ -24,6 +29,10 @@ def runAndroidTest(buildTask, runTest = true) {
 }
 
 def runJavaTest(buildTask, runTest = true) {
+    if (project.hasProperty('cleanAll')) {
+	  return [ 'clean' ];
+	}
+	
 	if (runTest == false || project.hasProperty('skipJavaTest') || project.hasProperty('skipAllTest')) {
 		return [ buildTask];
 	} else {
