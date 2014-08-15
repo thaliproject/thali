@@ -2,7 +2,7 @@ apply plugin: 'java'
 apply plugin: 'distribution'
 
 sourceCompatibility = 1.6
-version = '0.0.2'
+version = System.getProperty('MAVEN_UPLOAD_VERSION') ?: '1.0.0-beta3rc1'
 
 /*
 This script depends on the layout of depots. It assumes a file structure of
@@ -31,21 +31,36 @@ def runJavaTest(buildTask, runTest = true) {
 	}
 }
  
+tasks.withType(GradleBuild) {
+    ext.buildWithArtifacts = 'true'
+
+    startParameter.projectProperties = gradle.startParameter.projectProperties
+    startParameter.systemPropertiesArgs = [
+        'UPLOAD_VERSION_CBLITE'     : version,
+        'MAVEN_UPLOAD_VERSION'      : version,
+        'MAVEN_UPLOAD_REPO_URL'     : System.getProperty('MAVEN_UPLOAD_REPO_URL'),
+        'MAVEN_UPLOAD_USERNAME'     : System.getProperty('MAVEN_UPLOAD_USERNAME'),
+        'MAVEN_UPLOAD_PASSWORD'     : System.getProperty('MAVEN_UPLOAD_PASSWORD'),
+
+        // flags used in couchbase projects to retrieve dependencies via Maven
+        'buildAndroidWithArtifacts' : buildWithArtifacts,
+        'buildListenerWithArtifacts': buildWithArtifacts,
+        'buildAgainstMavenArtifacts': buildWithArtifacts,
+    ]
+}
+
 task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
     buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
     buildFile = '../../Tor_Onion_Proxy_Library/android/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('uploadArchives')
 }
 
@@ -55,26 +70,22 @@ task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOni
 // window I normally use.
 task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
     buildFile = '../../couchbase-lite-java-native/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
     buildFile = '../../couchbase-lite-java-core/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
     buildFile = '../../couchbase-lite-java-listener/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 // See issue 53 in the next task
 task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
     buildFile = '../../couchbase-lite-android/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('uploadArchives', false)
 }
 
@@ -85,43 +96,36 @@ task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLite
 // https://github.com/thaliproject/thali/issues/53
 task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
     buildFile = '../../couchbase-lite-java/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives', false)
 }
 
 task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
     buildFile = 'Utilities/UniversalUtilities/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildThaliJavaUtilities(type: GradleBuild, dependsOn: 'buildThaliUniversalUtilities') {
     buildFile = 'Utilities/JavaUtilities/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUtilities') {
     buildFile = 'Utilities/AndroidUtilities/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('uploadArchives')
 }
 
 task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
     buildFile = 'ThaliDeviceHub/Universal/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('uploadArchives')
 }
 
 task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
     buildFile = 'ThaliDeviceHub/java/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runJavaTest('distZip') // This isn't a library, it's an 'executable', this builds the distribution
 }
 
 task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {
     buildFile = 'ThaliDeviceHub/android/android/build.gradle'
-    startParameter.projectProperties = gradle.startParameter.projectProperties
     tasks = runAndroidTest('build') // This isn't a library, it's an 'executable', this builds the apk file
 }
 

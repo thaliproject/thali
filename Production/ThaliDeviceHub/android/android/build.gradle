@@ -39,7 +39,7 @@ android {
 }
 
 dependencies {
-    compile "com.msopentech.thali:ThaliTDHUniversal:0.0.2"
-    compile "com.msopentech.thali:ThaliUtilitiesAndroid:0.0.2"
+    compile 'com.msopentech.thali:ThaliTDHUniversal:' + System.getProperty('MAVEN_UPLOAD_VERSION')
+    compile 'com.msopentech.thali:ThaliUtilitiesAndroid:' + System.getProperty('MAVEN_UPLOAD_VERSION')
     compile 'org.slf4j:slf4j-android:1.7.7'
 }

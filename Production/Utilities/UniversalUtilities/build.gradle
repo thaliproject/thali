@@ -26,35 +26,29 @@ repositories {
 }
 
 dependencies {
+    compile 'com.couchbase.lite:couchbase-lite-java-core:' + System.getProperty('MAVEN_UPLOAD_VERSION')
+    compile 'com.couchbase.lite:couchbase-lite-java-listener:' + System.getProperty('MAVEN_UPLOAD_VERSION')
+    compile 'com.msopentech.thali:ThaliOnionProxyUniversal:' + System.getProperty('MAVEN_UPLOAD_VERSION')
     compile 'org.slf4j:slf4j-api:1.7.7'
     compile 'org.bouncycastle:bcprov-jdk15on:1.49'
     compile 'org.bouncycastle:bcpkix-jdk15on:1.49'
     compile 'org.apache.httpcomponents:httpclient:4.2.5' // Version used in Android 4.3
     compile 'org.ektorp:org.ektorp:1.4.2'
-    compile 'com.couchbase.lite:couchbase-lite-java-core:1.0.0-beta3rc1'
-    compile 'com.couchbase.lite:couchbase-lite-java-listener:1.0.0-beta3rc1'
     compile 'com.fasterxml.jackson.core:jackson-databind:2.3.2'
     compile 'org.apache.commons:commons-lang3:3.3.1'
-    compile 'com.msopentech.thali:ThaliOnionProxyUniversal:0.0.0'
 
     testCompile 'junit:junit:4.11'
     testCompile 'org.slf4j:slf4j-simple:1.7.7'
 }
 
-def mavenPath() {
-    artifactory_local == "true" ?
-            'file://' + new File(System.getProperty('user.home'), '.m2/repository').absolutePath :
-            artifactory_contextUrl + "/libs-release-local"
-}
-
 uploadArchives {
     repositories {
         mavenDeployer {
-            repository(url: mavenPath()) {
-                authentication(userName: "${artifactory_user}", password: "${artifactory_password}")
+            repository(url: System.getProperty('MAVEN_UPLOAD_REPO_URL')) {
+                authentication(userName: System.getProperty('MAVEN_UPLOAD_USERNAME'), password: System.getProperty('MAVEN_UPLOAD_PASSWORD')) 
             }
 
-            pom.version = "0.0.2"
+            pom.version = System.getProperty('MAVEN_UPLOAD_VERSION')
             pom.groupId = 'com.msopentech.thali'
             pom.artifactId = 'ThaliUtilitiesUniversal'
             pom.project {
