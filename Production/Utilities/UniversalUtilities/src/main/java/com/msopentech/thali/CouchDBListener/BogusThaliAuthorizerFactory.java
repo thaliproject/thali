@@ -82,10 +82,16 @@ public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
 
             // 127.0.0.1 addresses can't be resolved via Tor so we have to nullify the proxy. We would use localhost
             // when we are replicating between two local database. Unfortunately CouchBase doesn't support local to
-            // local replication so we have to fake it by making one of the source/target look remote
+            // local replication so we have to fake it by making one of the source/target look remote. In theory
+            // we could tighten this up by just removing the proxy for 127.0.0.1 and using Tor for everything else
+            // but this is a problem when the machine we are talking to might on the local network but behind a firewall
+            // and so not visible from Tor. So for now we only route Tor onion addresses via the proxy. But we need
+            // more robust logic since defaulting to Tor is clearly the right thing. We could easily put in a test to
+            // see if Tor can 'see' the address and if not default back to not using Tor although that also opens
+            // up possible security holes. We need to think this through.
             // TODO: We really need to support local to local replication in a more secure way, looking to match addresses
             // just feels like some weird unicode security hole waiting to happen.
-            boolean doNotUseProxy = httpKeyURL.getHost().equals("127.0.0.1");
+            boolean doNotUseProxy = httpKeyURL.getHost().endsWith(".onion") == false;
 
             return new BogusThaliAuthorizer(httpKeyURL.getServerPublicKey(), clientKeyStore, clientPassPhrase,
                     doNotUseProxy ? null : proxy);
