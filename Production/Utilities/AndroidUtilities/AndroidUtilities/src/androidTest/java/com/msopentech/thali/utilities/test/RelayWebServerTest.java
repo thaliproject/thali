@@ -18,18 +18,76 @@ import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.local.utilities.UtilitiesTestCase;
 import com.msopentech.thali.nanohttp.NanoHTTPD;
 import com.msopentech.thali.relay.RelayWebServer;
+import com.msopentech.thali.toronionproxy.OsData;
 
 import java.io.IOException;
+import java.security.KeyManagementException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableEntryException;
 import java.util.HashMap;
 
+// Due to https://github.com/thaliproject/thali/issues/67 we can't restart the listeners in Java. So the code is
+// set up to start the listeners and related servers exactly once in Java and never again, we re-use the same
+// instances across all the tests. In Android however we can restart so we do.
 public class RelayWebServerTest extends UtilitiesTestCase {
+    // Host and port for the relay
+    // These go away with https://github.com/thaliproject/ThaliHTML5ApplicationFramework/issues/4
+    public static final String relayHost = "127.0.0.1";
+    public static final int relayPort = 58500;
+
+    // We have to make these values static because in Java we can't restart the serv
+    protected static RelayWebServer server;
+    protected static RelayWebServerTest.TestTempFileManager tempFileManager;
+    protected static ThaliListener thaliListener;
+    // This listener is used by a relay test to make sure that we can get a server key even from a server
+    // we are not configured to be trusted by.
+    protected static ThaliListener noSecurityThaliListener;
+    protected static boolean configRan = false;
+
+    @Override
+    public void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
+            KeyStoreException, KeyManagementException, InterruptedException {
+
+        if (OsData.getOsType() == OsData.OsType.Android || configRan == false) {
+            thaliListener = getStartedListener("thaliListener");
+            noSecurityThaliListener = getStartedListener("noSecurityThaliListener");
+
+            server = new RelayWebServer(getCreateClientBuilder(), getRelayWorkingDirectory(), thaliListener.getHttpKeys(),
+                    relayHost, relayPort);
+            tempFileManager = new RelayWebServerTest.TestTempFileManager();
+
+            server.start();
+            configRan = true;
+        }
+    }
+
+    @Override
+    public void tearDown() {
+        if (OsData.getOsType() == OsData.OsType.Android) {
+            tempFileManager._clear();
+
+            if (server != null && server.isAlive()) {
+                server.stop();
+            }
+
+            if (thaliListener != null) {
+                thaliListener.stopServer();
+            }
+
+            if (noSecurityThaliListener != null) {
+                noSecurityThaliListener.stopServer();
+            }
+        }
+    }
+
     public void testServerExists() {
         assertNotNull(server);
     }
 
     public void testOptionsRequest() throws IOException {
 
-        String url = String.format("http://%s:%s/testdatabase", RelayWebServer.relayHost, RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/testdatabase", relayHost, relayPort);
 
         // With no origin provided in request, return a wildcard
         //options(url).then().assertThat().header("Access-Control-Allow-Origin", "*");
@@ -53,7 +111,7 @@ public class RelayWebServerTest extends UtilitiesTestCase {
 
     public void testInvalidDatabase() throws IOException {
 
-        String url = String.format("http://%s:%s/invaliddatabase", RelayWebServer.relayHost, RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/invaliddatabase", relayHost, relayPort);
 
         // With origin provided in request, echo origin
 
@@ -65,7 +123,7 @@ public class RelayWebServerTest extends UtilitiesTestCase {
     }
 
     public void testCreateWriteReadDatabase() throws IOException, InterruptedException, CouchbaseLiteException {
-        String url = String.format("http://%s:%s/testdatabase", RelayWebServer.relayHost, RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/testdatabase", relayHost, relayPort);
 
         // Run a delete first
         //delete(url);
@@ -95,8 +153,8 @@ public class RelayWebServerTest extends UtilitiesTestCase {
     }
 
     public void testRelayUtilityHttpKey() throws IOException, InterruptedException {
-        String url = String.format("http://%s:%s/_relayutility/localhttpkeys", RelayWebServer.relayHost,
-                RelayWebServer.relayPort);
+        String url = String.format("http://%s:%s/_relayutility/localhttpkeys", relayHost,
+                relayPort);
 
         // We should validate the JSON with a schema but, um... next time
 //        get(url).then()
@@ -117,10 +175,17 @@ public class RelayWebServerTest extends UtilitiesTestCase {
     }
 
     private void onionAddressTest(ThaliListener thaliListener) throws InterruptedException, IOException {
-        final String httpKeyUrl = thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL();
-        final String onionAddress = httpKeyUrl.split("/")[2];
-        String url = String.format("http://%s:%s/_relayutility/translateonion?%s", RelayWebServer.relayHost,
-                RelayWebServer.relayPort, onionAddress);
+        // Tests a non onion address
+        resolveAddressToHttpKeyUrl(thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());
+
+        // Onion address
+        resolveAddressToHttpKeyUrl(thaliListener.getHttpKeys().getOnionHttpKeyURL());
+    }
+
+    private void resolveAddressToHttpKeyUrl(final String httpKeyUrl) throws IOException {
+        final String address = httpKeyUrl.split("/")[2];
+        String url = String.format("http://%s:%s/_relayutility/translateonion?%s", relayHost,
+                relayPort, address);
         RestTestMethods.testGet(url, null, 200, null,
                 new HashMap<String, Object>() {{
                     put("$.httpKeyUrl", httpKeyUrl);
