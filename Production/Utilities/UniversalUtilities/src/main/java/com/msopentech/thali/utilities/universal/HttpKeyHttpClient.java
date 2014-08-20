@@ -68,15 +68,18 @@ http://www.gnu.org/licenses/lgpl.html
 package com.msopentech.thali.utilities.universal;
 
 import com.msopentech.thali.toronionproxy.OsData;
-import org.apache.http.conn.*;
+import org.apache.http.conn.ClientConnectionManager;
+import org.apache.http.conn.ClientConnectionOperator;
 import org.apache.http.conn.params.ConnManagerParams;
 import org.apache.http.conn.params.ConnPerRouteBean;
-import org.apache.http.conn.scheme.*;
-import org.apache.http.impl.client.*;
-import org.apache.http.impl.conn.tsccm.*;
-import org.apache.http.params.*;
+import org.apache.http.conn.scheme.Scheme;
+import org.apache.http.conn.scheme.SchemeRegistry;
+import org.apache.http.impl.client.DefaultHttpClient;
+import org.apache.http.impl.client.DefaultHttpRequestRetryHandler;
+import org.apache.http.impl.conn.tsccm.ThreadSafeClientConnManager;
+import org.apache.http.params.HttpParams;
 
-import java.net.*;
+import java.net.Proxy;
 import java.security.*;
 
 /**
@@ -98,7 +101,7 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
                 clientKeyStorePassPhrase);
         schemeRegistry.register((new Scheme("https", httpKeySSLSocketFactory, 443)));
 
-        // Try to up retries to deal with how flakey the Tor Hidden Service channels seem to be.
+        // Try to up retries to deal with how flaky the Tor Hidden Service channels seem to be.
         // Note that modern Apache would set this via a Param but that Param doesn't seem to exist
         // in Android land. This sucks because we can't be sure if the user is using the default
         // retry handler or different one. And no, comparing getHttpRequestRetryHandler() against

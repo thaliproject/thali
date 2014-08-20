@@ -65,7 +65,7 @@ task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
 
 task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
     buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
-    tasks = runJavaTest('uploadArchives')
+    tasks = runJavaTest('uploadArchives', false)
 }
 
 task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
@@ -130,7 +130,7 @@ task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndro
 
 task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
     buildFile = 'ThaliDeviceHub/java/build.gradle'
-    tasks = runJavaTest('distZip') // This isn't a library, it's an 'executable', this builds the distribution
+    tasks = runJavaTest('installApp') // This isn't a library, it's an 'executable', this builds the distribution
 }
 
 task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {

@@ -58,6 +58,7 @@ public class ThaliDeviceHubService extends Service {
     public static final String HttpKeysNotification = "com.msopentech.thali.devicehub.android.httpkeys";
     public static final String LocalMachineIPHttpKeyURLName = "LocalMachineIPHttpKeyURL";
     public static final String OnionHttpKeyURLName = "OnionHttpKeyURLName";
+    public static final String SocksOnionProxyPort = "SocksOnionProxyPort";
     protected ThaliListener thaliListener = null;
 
     // These values are used for testing
@@ -105,6 +106,7 @@ public class ThaliDeviceHubService extends Service {
                 try {
                     httpKeysIntent.putExtra(LocalMachineIPHttpKeyURLName, thaliListener.getHttpKeys().getLocalMachineIPHttpKeyURL());
                     httpKeysIntent.putExtra(OnionHttpKeyURLName, thaliListener.getHttpKeys().getOnionHttpKeyURL());
+                    httpKeysIntent.putExtra(SocksOnionProxyPort, thaliListener.getHttpKeys().getSocksOnionProxyPort());
                     sendBroadcast(httpKeysIntent);
                     httpKeysSentByBroadcast = true;
                     return;

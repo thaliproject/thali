@@ -280,6 +280,6 @@ public class ThaliListener {
         int portToUseForHttpKey = getSocketStatus().getPort();
         String host = InetAddress.getLocalHost().getHostAddress();
         HttpKeyURL localHttpKeyURL = new HttpKeyURL(serverPublicKey, host, portToUseForHttpKey, null, null, null);
-        return new HttpKeyTypes(localHttpKeyURL, hiddenServiceAddress);
+        return new HttpKeyTypes(localHttpKeyURL, hiddenServiceAddress, onionProxyManager.getIPv4LocalHostSocksPort());
     }
 }

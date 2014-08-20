@@ -67,6 +67,7 @@ http://www.gnu.org/licenses/lgpl.html
 
 package com.msopentech.thali.utilities.universal;
 
+import com.msopentech.thali.toronionproxy.OsData;
 import org.apache.http.*;
 import org.apache.http.conn.*;
 import org.apache.http.conn.scheme.*;
@@ -99,9 +100,47 @@ public class HttpKeySocksProxyClientConnOperator extends DefaultClientConnection
         this.proxy = proxy;
     }
 
-    // Derived from the original DefaultClientConnectionOperator.java in Apache HttpClient 4.2
+    /**
+     * There appears to be a bug in Android's implementation of the Apache HTTP client that the retry handler isn't
+     * used when exceptions are thrown from openConnection. This bug doesn't exist in the Java version. So for now
+     * we have to hack in our own retry logic. https://github.com/thaliproject/thali/issues/72 will make this
+     * code go away.
+     * @param conn
+     * @param target
+     * @param local
+     * @param context
+     * @param params
+     * @throws IOException
+     */
     @Override
     public void openConnection(
+            final OperatedClientConnection conn,
+            final HttpHost target,
+            final InetAddress local,
+            final HttpContext context,
+            final HttpParams params) throws IOException {
+        if (OsData.getOsType() != OsData.OsType.Android) {
+            openConnectionHack(conn, target, local, context, params);
+            return;
+        }
+
+        int retryleft = 10;
+        while (true) {
+            try {
+                openConnectionHack(conn, target, local, context, params);
+                return;
+            }
+            catch (IOException e) {
+                retryleft--;
+                if (retryleft <= 0) {
+                    throw e;
+                }
+            }
+        }
+    }
+
+    // Derived from the original DefaultClientConnectionOperator.java in Apache HttpClient 4.2
+    public void openConnectionHack(
             final OperatedClientConnection conn,
             final HttpHost target,
             final InetAddress local,
@@ -160,9 +199,18 @@ public class HttpKeySocksProxyClientConnOperator extends DefaultClientConnection
             outputStream.write((byte)0x00);
 
             DataInputStream inputStream = new DataInputStream(socket.getInputStream());
-            if (inputStream.readByte() != (byte)0x00 || inputStream.readByte() != (byte)0x5a) {
-                throw new IOException("SOCKS4a connect failed");
+
+            try {
+                if (inputStream.readByte() != (byte)0x00 || inputStream.readByte() != (byte)0x5a) {
+                    throw new IOException("SOCKS4a connect failed");
+                }
+            } catch (SocketTimeoutException e) {
+                // We really shouldn't be getting time outs. Ideally Tor should just reject a SOCKS connection
+                // if it's not running. But we have been seeing timeouts. So I'm going to treat them as IOException
+                // errors which will trigger a retry.
+                throw new IOException("We got a time out", e);
             }
+
             inputStream.readShort();
             inputStream.readInt();
 

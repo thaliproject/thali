@@ -19,6 +19,7 @@ import com.msopentech.thali.utilities.universal.HttpKeyURL;
 public class HttpKeyTypes {
     protected String localMachineIPHttpKeyURL = null;
     protected String onionHttpKeyURL = null;
+    protected String socksOnionProxyPort = null;
 
     /**
      * This constructor is just meant for use when parsing from JSON.
@@ -28,9 +29,10 @@ public class HttpKeyTypes {
 
     }
 
-    public HttpKeyTypes(HttpKeyURL localMachineIpHttpKeyUrl, HttpKeyURL onionHttpKeyURL) {
+    public HttpKeyTypes(HttpKeyURL localMachineIpHttpKeyUrl, HttpKeyURL onionHttpKeyURL, Integer socksOnionProxyPort) {
         this.localMachineIPHttpKeyURL = localMachineIpHttpKeyUrl.toString();
         this.onionHttpKeyURL = onionHttpKeyURL.toString();
+        this.socksOnionProxyPort = socksOnionProxyPort.toString();
     }
 
     public String getLocalMachineIPHttpKeyURL() {
@@ -47,5 +49,13 @@ public class HttpKeyTypes {
 
     public void setOnionHttpKeyURL(String onionHttpKeyURL) {
         this.onionHttpKeyURL = onionHttpKeyURL;
+    }
+
+    public String getSocksOnionProxyPort() {
+        return socksOnionProxyPort;
+    }
+
+    public void setSocksOnionProxyPort(String socksOnionProxyPort) {
+        this.socksOnionProxyPort = socksOnionProxyPort;
     }
 }

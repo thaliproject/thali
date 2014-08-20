@@ -26,52 +26,27 @@ import junit.framework.TestCase;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 
 public class UtilitiesTestCase extends TestCase {
-    protected static RelayWebServer server;
-    protected static RelayWebServerTest.TestTempFileManager tempFileManager;
-    protected static ThaliListener thaliListener;
-    // This listener is used by a relay test to make sure that we can get a server key even from a server
-    // we are not configured to be trusted by.
-    protected static ThaliListener noSecurityThaliListener;
-    protected static boolean configRan = false;
+    public CreateClientBuilder getCreateClientBuilder() {
+        return new JavaEktorpCreateClientBuilder();
+    }
 
-    @Override
-    public void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
-            KeyStoreException, KeyManagementException, InterruptedException {
+    public File getRelayWorkingDirectory() throws IOException {
+        return Files.createTempDirectory("RelayTempDirectory").toFile();
+    }
 
-        if (configRan == false) {
-            CreateClientBuilder cb = new JavaEktorpCreateClientBuilder();
-
-            JavaThaliListenerContext thaliListenerContext = new CreateContextInTemp();
-            File thaliListenerTorDirectory = new File(thaliListenerContext.getFilesDir(), "thaliListener");
-            JavaOnionProxyManager javaOnionProxyManagerThaliListener =
-                    new JavaOnionProxyManager(new JavaOnionProxyContext(thaliListenerTorDirectory));
-            thaliListener = new ThaliListener();
-            thaliListener.startServer(thaliListenerContext, 0, javaOnionProxyManagerThaliListener);
-            // Makes sure the test only runs once the server is up and running.
-            thaliListener.waitTillHiddenServiceStarts();
-
-            JavaThaliListenerContext noSecurityThaliListenerContext = new CreateContextInTemp();
-            File noSecurityThaliListenerTorDirectory = new File(thaliListenerContext.getFilesDir(), "noSecurityThaliListener");
-            JavaOnionProxyManager javaOnionProxyManagerNoSecurity =
-                    new JavaOnionProxyManager(new JavaOnionProxyContext(noSecurityThaliListenerTorDirectory));
-            noSecurityThaliListener = new ThaliListener();
-            noSecurityThaliListener.startServer(noSecurityThaliListenerContext, 0, javaOnionProxyManagerNoSecurity);
-            // Makes sure the test only runs once the server is up and running.
-            noSecurityThaliListener.waitTillHiddenServiceStarts();
-
-            server = new RelayWebServer(cb, new File(System.getProperty("user.dir")), thaliListener.getHttpKeys());
-            tempFileManager = new RelayWebServerTest.TestTempFileManager();
-
-            server.start();
-
-            configRan = true;
-        }
+    public ThaliListener getStartedListener(String subFolderName) throws IOException, InterruptedException,
+            UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException {
+        JavaThaliListenerContext thaliListenerContext = new CreateContextInTemp();
+        File thaliListenerTorDirectory = new File(thaliListenerContext.getFilesDir(), subFolderName);
+        JavaOnionProxyManager javaOnionProxyManager =
+                new JavaOnionProxyManager(new JavaOnionProxyContext(thaliListenerTorDirectory));
+        ThaliListener thaliListener = new ThaliListener();
+        thaliListener.startServer(thaliListenerContext, 0, javaOnionProxyManager);
+        thaliListener.waitTillHiddenServiceStarts();
+        return thaliListener;
     }
 
     public void testNothing() {
