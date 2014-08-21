@@ -69,12 +69,12 @@ task sourcesJar(type: Jar, dependsOn: classes) {
     from sourceSets.main.java.srcDirs
 }
 
-task generateJavadocs(type: Jar, dependsOn: javadoc) {
+task javadocJar(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    source = sourceSets.main.java.srcDirs
+    from javadoc.destinationDir
 }
 
 artifacts {
     archives sourcesJar
-    archives generateJavadocs
+    archives javadocJar 
 }

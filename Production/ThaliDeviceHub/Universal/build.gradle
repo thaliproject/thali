@@ -62,7 +62,7 @@ task sourcesJar(type: Jar, dependsOn: classes) {
 
 task generateJavadocs(type: Jar, dependsOn: javadoc) {
     classifier = 'javadoc'
-    source = sourceSets.main.java.srcDirs
+    from javadoc.destinationDir
 }
 
 artifacts {
