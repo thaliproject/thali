@@ -35,6 +35,8 @@ import java.io.File;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.UnsupportedEncodingException;
+import java.net.InetSocketAddress;
+import java.net.Proxy;
 import java.net.URI;
 import java.net.URISyntaxException;
 import java.nio.ByteBuffer;
@@ -44,12 +46,6 @@ import java.util.List;
 import java.util.Map;
 
 public class RelayWebServer extends NanoHTTPD {
-
-    // Host and port for the relay
-    public static final String relayHost = "127.0.0.1";
-    public static final int relayPort = 58000;
-
-    // Host and port for the TDH
     private volatile HttpKeyTypes httpKeyTypes;
 
     private final CreateClientBuilder createClientBuilder;
@@ -61,10 +57,10 @@ public class RelayWebServer extends NanoHTTPD {
             "proxy-authenticate", "proxy-authorization", "te", "trailer", "transfer-encoding", "upgrade");
 
     public RelayWebServer(CreateClientBuilder createClientBuilder, File keystoreDirectory,
-                          HttpKeyTypes httpKeyTypes)
+                          HttpKeyTypes httpKeyTypes, String host, int port)
             throws UnrecoverableEntryException, KeyManagementException, NoSuchAlgorithmException, KeyStoreException,
             IOException {
-        super(relayHost, relayPort);
+        super(host, port);
 
         this.createClientBuilder = createClientBuilder;
         this.clientKeyStore = ThaliCryptoUtilities.getThaliKeyStoreByAnyMeansNecessary(keystoreDirectory);
@@ -237,12 +233,20 @@ public class RelayWebServer extends NanoHTTPD {
     private Response returnHttpKeyUrl(String onionAddress) {
         assert(onionAddress != null && onionAddress.isEmpty() == false);
         Exception caughtException;
+        String hostName = null;
+        int port = -1;
         ObjectMapper mapper = new ObjectMapper();
         try {
-            String hostName = onionAddress.split(":")[0];
-            int port = Integer.decode(onionAddress.split(":")[1]);
+            hostName = onionAddress.split(":")[0];
+            port = Integer.decode(onionAddress.split(":")[1]);
+            // https://github.com/thaliproject/thali/issues/69
+            Proxy proxy =
+                    hostName.endsWith(".onion") ?
+                    new Proxy(Proxy.Type.SOCKS,
+                            new InetSocketAddress("127.0.0.1", Integer.parseInt(httpKeyTypes.getSocksOnionProxyPort())))
+                            : null;
             HttpClient httpClientNoServerValidation = createClientBuilder.CreateApacheClient(hostName, port, null,
-                    clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase, null);
+                    clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase, proxy);
             PublicKey serverPublicKey = ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerValidation);
             TranslatedOnionAddress translatedOnionAddress =
                     new TranslatedOnionAddress(new HttpKeyURL(serverPublicKey, hostName, port, null, null, null)
@@ -264,7 +268,8 @@ public class RelayWebServer extends NanoHTTPD {
         } catch (KeyManagementException e) {
             caughtException = e;
         }
-        return GenerateErrorResponse("Could not translate onion address to httpkey", caughtException);
+        return GenerateErrorResponse("Could not translate onion address to httpkey, onionAddress : " + onionAddress +
+                ", hostName = " + hostName + ", port = " + port, caughtException);
     }
 
     // Copy response headers to relayed response

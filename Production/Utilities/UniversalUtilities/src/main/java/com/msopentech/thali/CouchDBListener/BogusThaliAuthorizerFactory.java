@@ -91,6 +91,7 @@ public class BogusThaliAuthorizerFactory implements AuthorizerFactory {
             // up possible security holes. We need to think this through.
             // TODO: We really need to support local to local replication in a more secure way, looking to match addresses
             // just feels like some weird unicode security hole waiting to happen.
+            // https://github.com/thaliproject/thali/issues/69
             boolean doNotUseProxy = httpKeyURL.getHost().endsWith(".onion") == false;
 
             return new BogusThaliAuthorizer(httpKeyURL.getServerPublicKey(), clientKeyStore, clientPassPhrase,

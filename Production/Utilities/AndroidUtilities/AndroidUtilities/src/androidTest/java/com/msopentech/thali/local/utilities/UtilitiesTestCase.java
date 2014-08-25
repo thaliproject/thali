@@ -26,65 +26,26 @@ import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.KeyManagementException;
-import java.security.KeyStoreException;
-import java.security.NoSuchAlgorithmException;
-import java.security.UnrecoverableEntryException;
+import java.security.*;
 
 public class UtilitiesTestCase extends AndroidTestCase {
-    protected RelayWebServer server;
-    protected RelayWebServerTest.TestTempFileManager tempFileManager;
-    protected ThaliListener thaliListener;
-    // This listener is used by a relay test to make sure that we can get a server key even from a server
-    // we are not configured to be trusted by.
-    protected ThaliListener noSecurityThaliListener;
-
-    @Override
-    public void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
-            KeyStoreException, KeyManagementException, InterruptedException {
-
-        CreateClientBuilder cb = new AndroidEktorpCreateClientBuilder();
-
-        AndroidContextChangeFilesDir thaliListenerContext =
-                new AndroidContextChangeFilesDir(getContext(), "thaliListener");
-        AndroidOnionProxyManager androidOnionProxyManager =
-                new AndroidOnionProxyManager(thaliListenerContext, "androidOnionProxyManager");
-        thaliListener = new ThaliListener();
-        thaliListener.startServer(new AndroidContext(thaliListenerContext), 0, androidOnionProxyManager);
-        // Makes sure the test only runs once the server is up and running.
-        thaliListener.waitTillHiddenServiceStarts();
-
-        AndroidContextChangeFilesDir noSecurityThaliListenerContext =
-                new AndroidContextChangeFilesDir(getContext(), "noSecurityThaliListener");
-        AndroidOnionProxyManager androidOnionProxyManagerNoSecurity =
-                new AndroidOnionProxyManager(noSecurityThaliListenerContext, "androidNoSecurityOnionProxyManager");
-        noSecurityThaliListener = new ThaliListener();
-        noSecurityThaliListener.startServer(
-                new AndroidContext(noSecurityThaliListenerContext), 0, androidOnionProxyManagerNoSecurity);
-        // Makes sure the test only runs once the server is up and running.
-        noSecurityThaliListener.waitTillHiddenServiceStarts();
-
-        server = new RelayWebServer(cb, getContext().getFilesDir(), thaliListener.getHttpKeys());
-        tempFileManager = new RelayWebServerTest.TestTempFileManager();
-
-        server.start();
+    public CreateClientBuilder getCreateClientBuilder() {
+        return new AndroidEktorpCreateClientBuilder();
     }
 
-    @Override
-    public void tearDown() {
+    public File getRelayWorkingDirectory() {
+        return getContext().getFilesDir();
+    }
 
-        tempFileManager._clear();
-
-        if (server != null && server.isAlive()) {
-            server.stop();
-        }
-
-        if (thaliListener != null) {
-            thaliListener.stopServer();
-        }
-
-        if (noSecurityThaliListener != null) {
-            noSecurityThaliListener.stopServer();
-        }
+    public ThaliListener getStartedListener(String subFolderName) throws UnrecoverableKeyException,
+            NoSuchAlgorithmException, KeyStoreException, IOException, InterruptedException {
+        AndroidContextChangeFilesDir androidContext =
+                new AndroidContextChangeFilesDir(getContext(), subFolderName);
+        AndroidOnionProxyManager androidOnionProxyManager =
+                new AndroidOnionProxyManager(androidContext, subFolderName + "OnionProxyManager");
+        ThaliListener thaliListener = new ThaliListener();
+        thaliListener.startServer(new AndroidContext(androidContext), 0, androidOnionProxyManager);
+        thaliListener.waitTillHiddenServiceStarts();
+        return thaliListener;
     }
 }

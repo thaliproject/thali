@@ -72,7 +72,7 @@ public class RestTestMethods extends UtilitiesTestCase {
             }
         }
         HttpResponse httpResponse = httpClient.execute(httpUriRequest);
-        assertEquals(httpResponse.getStatusLine().getStatusCode(), statusCode);
+        assertEquals(statusCode, httpResponse.getStatusLine().getStatusCode());
         testHeaders(httpResponse, headersToFind);
         return httpResponse;
     }
