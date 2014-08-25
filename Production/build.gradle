@@ -2,7 +2,22 @@ apply plugin: 'java'
 apply plugin: 'distribution'
 
 sourceCompatibility = 1.6
-version = System.getProperty('MAVEN_UPLOAD_VERSION') ?: '1.0.0-beta3rc1'
+
+def androidTestTask(include = true) {
+   if (include == false || project.hasProperty('skipAndroidTest') || project.hasProperty('skipAllTest')) {
+        return null
+   } else {
+        return 'connectedAndroidTest';
+   }
+}
+
+def testTask(include = true) {
+    if (include == false || project.hasProperty('skipJavaTest') || project.hasProperty('skipAllTest')) {
+        return null
+    }
+
+    return 'test'
+}
 
 /*
 This script depends on the layout of depots. It assumes a file structure of
@@ -13,40 +28,91 @@ some directory
 
 In other words that there is a single directory that contains all the relevant depots below including Thali.
  */
+def getAllProjects() {
+    return [
+        ['../../Tor_Onion_Proxy_Library/universal/build.gradle',    [testTask()]],
+        ['../../Tor_Onion_Proxy_Library/java/build.gradle',         [testTask()]],
+        ['../../Tor_Onion_Proxy_Library/android/build.gradle',      [androidTestTask()]],
+        ['../../couchbase-lite-java-native/build.gradle',           [testTask()]],
+        ['../../couchbase-lite-java-core/build.gradle',             [testTask()]],
+        ['../../couchbase-lite-java-listener/build.gradle',         [testTask()]],
+        ['../../couchbase-lite-android/build.gradle',               [androidTestTask(false)]],
 
-// You can pass in -PcleanAll on the command line to do a clean
-// You can pass in -PskipAndroidTest on the command line to skip android tests
-def runAndroidTest(buildTask, runTest = true) {
-   if (project.hasProperty('cleanAll')) {
-	   return [ 'clean' ];
-   }
-   
-   if (runTest == false || project.hasProperty('skipAndroidTest') || project.hasProperty('skipAllTest')) {
-       return [ buildTask ];
-   } else {
-       return ['connectedAndroidTest', buildTask];
-   }
+        // Couchbase Lite currently requires syncgateway to test or a special
+        // config that supports listener. But in newer releases of the gateway this
+        // was all fixed and uses mocks. We aren't going to upgrade right now for
+        // stability reasons so we are turning off the tests until we get the upgrade.
+        // https://github.com/thaliproject/thali/issues/53
+        ['../../couchbase-lite-java/build.gradle',                  [testTask(false)]],
+        ['Utilities/UniversalUtilities/build.gradle',               [testTask()]],
+        ['Utilities/JavaUtilities/build.gradle',                    [testTask()]],
+        ['Utilities/AndroidUtilities/build.gradle',                 [androidTestTask()]],
+        ['ThaliDeviceHub/Universal/build.gradle',                   [testTask()]],
+        ['ThaliDeviceHub/java/build.gradle',                        [testTask(), 'installApp']],
+        ['ThaliDeviceHub/android/android/build.gradle',             [testTask(), 'build']]
+    ]
 }
 
-def runJavaTest(buildTask, runTest = true) {
-    if (project.hasProperty('cleanAll')) {
-	  return [ 'clean' ];
-	}
-	
-	if (runTest == false || project.hasProperty('skipJavaTest') || project.hasProperty('skipAllTest')) {
-		return [ buildTask];
-	} else {
-		return ['test', buildTask];
-	}
+/**
+ * Launch Gradle against each subproject
+ *
+ * @param startParameter        Gradle project's start parameter
+ * @param task                  Name of Gradle task to execute
+ * @param runTaskArgumentOnly   If set to true, will execute 'task' argument only. 
+ *                              Otherwise, will prepend default tasks defined by getAllProjects()
+ * @param runTaskAgainstTdh     If set to true, Gradle task will be executed against all subprojects
+ *                              Otherwise, TDH/Android and TDH/java will be special cased
+ */
+def launchGradle(startParameter, task, runTaskArgumentOnly = true, runTaskAgainstTdh = true) {
+    getAllProjects().each { thaliProject ->
+        // build file
+        def buildFile = new File(thaliProject[0])
+        logger.info task + ': BuildFile: ' + buildFile
+
+        def tasks = (runTaskArgumentOnly) ? [] : thaliProject[1]
+        tasks.add(task)
+
+        if (!runTaskAgainstTdh) {
+            if (buildFile.toString().contains('ThaliDeviceHub') &&
+                (buildFile.toString().contains('android') || buildFile.toString().contains('java'))) {
+                // if this is TDH/java or TDH/android, remove install task
+                tasks.remove(task)
+            }
+        }
+
+        tasks.removeAll([null])
+        logger.info task + ': Tasks: ' + tasks
+
+        def params = project.gradle.startParameter.newBuild()
+        params.setTaskNames(tasks)
+        params.buildFile = buildFile
+        params.projectProperties = startParameter.projectProperties
+        params.systemPropertiesArgs = startParameter.systemPropertiesArgs
+        
+        GradleLauncher.newInstance(params).run().rethrowFailure()
+    }
 }
- 
+
+task cleanAll(type:GradleBuild) << {
+    launchGradle(startParameter, 'clean', true, true)
+}
+
+task installAll(type:GradleBuild) << {
+    launchGradle(startParameter, 'install', false, false)
+}
+
+task uploadArchivesAll(type:GradleBuild) << {
+    launchGradle(startParameter, 'uploadArchives', false, false)
+}
+
 tasks.withType(GradleBuild) {
     ext.buildWithArtifacts = 'true'
+    ext.buildVersion = System.getProperty('MAVEN_UPLOAD_VERSION')
 
     startParameter.projectProperties = gradle.startParameter.projectProperties
     startParameter.systemPropertiesArgs = [
-        'UPLOAD_VERSION_CBLITE'     : version,
-        'MAVEN_UPLOAD_VERSION'      : version,
+        'UPLOAD_VERSION_CBLITE'     : buildVersion,
+        'MAVEN_UPLOAD_VERSION'      : buildVersion,
         'MAVEN_UPLOAD_REPO_URL'     : System.getProperty('MAVEN_UPLOAD_REPO_URL'),
         'MAVEN_UPLOAD_USERNAME'     : System.getProperty('MAVEN_UPLOAD_USERNAME'),
         'MAVEN_UPLOAD_PASSWORD'     : System.getProperty('MAVEN_UPLOAD_PASSWORD'),
@@ -58,89 +124,6 @@ tasks.withType(GradleBuild) {
     ]
 }
 
-task buildTorOnionProxyLibraryUniversal(type: GradleBuild) {
-    buildFile = '../../Tor_Onion_Proxy_Library/universal/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildTorOnionProxyLibraryJava(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryUniversal') {
-    buildFile = '../../Tor_Onion_Proxy_Library/java/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildTorOnionProxyLibraryAndroid(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryJava') {
-    buildFile = '../../Tor_Onion_Proxy_Library/android/build.gradle'
-    tasks = runAndroidTest('uploadArchives')
-}
-
-// Note that if you get a broken build with link errors the only way to get things going again is
-// to execute a clean in the tasks list below. Also note that in windows I
-// can only get this to build from a command window, not from the Git MINGW32
-// window I normally use.
-task buildCouchbaseLiteJavaNative(type: GradleBuild, dependsOn: 'buildTorOnionProxyLibraryAndroid') {
-    buildFile = '../../couchbase-lite-java-native/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildCouchbaseLiteJavaCore(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaNative') {
-    buildFile = '../../couchbase-lite-java-core/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildCouchbaseLiteJavaListener(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaCore') {
-    buildFile = '../../couchbase-lite-java-listener/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-// See issue 53 in the next task
-task buildCouchbaseLiteAndroid(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJavaListener') {
-    buildFile = '../../couchbase-lite-android/build.gradle'
-    tasks = runAndroidTest('uploadArchives', false)
-}
-
-// Couchbase Lite currently requires syncgateway to test or a special
-// config that supports listener. But in newer releases of the gateway this
-// was all fixed and uses mocks. We aren't going to upgrade right now for
-// stability reasons so we are turning off the tests until we get the upgrade.
-// https://github.com/thaliproject/thali/issues/53
-task buildCouchbaseLiteJava(type: GradleBuild, dependsOn: 'buildCouchbaseLiteAndroid') {
-    buildFile = '../../couchbase-lite-java/build.gradle'
-    tasks = runJavaTest('uploadArchives', false)
-}
-
-task buildThaliUniversalUtilities(type: GradleBuild, dependsOn: 'buildCouchbaseLiteJava') {
-    buildFile = 'Utilities/UniversalUtilities/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildThaliJavaUtilities(type: GradleBuild, dependsOn: 'buildThaliUniversalUtilities') {
-    buildFile = 'Utilities/JavaUtilities/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildThaliAndroidUtilities(type: GradleBuild, dependsOn: 'buildThaliJavaUtilities') {
-    buildFile = 'Utilities/AndroidUtilities/build.gradle'
-    tasks = runAndroidTest('uploadArchives')
-}
-
-task buildThaliDeviceHubUniversal(type: GradleBuild, dependsOn: 'buildThaliAndroidUtilities') {
-    buildFile = 'ThaliDeviceHub/Universal/build.gradle'
-    tasks = runJavaTest('uploadArchives')
-}
-
-task buildThaliDeviceHubJava(type: GradleBuild, dependsOn: 'buildThaliDeviceHubUniversal') {
-    buildFile = 'ThaliDeviceHub/java/build.gradle'
-    tasks = runJavaTest('installApp') // This isn't a library, it's an 'executable', this builds the distribution
-}
-
-task buildThaliDeviceHubAndroid(type: GradleBuild, dependsOn: 'buildThaliDeviceHubJava') {
-    buildFile = 'ThaliDeviceHub/android/android/build.gradle'
-    tasks = runAndroidTest('build') // This isn't a library, it's an 'executable', this builds the apk file
-}
-
-task globalBuild(dependsOn: 'buildThaliDeviceHubAndroid'){}
-
-// BUILD THE PPNET DEMO
 
 distributions {
     main {
@@ -198,6 +181,3 @@ distZip.dependsOn deletePouchAPKFromChromeExtension
 
 task buildPPNETDemo(dependsOn: distZip) {
 }
-
-
-
