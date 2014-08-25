@@ -17,6 +17,10 @@ apply plugin: 'maven'
 // Needed to keep Android happy
 sourceCompatibility = '1.6'
 
+version = System.getProperty('MAVEN_UPLOAD_VERSION')
+group = 'com.msopentech.thali'
+archivesBaseName = 'ThaliUtilitiesUniversal'
+
 repositories {
     mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
@@ -48,9 +52,6 @@ uploadArchives {
                 authentication(userName: System.getProperty('MAVEN_UPLOAD_USERNAME'), password: System.getProperty('MAVEN_UPLOAD_PASSWORD')) 
             }
 
-            pom.version = System.getProperty('MAVEN_UPLOAD_VERSION')
-            pom.groupId = 'com.msopentech.thali'
-            pom.artifactId = 'ThaliUtilitiesUniversal'
             pom.project {
                 licenses {
                     license {

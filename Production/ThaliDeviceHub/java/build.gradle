@@ -18,6 +18,10 @@ apply plugin: 'maven'
 
 mainClassName = "com.msopentech.thali.devicehub.javahub.main"
 
+version = System.getProperty('MAVEN_UPLOAD_VERSION')
+group = 'com.msopentech.thali'
+archivesBaseName = 'ThaliDeviceHubJava'
+
 repositories {
     mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }

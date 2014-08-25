@@ -18,6 +18,10 @@ apply plugin: 'java-library-distribution'
 
 sourceCompatibility = '1.6'
 
+version = System.getProperty('MAVEN_UPLOAD_VERSION')
+group = 'com.msopentech.thali'
+archivesBaseName = 'ThaliUtilitiesJava'
+
 repositories {
     mavenLocal()
     maven { url "http://thaliartifactory.cloudapp.net/artifactory/libs-snapshot" }
@@ -49,9 +53,6 @@ uploadArchives {
                 authentication(userName: System.getProperty('MAVEN_UPLOAD_USERNAME'), password: System.getProperty('MAVEN_UPLOAD_PASSWORD')) 
             }
 
-            pom.version = System.getProperty('MAVEN_UPLOAD_VERSION')
-            pom.groupId = 'com.msopentech.thali'
-            pom.artifactId = 'ThaliUtilitiesJava'
             pom.project {
                 licenses {
                     license {
