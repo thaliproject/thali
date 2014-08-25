@@ -53,32 +53,35 @@ def getAllProjects() {
     ]
 }
 
-task cleanAll(type:GradleBuild) << {
+/**
+ * Launch Gradle against each subproject
+ *
+ * @param startParameter        Gradle project's start parameter
+ * @param task                  Name of Gradle task to execute
+ * @param runTaskArgumentOnly   If set to true, will execute 'task' argument only. 
+ *                              Otherwise, will prepend default tasks defined by getAllProjects()
+ * @param runTaskAgainstTdh     If set to true, Gradle task will be executed against all subprojects
+ *                              Otherwise, TDH/Android and TDH/java will be special cased
+ */
+def launchGradle(startParameter, task, runTaskArgumentOnly = true, runTaskAgainstTdh = true) {
     getAllProjects().each { thaliProject ->
+        // build file
         def buildFile = new File(thaliProject[0])
-        logger.info buildFile 
-        StartParameter params = new StartParameter()
-        params.setTaskNames(['clean'])
-        params.buildFile = buildFile
-        GradleLauncher.newInstance(params).run().rethrowFailure()
-    }
-}
+        logger.info task + ': BuildFile: ' + buildFile
 
-task installAll(type:GradleBuild) << {
-    getAllProjects().each { thaliProject ->
-        def buildFile = new File(thaliProject[0])
-        logger.info 'installAll: BuildFile: ' + buildFile
+        def tasks = (runTaskArgumentOnly) ? [] : thaliProject[1]
+        tasks.add(task)
 
-        def tasks = thaliProject[1]
-        tasks.add('install')
-        if (buildFile.toString().contains('ThaliDeviceHub') &&
-            buildFile.toString().contains('android')) {
-            // if this is ThaliDeviceHub/android, remove install task
-            tasks.remove('install')
+        if (!runTaskAgainstTdh) {
+            if (buildFile.toString().contains('ThaliDeviceHub') &&
+                (buildFile.toString().contains('android') || buildFile.toString().contains('java'))) {
+                // if this is TDH/java or TDH/android, remove install task
+                tasks.remove(task)
+            }
         }
 
         tasks.removeAll([null])
-        logger.info 'installAll: Tasks: ' + tasks
+        logger.info task + ': Tasks: ' + tasks
 
         def params = project.gradle.startParameter.newBuild()
         params.setTaskNames(tasks)
@@ -90,35 +93,21 @@ task installAll(type:GradleBuild) << {
     }
 }
 
+task cleanAll(type:GradleBuild) << {
+    launchGradle(startParameter, 'clean', true, true)
+}
+
+task installAll(type:GradleBuild) << {
+    launchGradle(startParameter, 'install', false, false)
+}
+
 task uploadArchivesAll(type:GradleBuild) << {
-    getAllProjects().each { thaliProject ->
-        def buildFile = new File(thaliProject[0])
-        logger.info 'uploadArchivesAll: BuildFile: ' + buildFile
-
-        def tasks = thaliProject[1]
-        tasks.add('uploadArchives')
-        if (buildFile.toString().contains('ThaliDeviceHub') &&
-            buildFile.toString().contains('android')) {
-            // if this is ThaliDeviceHub/android, remove uploadArchives task
-            tasks.remove('uploadArchives')
-        }
-
-        tasks.removeAll([null])
-        logger.info 'uploadArchivesAll: Tasks: ' + tasks
-
-        def params = project.gradle.startParameter.newBuild()
-        params.setTaskNames(tasks)
-        params.buildFile = buildFile
-        params.projectProperties = startParameter.projectProperties
-        params.systemPropertiesArgs = startParameter.systemPropertiesArgs
- 
-        GradleLauncher.newInstance(params).run().rethrowFailure()
-    }
+    launchGradle(startParameter, 'uploadArchives', false, false)
 }
 
 tasks.withType(GradleBuild) {
     ext.buildWithArtifacts = 'true'
-    ext.buildVersion = System.getProperty('MAVEN_UPLOAD_VERSION') ?: '1.0.0-beta3rc1'
+    ext.buildVersion = System.getProperty('MAVEN_UPLOAD_VERSION')
 
     startParameter.projectProperties = gradle.startParameter.projectProperties
     startParameter.systemPropertiesArgs = [
@@ -133,11 +122,6 @@ tasks.withType(GradleBuild) {
         'buildListenerWithArtifacts': buildWithArtifacts,
         'buildAgainstMavenArtifacts': buildWithArtifacts,
     ]
-}
-
-
-task globalBuild(dependsOn: 'uploadArchivesAll'){
-    // task left here for those that are still used to using globalBuild
 }
 
 
