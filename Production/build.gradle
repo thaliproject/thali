@@ -80,7 +80,7 @@ task installAll(type:GradleBuild) << {
         params.projectProperties = startParameter.projectProperties
         params.systemPropertiesArgs = startParameter.systemPropertiesArgs
         
-       // GradleLauncher.newInstance(params).run().rethrowFailure()
+        GradleLauncher.newInstance(params).run().rethrowFailure()
     }
 }
 
