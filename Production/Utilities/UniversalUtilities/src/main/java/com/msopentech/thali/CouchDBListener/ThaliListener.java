@@ -122,7 +122,10 @@ public class ThaliListener {
             public void run() {
                 // First start the Tor listener so we know what SOCKS proxy port we are listening on
                 try {
-                    onionProxyManager.startWithRepeat(120, 3);
+                    if (onionProxyManager.startWithRepeat(120, 5) == false) {
+                        Log.e(CblLogTags.TAG_THALI_LISTENER, "Could not start Onion Proxy Manager!");
+                        stopServer();
+                    }
                     onionProxyManager.enableNetwork(true);
                     socksProxy = new Proxy(
                             Proxy.Type.SOCKS,
@@ -213,7 +216,7 @@ public class ThaliListener {
             manager.getDatabase(KeyDatabaseName);
 
             // replication manager -- add to Thali bogus authorizer.
-            replicationManager = new ReplicationManager(manager);
+            replicationManager = new ReplicationManager(manager, serverPublicKey);
             bogusThaliAuthorizerFactory.setReplicationManager(replicationManager);
 
             // Provision the TDH in its own key database so it can do replications to itself
@@ -281,5 +284,9 @@ public class ThaliListener {
         String host = InetAddress.getLocalHost().getHostAddress();
         HttpKeyURL localHttpKeyURL = new HttpKeyURL(serverPublicKey, host, portToUseForHttpKey, null, null, null);
         return new HttpKeyTypes(localHttpKeyURL, hiddenServiceAddress, onionProxyManager.getIPv4LocalHostSocksPort());
+    }
+
+    public PublicKey getServerPublicKey() {
+        return serverPublicKey;
     }
 }

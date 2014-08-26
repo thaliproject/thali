@@ -23,11 +23,9 @@ import com.msopentech.thali.toronionproxy.OnionProxyManager;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
-import com.msopentech.thali.utilities.universal.ThaliReplicationCommand;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
 import org.ektorp.DbAccessException;
-import org.ektorp.ReplicationStatus;
 import org.ektorp.http.HttpClient;
 import org.ektorp.impl.StdCouchDbInstance;
 import org.ektorp.support.CouchDbDocument;
@@ -38,13 +36,10 @@ import java.lang.reflect.Method;
 import java.net.MalformedURLException;
 import java.net.Proxy;
 import java.net.URISyntaxException;
-import java.net.URL;
 import java.security.*;
 import java.security.spec.InvalidKeySpecException;
 import java.util.Collection;
 import java.util.HashSet;
-import java.util.concurrent.Semaphore;
-import java.util.concurrent.TimeUnit;
 
 /**
  * This class contains all the generic test code to exercise both the Ektorp client as well as CouchBase Lite.
@@ -190,30 +185,29 @@ public class ThaliTestEktorpClient {
 
         // Set up docs and then replicate from full to empty, in push, the remote is empty, in pull the local is empty
         ThaliTestUtilities.setUpData(configureRequestObjects.thaliCouchDbInstance, push ? localName : remoteName,
-                1, ThaliTestEktorpClient.MaximumTestRecords, configureRequestObjects.clientPublicKey);
-        ReplicateAndTest(localName, remoteName, push, useTor, false);
+                1, ThaliTestEktorpClient.MaximumTestRecords);
+        ReplicateAndTestHttpKeyTarget(localName, remoteName, push, useTor, false);
 
         // Add and remove and alter a doc from the full database and re-replicate
         ThaliTestUtilities.GenerateDoc(connectorForInitiallyFullDb);
         ThaliTestUtilities.DeleteDoc(connectorForInitiallyFullDb);
         ThaliTestUtilities.AlterDoc(connectorForInitiallyFullDb);
-        ReplicateAndTest(localName, remoteName, push, useTor, false);
+        ReplicateAndTestHttpKeyTarget(localName, remoteName, push, useTor, false);
 
         // Reverse the direction of the replication and see if anything changes
-        ReplicateAndTest(remoteName, localName, push, useTor, false);
+        ReplicateAndTestHttpKeyTarget(remoteName, localName, push, useTor, false);
 
         // Add and remove and alter a doc from the 'empty' and reverse the replication and see if it works
         ThaliTestUtilities.AlterDoc(connectorForInitiallyEmptyDb);
         ThaliTestUtilities.DeleteDoc(connectorForInitiallyEmptyDb);
         ThaliTestUtilities.GenerateDoc(connectorForInitiallyEmptyDb);
-        ReplicateAndTest(remoteName, localName, push, useTor, false);
+        ReplicateAndTestHttpKeyTarget(remoteName, localName, push, useTor, false);
 
         // Add and remove and alter a doc from initially full DB and then set up a continuous replication
         ThaliTestUtilities.GenerateDoc(connectorForInitiallyFullDb);
         ThaliTestUtilities.AlterDoc(connectorForInitiallyFullDb);
         ThaliTestUtilities.DeleteDoc(connectorForInitiallyFullDb);
-        ReplicationChangeListener initiallyFullToInitiallyEmptyChangeListener =
-                ReplicateAndTest(localName, remoteName, push, useTor, true);
+        ReplicateAndTestHttpKeyTarget(localName, remoteName, push, useTor, true);
 
         // Add and remove docs and see if the continuous replication picks it up
         Execute execute = new Execute() {
@@ -224,13 +218,11 @@ public class ThaliTestEktorpClient {
                 ThaliTestUtilities.AlterDoc(connectorForInitiallyFullDb);
             }
         };
-        ValidateExistingContinuousReplication(
-                connectorForInitiallyFullDb, connectorForInitiallyEmptyDb, initiallyFullToInitiallyEmptyChangeListener,
-                execute);
+        ThaliTestUtilities.ValidateExistingContinuousReplication(
+                connectorForInitiallyFullDb, connectorForInitiallyEmptyDb, execute);
 
         // Set up a continuous replication in the opposite direction (but leave the other replication running)
-        ReplicationChangeListener initiallyEmptyToInitiallyFullChangeListener =
-                ReplicateAndTest(remoteName, localName, push, useTor, true);
+        ReplicateAndTestHttpKeyTarget(remoteName, localName, push, useTor, true);
 
         // Add and remove docs from 'target' and see if the changes safely make it to 'source'
         execute = new Execute() {
@@ -244,11 +236,31 @@ public class ThaliTestEktorpClient {
             }
         };
 
-        ValidateExistingContinuousReplication(
-                connectorForInitiallyEmptyDb, connectorForInitiallyFullDb, initiallyEmptyToInitiallyFullChangeListener,
-                execute);
+        ThaliTestUtilities.ValidateExistingContinuousReplication(
+                connectorForInitiallyEmptyDb, connectorForInitiallyFullDb, execute);
     }
 
+    /**
+     * Either pushes from source to target or pulls from target to source depending on the value of push. Note that
+     * the replication always goes from the local database.
+     * @param sourceDBName
+     * @param targetDBName
+     * @param push
+     * @param continuous
+     * @throws InterruptedException
+     * @throws java.net.MalformedURLException
+     * @throws java.net.URISyntaxException
+     */
+    public void ReplicateAndTestHttpKeyTarget(String sourceDBName, String targetDBName, boolean push,
+                                                                   boolean useTor, boolean continuous)
+            throws InterruptedException, MalformedURLException, URISyntaxException, CouchbaseLiteException {
+        PublicKey serverPublicKey = configureRequestObjects.serverPublicKey;
+        String host = useTor ? tdhOnionHost : tdhDirectHost;
+        int port = useTor ? tdhOnionPort : tdhDirectPort;
+        HttpKeyURL httpKeyUrl = new HttpKeyURL(serverPublicKey, host, port, targetDBName, null, null);
+        ThaliTestUtilities.ReplicateAndTest(sourceDBName, targetDBName, httpKeyUrl.toString(), push, continuous, false,
+                configureRequestObjects.thaliCouchDbInstance);
+    }
     /**
      * Runs a test where we set a user key in one database and then post to another.
      * @throws IOException
@@ -261,7 +273,7 @@ public class ThaliTestEktorpClient {
             UnrecoverableEntryException, KeyStoreException, InvalidKeySpecException, InterruptedException {
         Collection<CouchDbDocument> testDocuments = ThaliTestUtilities.setUpData(
                 configureRequestObjects.thaliCouchDbInstance, ThaliTestUtilities.TestDatabaseName , 1,
-                MaximumTestRecords, configureRequestObjects.clientPublicKey);
+                MaximumTestRecords);
 
         ThaliTestUtilities.validateDatabaseState(configureRequestObjects.testDatabaseConnector, testDocuments);
         runBadKeyTest(tdhDirectHost, tdhDirectPort, createClientBuilder, configureRequestObjects.serverPublicKey,
@@ -315,130 +327,8 @@ public class ThaliTestEktorpClient {
         return testMethods;
     }
 
-    /**
-     * Lets us listen in on the replication changes, we use this to know when the replicator has entered
-     * certain states.
-     */
-    protected class ReplicationChangeListener implements Replication.ChangeListener {
-        public final Semaphore callWhenSynchDone;
-        public final Replication.ReplicationStatus replicationStatus;
-
-        public ReplicationChangeListener(Replication.ReplicationStatus replicationStatus) throws InterruptedException {
-            callWhenSynchDone = new Semaphore(1);
-            callWhenSynchDone.acquire();
-            this.replicationStatus = replicationStatus;
-        }
-
-        @Override
-        public void changed(Replication.ChangeEvent event) {
-            if (event.getSource().getStatus() == replicationStatus) {
-                callWhenSynchDone.release();
-            }
-        }
-    }
-
     protected interface Execute {
         public void runit();
-    }
-
-    protected static void ValidateExistingContinuousReplication(CouchDbConnector sourceConnector,
-                                                                CouchDbConnector targetConnector,
-                                                                ReplicationChangeListener replicationChangeListener,
-                                                                Execute execute)
-            throws InterruptedException {
-
-        if (replicationChangeListener != null) {
-            // Due to https://github.com/couchbase/couchbase-lite-android-core/issues/55 we can't be sure that the semaphore
-            // was cleared so we might have to clear it manually.
-            if (replicationChangeListener.callWhenSynchDone.availablePermits() == 0) {
-                replicationChangeListener.callWhenSynchDone.release();
-            }
-            replicationChangeListener.callWhenSynchDone.acquire();
-        }
-        execute.runit();
-        ValidateReplicationCompletion(true, replicationChangeListener, sourceConnector, targetConnector);
-    }
-
-    /**
-     * Either pushes from source to target or pulls from target to source depending on the value of push. Note that
-     * the replication always goes from the local database.
-     * @param source
-     * @param target
-     * @param push
-     * @param continuous
-     * @throws InterruptedException
-     * @throws MalformedURLException
-     * @throws URISyntaxException
-     * @return
-     */
-    protected ReplicationChangeListener ReplicateAndTest(String source, String target, boolean push, boolean useTor,
-                                                         boolean continuous)
-            throws InterruptedException, MalformedURLException, URISyntaxException, CouchbaseLiteException {
-        HttpKeyURL targetUrl =
-                new HttpKeyURL(configureRequestObjects.serverPublicKey, useTor ? tdhOnionHost : tdhDirectHost,
-                        useTor ? tdhOnionPort : tdhDirectPort, target, null, null);
-        ThaliReplicationCommand thaliReplicationCommand =
-                new ThaliReplicationCommand.Builder()
-                        .source(push ? source : targetUrl.toString())
-                        .target(push ? targetUrl.toString() : source)
-                        .createTarget(true)
-                        .continuous(continuous)
-                        .build();
-        ReplicationStatus replicationStatus =
-                configureRequestObjects.thaliCouchDbInstance.replicate(thaliReplicationCommand);
-        if (replicationStatus.isOk() == false) {
-            throw new RuntimeException("Replication failed!");
-        }
-
-        ReplicationChangeListener replicationChangeListener = null;
-
-        if (thaliTestServer != null) {
-            Manager manager = thaliTestServer.getManager();
-            Database database = manager.getDatabase(source);
-            URL targetHttpsUrl = new URL(targetUrl.createHttpsUrl());
-            Replication replication = database.getActiveReplicator(targetHttpsUrl, push);
-            replicationChangeListener =
-                    new ReplicationChangeListener(
-                            continuous ? Replication.ReplicationStatus.REPLICATION_IDLE :
-                                    Replication.ReplicationStatus.REPLICATION_STOPPED);
-            replication.addChangeListener(replicationChangeListener);
-        }
-
-        CouchDbConnector sourceTestConnector = configureRequestObjects.thaliCouchDbInstance.createConnector(source, false);
-        CouchDbConnector targetTestConnector = configureRequestObjects.thaliCouchDbInstance.createConnector(target, false);
-        return ValidateReplicationCompletion(continuous, replicationChangeListener, sourceTestConnector, targetTestConnector);
-    }
-
-    private static ReplicationChangeListener ValidateReplicationCompletion(
-            boolean continuous, ReplicationChangeListener replicationChangeListener,
-            CouchDbConnector sourceTestConnector, CouchDbConnector targetTestConnector) throws InterruptedException {
-        // The notifications in CouchBase, especially for pull requests, are a bit half hazard. This is
-        // an occupational hazard with pull requests since the long poll mechanism used makes it a guess
-        // as to what things like 'idle' even mean. So for continuous requests we just try a couple of times
-        // to see if the replication has finished.
-        int maxRepeatCount = continuous ? 10 : 5;
-        Exception lastException = null;
-        boolean doWeThinkWeAreDone = replicationChangeListener == null;
-        for(int repeatCount = 0; repeatCount < maxRepeatCount; ++repeatCount) {
-            if (doWeThinkWeAreDone) {
-                Thread.sleep(10*1000);
-            }
-
-            // TODO: doWeThinkWeAreDone is an overly complex optimization that in some theoretical cases might
-            // make us run faster. We should probably remove it.
-            doWeThinkWeAreDone =
-                    replicationChangeListener == null ||
-                            replicationChangeListener.callWhenSynchDone.tryAcquire(10, TimeUnit.SECONDS);
-
-            try {
-                ThaliTestUtilities.validateDatabaseEquality(sourceTestConnector, targetTestConnector);
-                return replicationChangeListener;
-            } catch (Exception e) {
-                lastException = e;
-            }
-        }
-
-        throw new RuntimeException("Compare failed.", lastException);
     }
 
 

@@ -30,56 +30,7 @@ import java.util.HashMap;
 // Due to https://github.com/thaliproject/thali/issues/67 we can't restart the listeners in Java. So the code is
 // set up to start the listeners and related servers exactly once in Java and never again, we re-use the same
 // instances across all the tests. In Android however we can restart so we do.
-public class RelayWebServerTest extends UtilitiesTestCase {
-    // Host and port for the relay
-    // These go away with https://github.com/thaliproject/ThaliHTML5ApplicationFramework/issues/4
-    public static final String relayHost = "127.0.0.1";
-    public static final int relayPort = 58500;
-
-    // We have to make these values static because in Java we can't restart the serv
-    protected static RelayWebServer server;
-    protected static RelayWebServerTest.TestTempFileManager tempFileManager;
-    protected static ThaliListener thaliListener;
-    // This listener is used by a relay test to make sure that we can get a server key even from a server
-    // we are not configured to be trusted by.
-    protected static ThaliListener noSecurityThaliListener;
-    protected static boolean configRan = false;
-
-    @Override
-    public void setUp() throws NoSuchAlgorithmException, IOException, UnrecoverableEntryException,
-            KeyStoreException, KeyManagementException, InterruptedException {
-
-        if (OsData.getOsType() == OsData.OsType.Android || configRan == false) {
-            thaliListener = getStartedListener("thaliListener");
-            noSecurityThaliListener = getStartedListener("noSecurityThaliListener");
-
-            server = new RelayWebServer(getCreateClientBuilder(), getRelayWorkingDirectory(), thaliListener.getHttpKeys(),
-                    relayHost, relayPort);
-            tempFileManager = new RelayWebServerTest.TestTempFileManager();
-
-            server.start();
-            configRan = true;
-        }
-    }
-
-    @Override
-    public void tearDown() {
-        if (OsData.getOsType() == OsData.OsType.Android) {
-            tempFileManager._clear();
-
-            if (server != null && server.isAlive()) {
-                server.stop();
-            }
-
-            if (thaliListener != null) {
-                thaliListener.stopServer();
-            }
-
-            if (noSecurityThaliListener != null) {
-                noSecurityThaliListener.stopServer();
-            }
-        }
-    }
+public class RelayWebServerTest extends CommonListenerTestBasis {
 
     public void testServerExists() {
         assertNotNull(server);

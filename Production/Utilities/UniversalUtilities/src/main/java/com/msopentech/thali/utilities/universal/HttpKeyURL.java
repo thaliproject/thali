@@ -58,7 +58,7 @@ public class HttpKeyURL {
             // The path, if it exists, starts with a '/', so the second term of the or checks if the path contains
             // more than just the '/' character.
             path = locationOfPathStart == -1 || preprocessedPath.substring(locationOfPathStart).length() <= 1 ?
-                    null :
+                    "" :
                     preprocessedPath.substring(locationOfPathStart + 1);
             query = uri.getQuery();
             fragment = uri.getFragment();
@@ -77,8 +77,7 @@ public class HttpKeyURL {
      * @param fragment can be set to null
      * @throws IllegalArgumentException
      */
-    public HttpKeyURL(PublicKey serverPublicKey, String host, int port, String path, String query, String fragment)
-            throws IllegalArgumentException {
+    public HttpKeyURL(PublicKey serverPublicKey, String host, int port, String path, String query, String fragment) {
         if ((serverPublicKey instanceof RSAPublicKey) == false) {
             throw new IllegalArgumentException("We only support serverPublicKey of type RSAPublicKey at the moment.");
         }
@@ -86,7 +85,7 @@ public class HttpKeyURL {
         this.host = host;
         this.port = port;
         this.serverPublicKey = serverPublicKey;
-        this.path = path;
+        this.path = path == null ? "" : path;
         this.query = query;
         this.fragment = fragment;
 
@@ -108,7 +107,12 @@ public class HttpKeyURL {
 
     public PublicKey getServerPublicKey() { return serverPublicKey; }
 
-    public String getPath() { return path; }
+    public String getPath() {
+        if (path == null) {
+            throw new AssertionError("Path should never be null!");
+        }
+        return path;
+    }
 
     public String getQuery() { return query; }
 
