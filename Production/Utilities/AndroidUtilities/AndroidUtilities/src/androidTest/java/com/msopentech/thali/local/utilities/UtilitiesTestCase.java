@@ -13,28 +13,29 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.local.utilities;
 
-import android.content.Context;
 import android.test.AndroidTestCase;
+import com.couchbase.lite.Context;
 import com.couchbase.lite.android.AndroidContext;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.android.toronionproxy.AndroidOnionProxyManager;
-import com.msopentech.thali.relay.RelayWebServer;
-import com.msopentech.thali.toronionproxy.FileUtilities;
 import com.msopentech.thali.utilities.android.AndroidEktorpCreateClientBuilder;
-import com.msopentech.thali.utilities.test.RelayWebServerTest;
 import com.msopentech.thali.utilities.universal.CreateClientBuilder;
+import org.apache.commons.lang3.RandomStringUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.security.*;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
 public class UtilitiesTestCase extends AndroidTestCase {
     public CreateClientBuilder getCreateClientBuilder() {
         return new AndroidEktorpCreateClientBuilder();
     }
 
-    public File getRelayWorkingDirectory() {
-        return getContext().getFilesDir();
+    public Context getNewRandomCouchBaseContext() {
+        return new AndroidContext(
+                new AndroidContextChangeFilesDir(getContext(), RandomStringUtils.randomAlphanumeric(20)));
     }
 
     public ThaliListener getStartedListener(String subFolderName) throws UnrecoverableKeyException,
@@ -44,7 +45,10 @@ public class UtilitiesTestCase extends AndroidTestCase {
         AndroidOnionProxyManager androidOnionProxyManager =
                 new AndroidOnionProxyManager(androidContext, subFolderName + "OnionProxyManager");
         ThaliListener thaliListener = new ThaliListener();
-        thaliListener.startServer(new AndroidContext(androidContext), 0, androidOnionProxyManager);
+        thaliListener.startServer(
+                new AndroidContext(new AndroidContextChangeFilesDir(androidContext, subFolderName)),
+                0,
+                androidOnionProxyManager);
         thaliListener.waitTillHiddenServiceStarts();
         return thaliListener;
     }

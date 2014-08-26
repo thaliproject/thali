@@ -23,9 +23,6 @@ import java.security.interfaces.RSAPublicKey;
 
 import static org.junit.Assert.assertTrue;
 
-/**
- * Created by yarong on 1/13/14.
- */
 public class HttpKeyURLTest {
     @Test
     public void testHttpKeyURL() throws URISyntaxException {

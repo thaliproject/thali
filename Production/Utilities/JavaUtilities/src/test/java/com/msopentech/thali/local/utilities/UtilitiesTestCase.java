@@ -13,6 +13,7 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.local.utilities;
 
+import com.couchbase.lite.Context;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
 import com.msopentech.thali.java.toronionproxy.JavaOnionProxyContext;
@@ -31,6 +32,10 @@ import java.security.*;
 public class UtilitiesTestCase extends TestCase {
     public CreateClientBuilder getCreateClientBuilder() {
         return new JavaEktorpCreateClientBuilder();
+    }
+
+    public Context getNewRandomCouchBaseContext() throws IOException {
+        return new CreateContextInTemp();
     }
 
     public File getRelayWorkingDirectory() throws IOException {

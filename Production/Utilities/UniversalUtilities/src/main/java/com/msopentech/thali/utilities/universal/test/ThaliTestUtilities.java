@@ -14,14 +14,20 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.utilities.universal.test;
 
+import com.couchbase.lite.CouchbaseLiteException;
 import com.couchbase.lite.util.Log;
 import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.ThaliClientToDeviceHubUtilities;
+import com.msopentech.thali.utilities.universal.ThaliCouchDbInstance;
+import com.msopentech.thali.utilities.universal.ThaliReplicationCommand;
 import org.ektorp.CouchDbConnector;
 import org.ektorp.CouchDbInstance;
+import org.ektorp.ReplicationStatus;
 import org.ektorp.support.CouchDbDocument;
 
+import java.net.MalformedURLException;
+import java.net.URISyntaxException;
 import java.security.NoSuchAlgorithmException;
 import java.security.PublicKey;
 import java.security.spec.InvalidKeySpecException;
@@ -148,11 +154,10 @@ public class ThaliTestUtilities {
      * @param databaseName
      * @param  minimumTestRecords
      * @param maximumTestRecords
-     * @param clientPublicKey This can be null if we are doing regression testing of no SSL and SSL without client auth scenarios
      */
     public static List<CouchDbDocument> setUpData(CouchDbInstance couchDbInstance,
-                                                  String databaseName, int minimumTestRecords, int maximumTestRecords,
-                                                  PublicKey clientPublicKey) throws InvalidKeySpecException, NoSuchAlgorithmException {
+                                                  String databaseName, int minimumTestRecords, int maximumTestRecords)
+            throws InvalidKeySpecException, NoSuchAlgorithmException {
         couchDbInstance.deleteDatabase(databaseName);
         couchDbInstance.createDatabase(databaseName);
         CouchDbConnector couchDbConnector = couchDbInstance.createConnector(databaseName, false);
@@ -233,4 +238,74 @@ public class ThaliTestUtilities {
         ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(clientPublicKey, couchDbInstance);
     }
 
+    /**
+     * Either pushes from source to target or pulls from target to source depending on the value of push. Note that
+     * the replication always goes from the local database.
+     * @param sourceDBName
+     * @param targetUrl
+     * @param push
+     * @param continuous
+     * @param managedReplication
+     * @throws InterruptedException
+     * @throws java.net.MalformedURLException
+     * @throws java.net.URISyntaxException
+     */
+    public static void ReplicateAndTest(String sourceDBName, String targetDBName, String targetUrl, boolean push,
+                                                                boolean continuous, boolean managedReplication,
+                                                                ThaliCouchDbInstance thaliCouchDbInstance)
+            throws InterruptedException, MalformedURLException, URISyntaxException, CouchbaseLiteException {
+        buildAndExecuteReplicationRequest(
+                sourceDBName, targetUrl, push, continuous, managedReplication, false, thaliCouchDbInstance);
+
+        CouchDbConnector sourceTestConnector = thaliCouchDbInstance.createConnector(sourceDBName, false);
+        CouchDbConnector targetTestConnector = thaliCouchDbInstance.createConnector(targetDBName, false);
+        ValidateReplicationCompletion(sourceTestConnector, targetTestConnector);
+    }
+
+    public static void buildAndExecuteReplicationRequest(
+            String source, String targetUrl, boolean push, boolean continuous, boolean managedReplication,
+            boolean cancel, ThaliCouchDbInstance thaliCouchDbInstance) {
+        ThaliReplicationCommand thaliReplicationCommand =
+                new ThaliReplicationCommand.Builder()
+                        .source(push ? source : targetUrl)
+                        .target(push ? targetUrl : source)
+                        .createTarget(true)
+                        .continuous(continuous)
+                        .cancel(cancel)
+                        .managedReplication(managedReplication)
+                        .build();
+        ReplicationStatus replicationStatus =
+                thaliCouchDbInstance.replicate(thaliReplicationCommand);
+
+        if (replicationStatus.isOk() == false) {
+            throw new RuntimeException("Replication failed!");
+        }
+    }
+
+    public static void ValidateReplicationCompletion(
+            CouchDbConnector sourceTestConnector, CouchDbConnector targetTestConnector)
+            throws InterruptedException {
+        int maxRepeatCount = 6 * 3; // Each wait is 10 seconds, 6 per minute, 3 minutes total (yes, it can be that slow)
+        Exception lastException = null;
+        for(int repeatCount = 0; repeatCount < maxRepeatCount; ++repeatCount) {
+            Thread.sleep(10*1000);
+
+            try {
+                validateDatabaseEquality(sourceTestConnector, targetTestConnector);
+                return;
+            } catch (Exception e) {
+                lastException = e;
+            }
+        }
+
+        throw new RuntimeException("Compare failed.", lastException);
+    }
+
+    protected static void ValidateExistingContinuousReplication(CouchDbConnector sourceConnector,
+                                                                CouchDbConnector targetConnector,
+                                                                ThaliTestEktorpClient.Execute execute)
+            throws InterruptedException {
+        execute.runit();
+        ValidateReplicationCompletion(sourceConnector, targetConnector);
+    }
 }

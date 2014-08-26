@@ -87,7 +87,8 @@ public class ConfigureRequestObjects {
         clientKeyStore = ThaliCryptoUtilities.validateThaliKeyStore(clientFilesDir);
 
         org.apache.http.client.HttpClient httpClientNoServerValidation =
-                createClientBuilder.CreateApacheClient(tdhDirectHost, tdhDirectPort, null, clientKeyStore, passPhrase, directProxy);
+                createClientBuilder.CreateApacheClient(
+                        tdhDirectHost, tdhDirectPort, null, clientKeyStore, passPhrase, directProxy);
 
         serverPublicKey =
                 ThaliClientToDeviceHubUtilities.getServersRootPublicKey(
@@ -101,11 +102,18 @@ public class ConfigureRequestObjects {
         replicationDatabaseConnector = thaliCouchDbInstance.createConnector(
                 ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
 
-        HttpClient torHttpClient = createClientBuilder.CreateEktorpClient(tdhOnionHost, tdhOnionPort, serverPublicKey,
-                clientKeyStore, passPhrase, onionProxy);
-        torThaliCouchDbInstance = new ThaliCouchDbInstance(torHttpClient);
-        torTestDatabaseConnector = torThaliCouchDbInstance.createConnector(ThaliTestUtilities.TestDatabaseName, false);
-        torReplicationDatabaseConnector =
-                torThaliCouchDbInstance.createConnector(ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
+        if (tdhOnionHost != null && tdhOnionHost.isEmpty() == false) {
+            HttpClient torHttpClient = createClientBuilder.CreateEktorpClient(tdhOnionHost, tdhOnionPort, serverPublicKey,
+                    clientKeyStore, passPhrase, onionProxy);
+            torThaliCouchDbInstance = new ThaliCouchDbInstance(torHttpClient);
+            torTestDatabaseConnector = torThaliCouchDbInstance.createConnector(ThaliTestUtilities.TestDatabaseName, false);
+            torReplicationDatabaseConnector =
+                    torThaliCouchDbInstance.createConnector(ThaliTestEktorpClient.ReplicationTestDatabaseName, false);
+        } else {
+            torThaliCouchDbInstance = null;
+            torTestDatabaseConnector = null;
+            torReplicationDatabaseConnector = null;
+        }
+
     }
 }

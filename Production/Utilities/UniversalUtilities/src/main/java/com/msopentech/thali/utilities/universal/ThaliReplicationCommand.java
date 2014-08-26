@@ -25,9 +25,6 @@ import java.util.Collection;
 
 @JsonInclude(JsonInclude.Include.NON_NULL)
 public class ThaliReplicationCommand  {
-    //todo: Replace this with a reference to ReplicatorArguments in couchbase-lite-android-core once the Java version is released
-    private static final String urlFieldName = "url";
-
     @JsonInclude(JsonInclude.Include.ALWAYS)
     protected class auth {
         @JsonProperty
@@ -70,6 +67,9 @@ public class ThaliReplicationCommand  {
     @JsonProperty
     public final Boolean cancel;
 
+    @JsonProperty("managed_replication")
+    public final Boolean managedReplication;
+
     @JsonProperty("query_params")
     public final Object queryParams;
 
@@ -86,6 +86,7 @@ public class ThaliReplicationCommand  {
         filter = b.filter;
         docIds = b.docIds;
         continuous = b.continuous ? Boolean.TRUE : null;
+        managedReplication = b.managedReplication ? Boolean.TRUE : null;
         cancel = b.cancel ? Boolean.TRUE : null;
         createTarget = b.createTarget ? Boolean.TRUE : null;
         sinceSeq = b.sinceSeqAsLong != null ? b.sinceSeqAsLong : b.sinceSeqAsString;
@@ -114,6 +115,7 @@ public class ThaliReplicationCommand  {
         private String sinceSeqAsString;
         private Long sinceSeqAsLong;
         private Object queryParams;
+        private boolean managedReplication;
         /**
          * Source and target can both point at local databases, remote databases and any combination of these.
          *
@@ -171,6 +173,14 @@ public class ThaliReplicationCommand  {
          */
         public Builder continuous(boolean b) {
             continuous = b;
+            return this;
+        }
+        /**
+         * true makes this a Thali managed replication
+         *
+         */
+        public Builder managedReplication(boolean b) {
+            managedReplication = b;
             return this;
         }
         /**

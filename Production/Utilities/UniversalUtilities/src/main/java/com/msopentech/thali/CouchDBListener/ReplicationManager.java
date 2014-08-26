@@ -15,13 +15,11 @@ package com.msopentech.thali.CouchDBListener;
 
 import com.couchbase.lite.*;
 
-import java.util.HashMap;
-import java.util.Iterator;
-import java.util.Map;
+import java.security.PublicKey;
+import java.util.*;
 import java.io.UnsupportedEncodingException;
 import java.security.MessageDigest;
 import java.security.NoSuchAlgorithmException;
-import java.util.concurrent.ConcurrentHashMap;
 
 import com.couchbase.lite.replicator.Replication;
 import com.couchbase.lite.util.Log;
@@ -30,17 +28,19 @@ import com.msopentech.thali.utilities.universal.CblLogTags;
 public class ReplicationManager {
     private static String replicationDatabaseName = "replicationdb";
 
-    private Manager couchManager;
-    private Database replicationDatabase;
+    private final Manager couchManager;
+    private final Database replicationDatabase;
+    private final PublicKey serverPublicKey;
     private Thread replicationManagerThread;
 
     private static final int replicationFrequency = 200; // in milliseconds
     private static final int threadSleepTime = 25; // in milliseconds
     private static final int threadIterations = replicationFrequency / threadSleepTime;
 
-    public ReplicationManager(Manager manager) {
+    public ReplicationManager(Manager manager, PublicKey serverPublicKey) {
         this.replicationManagerThread = null;
         this.couchManager = manager;
+        this.serverPublicKey = serverPublicKey;
         try {
             this.replicationDatabase = couchManager.getDatabase(replicationDatabaseName);
         } catch(CouchbaseLiteException e) {
@@ -127,21 +127,19 @@ public class ReplicationManager {
         }
     }
 
-    private Map<String, ReplicatorArguments> getReplicationRequests() {
-        Map<String, ReplicatorArguments> requests = new HashMap<String, ReplicatorArguments>();
+    private List<ReplicatorArguments> getReplicationRequests() {
+        List<ReplicatorArguments> requests = new ArrayList<ReplicatorArguments>();
         Query query = this.replicationDatabase.createAllDocumentsQuery();
         query.setAllDocsMode(Query.AllDocsMode.ALL_DOCS);
         try {
             QueryEnumerator result = query.run();
-            // NOTE -- can't use foreach - IntelliJ gives the error:
-            // -- foreach not applicable to type 'com.couchbase.lite.QueryEnumerator
             for(Iterator<QueryRow> it = result; it.hasNext(); ) {
                 QueryRow row = it.next();
                 Document doc = row.getDocument();
                 Map<String, Object> rawProps = (Map<String, Object>)doc.getProperty("replicationProps");
                 if (rawProps != null) {
                     ReplicatorArguments arg = new ReplicatorArguments(rawProps, couchManager, null);
-                    requests.put(row.getDocumentId(), arg);
+                    requests.addAll(GroupReplicator.expandGroupReplications(arg, couchManager, serverPublicKey));
                 } else {
                     Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Stored request body missing.  DocID: " + doc.getId());
                 }
@@ -160,19 +158,18 @@ public class ReplicationManager {
                     int iterations = 0;
                     while (!Thread.currentThread().isInterrupted()) {
                         if (iterations == threadIterations) {
-                            // do the check every ten seconds
-                            Map<String, ReplicatorArguments> requests = getReplicationRequests();
+                            List<ReplicatorArguments> requests = getReplicationRequests();
                             if (requests != null && requests.size() > 0) {
-                                for (Map.Entry<String, ReplicatorArguments> entry : requests.entrySet()) {
+                                for (ReplicatorArguments entry : requests) {
                                     try {
-                                        Replication rep = couchManager.getReplicator(entry.getValue());
+                                        Replication rep = couchManager.getReplicator(entry);
                                         rep.start();
                                     } catch (CouchbaseLiteException e) {
-                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
-                                        continue;
+                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER,
+                                                "Error starting replication request.", e);
                                     } catch (java.lang.NullPointerException e) {
-                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER, "Error starting replication request.", e);
-                                        continue;
+                                        Log.e(CblLogTags.TAG_THALI_REPLICATION_MANAGER,
+                                                "Error starting replication request.", e);
                                     }
                                 }
                             }

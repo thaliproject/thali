@@ -49,7 +49,7 @@ def getAllProjects() {
         ['Utilities/AndroidUtilities/build.gradle',                 [androidTestTask()]],
         ['ThaliDeviceHub/Universal/build.gradle',                   [testTask()]],
         ['ThaliDeviceHub/java/build.gradle',                        [testTask(), 'installApp']],
-        ['ThaliDeviceHub/android/android/build.gradle',             [testTask(), 'build']]
+        ['ThaliDeviceHub/android/android/build.gradle',             [androidTestTask(), 'build']]
     ]
 }
 
