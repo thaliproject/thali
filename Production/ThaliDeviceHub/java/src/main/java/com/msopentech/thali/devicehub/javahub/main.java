@@ -13,40 +13,29 @@ See the Apache 2 License for the specific language governing permissions and lim
 
 package com.msopentech.thali.devicehub.javahub;
 
-import com.msopentech.thali.devicehub.universal.ThaliDeviceHubUx;
-import javafx.application.Application;
-import javafx.scene.Scene;
-import javafx.scene.web.WebEngine;
-import javafx.scene.web.WebView;
-import javafx.stage.Stage;
+import java.io.IOException;
+import java.security.KeyStoreException;
+import java.security.NoSuchAlgorithmException;
+import java.security.UnrecoverableKeyException;
 
-public class main extends Application {
-    protected ThaliDeviceHubService thaliDeviceHubService;
-    protected Scene scene;
+import static java.lang.System.out;
+import static java.lang.System.in;
 
-    public static void main(String[] args) {
-        launch(args);
-    }
+public class main {
+    protected static ThaliDeviceHubService thaliDeviceHubService;
 
-    @Override
-    public void start(Stage stage) throws Exception {
-        thaliDeviceHubService = new ThaliDeviceHubService();
-        thaliDeviceHubService.startService();
+    public static void main(String[] args) throws UnrecoverableKeyException, NoSuchAlgorithmException,
+            KeyStoreException, InterruptedException, IOException {
+        try {
+            thaliDeviceHubService = new ThaliDeviceHubService();
+            thaliDeviceHubService.startService();
+            out.println("Hit any key to exit.");
+            in.read();
+        } finally {
+            if (thaliDeviceHubService != null) {
+                thaliDeviceHubService.stopService();
+            }
+        }
 
-        WebView browser = new WebView();
-        WebEngine webEngine = browser.getEngine();
-
-        String rootHtmlFileAsString = ThaliDeviceHubUx.getRootUxHtmlAsString();
-        webEngine.loadContent(rootHtmlFileAsString);
-
-        // We will probably want to add functionality like the address book directly to the hub,
-        // for now. The bridgeManager is needed for that. Check out JavaFXBridgeManagerTest in
-        // JavaUtilities for an example.
-        // BridgeManager bridgeManager = new JavaFXBridgeManager(webEngine);
-
-        stage.setTitle("Thali Device Hub");
-        scene = new Scene(browser);
-        stage.setScene(scene);
-        stage.show();
     }
 }
