@@ -247,7 +247,8 @@ public class RelayWebServer extends NanoHTTPD {
                             : null;
             HttpClient httpClientNoServerValidation = createClientBuilder.CreateApacheClient(hostName, port, null,
                     clientKeyStore, ThaliCryptoUtilities.DefaultPassPhrase, proxy);
-            PublicKey serverPublicKey = ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerValidation);
+            PublicKey serverPublicKey =
+                    ThaliClientToDeviceHubUtilities.getServersRootPublicKey(httpClientNoServerValidation);
             TranslatedOnionAddress translatedOnionAddress =
                     new TranslatedOnionAddress(new HttpKeyURL(serverPublicKey, hostName, port, null, null, null)
                             .toString());
@@ -269,7 +270,8 @@ public class RelayWebServer extends NanoHTTPD {
             caughtException = e;
         }
         return GenerateErrorResponse("Could not translate onion address to httpkey, onionAddress : " + onionAddress +
-                ", hostName = " + hostName + ", port = " + port, caughtException);
+                ", hostName = " + hostName + ", port = " + port + ", socks proxy port = " +
+                httpKeyTypes.getSocksOnionProxyPort(), caughtException);
     }
 
     // Copy response headers to relayed response
