@@ -36,6 +36,22 @@ android {
         pickFirst 'BridgeHandlerTest.js' // Causing a double import of ThaliUtilitiesUniversal for no apparent reason
         pickFirst 'BridgeManager.js' // See previous
     }
+
+    buildTypes {
+        // See http://stackoverflow.com/questions/18332474/how-to-set-versionname-in-apk-filename-using-gradle for
+        // how to handle a signed release
+        debug {
+            applicationVariants.all { variant ->
+                def file = variant.outputFile
+                // Because the project is called android the default output name would be
+                // android-debug-unaligned.apk. We diff off that.
+                variant.outputFile =
+                        new File(file.parent,
+                                file.name.replace("android",
+                                        "thali-device-hub-" + System.getProperty('MAVEN_UPLOAD_VERSION')));
+            }
+        }
+    }
 }
 
 dependencies {
