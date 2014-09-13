@@ -48,7 +48,7 @@ def getAllProjects() {
         ['Utilities/JavaUtilities/build.gradle',                    [testTask()]],
         ['Utilities/AndroidUtilities/build.gradle',                 [androidTestTask()]],
         ['ThaliDeviceHub/Universal/build.gradle',                   [testTask()]],
-        ['ThaliDeviceHub/java/build.gradle',                        [testTask(), 'installApp']],
+        ['ThaliDeviceHub/java/build.gradle',                        [testTask(), 'zipAndInstall']],
         ['ThaliDeviceHub/android/android/build.gradle',             [androidTestTask(), 'build']]
     ]
 }

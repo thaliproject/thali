@@ -16,11 +16,16 @@ apply plugin: 'java'
 apply plugin: 'maven'
 //apply from: 'javafx.plugin'
 
+// Naming our jar 'java' is less than useful.
+jar.baseName 'ThaliDeviceHub'
+
+// Gives our scripts for distZip a more useful name
+startScripts.applicationName "start" + jar.baseName
+
 mainClassName = "com.msopentech.thali.devicehub.javahub.main"
 
 version = System.getProperty('MAVEN_UPLOAD_VERSION')
 group = 'com.msopentech.thali'
-archivesBaseName = 'ThaliDeviceHubJava'
 
 repositories {
     mavenLocal()
@@ -39,6 +44,8 @@ dependencies {
     testCompile 'junit:junit:4.11'
 }
 
+distZip.baseName 'ThaliDeviceHub'
+
 task sourcesJar(type: Jar, dependsOn: classes) {
     classifier = 'sources'
     from sourceSets.main.java.srcDirs
@@ -53,3 +60,33 @@ artifacts {
     archives sourcesJar
     archives generateJavadocs
 }
+
+
+def tempOutputDir = file("${buildDir}/unpacked/dist")
+
+task deleteOldUnzip(type:Delete, dependsOn: distZip) {
+    delete tempOutputDir
+}
+
+task unzipDistZip(type: Copy, dependsOn: deleteOldUnzip) {
+    def zipFile = file(distZip.archivePath)
+    from zipTree(zipFile)
+    into tempOutputDir
+}
+
+task deleteOldZip(type: Delete, dependsOn: unzipDistZip) {
+    delete distZip.archivePath
+}
+
+def unzipDirectoryRoot = file(tempOutputDir.path + "/" +
+        distZip.archiveName.substring(0, distZip.archiveName.length() - 1 - distZip.extension.length()))
+
+// The distZip file contains an extra directory at the root with the same name as the zip file. I'm sure
+// there is some switch to make it not do that but I haven't found it. So instead I unzip the file, move
+// it's contents and then re-zip but skip that extra directory.
+task skipLevelZip(type: Zip, dependsOn: deleteOldZip) {
+    from unzipDirectoryRoot
+    baseName distZip.baseName
+}
+
+task zipAndInstall(dependsOn: ['installApp', 'skipLevelZip']) {}
