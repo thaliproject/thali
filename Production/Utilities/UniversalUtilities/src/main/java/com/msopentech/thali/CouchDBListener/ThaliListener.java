@@ -30,6 +30,7 @@ import com.msopentech.thali.utilities.universal.CblLogTags;
 import com.msopentech.thali.utilities.universal.HttpKeyURL;
 import com.msopentech.thali.utilities.universal.ThaliCryptoUtilities;
 import org.bouncycastle.crypto.RuntimeCryptoException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -131,6 +132,9 @@ public class ThaliListener {
                             Proxy.Type.SOCKS,
                             new InetSocketAddress("127.0.0.1", onionProxyManager.getIPv4LocalHostSocksPort()));
 
+                    Log.i(CblLogTags.TAG_THALI_LISTENER, "Socks port for TOR is " +
+                                                            onionProxyManager.getIPv4LocalHostSocksPort());
+
                     // Now we can configure the listener with the proxy to use to talk to SOCKS
                     if (configureManagerObjectForListener(finalClientKeyStore, socksProxy, context)) {
                         configureListener(context, port);
@@ -141,6 +145,10 @@ public class ThaliListener {
                             onionProxyManager.publishHiddenService(DefaultThaliDeviceHubPort, getSocketStatus().getPort());
                     hiddenServiceAddress =
                             new HttpKeyURL(serverPublicKey, onionDomainName, DefaultThaliDeviceHubPort, null, null, null);
+
+                    ObjectMapper mapper = new ObjectMapper();
+                    Log.i(CblLogTags.TAG_THALI_LISTENER,
+                            "Tor Http Key Values: " + mapper.writeValueAsString(buildHttpKeys()));
                 } catch (InterruptedException e) {
                     Log.e(CblLogTags.TAG_THALI_LISTENER, "Could not start TOR Onion Proxy", e);
                 } catch (IOException e) {
@@ -277,13 +285,18 @@ public class ThaliListener {
         return socksProxy;
     }
 
-    public HttpKeyTypes getHttpKeys() throws InterruptedException, IOException {
-        waitTillHiddenServiceStarts();
-        // Local access address
+    protected HttpKeyTypes buildHttpKeys() throws InterruptedException, IOException {
+        // We can actually build the keys before the onion proxy has started but that is too dangerous
+        // to explain to users. But we do need it for internally logging so we keep this function around.
         int portToUseForHttpKey = getSocketStatus().getPort();
         String host = InetAddress.getLocalHost().getHostAddress();
         HttpKeyURL localHttpKeyURL = new HttpKeyURL(serverPublicKey, host, portToUseForHttpKey, null, null, null);
         return new HttpKeyTypes(localHttpKeyURL, hiddenServiceAddress, onionProxyManager.getIPv4LocalHostSocksPort());
+    }
+
+    public HttpKeyTypes getHttpKeys() throws InterruptedException, IOException {
+        waitTillHiddenServiceStarts();
+        return buildHttpKeys();
     }
 
     public PublicKey getServerPublicKey() {

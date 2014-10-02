@@ -19,6 +19,7 @@ import com.msopentech.thali.CouchDBListener.ThaliListener;
 import com.msopentech.thali.CouchDBListener.java.JavaThaliListenerContext;
 import com.msopentech.thali.java.toronionproxy.JavaOnionProxyContext;
 import com.msopentech.thali.java.toronionproxy.JavaOnionProxyManager;
+import com.msopentech.thali.utilities.universal.test.ThaliTestUtilities;
 
 import java.io.File;
 import java.io.IOException;
@@ -33,6 +34,7 @@ public class ThaliDeviceHubService {
 
     public void startService() throws UnrecoverableKeyException, NoSuchAlgorithmException, KeyStoreException,
             IOException, InterruptedException {
+        ThaliTestUtilities.turnCouchbaseLoggingTo11();
         thaliListener = new ThaliListener();
 
         File userHomeDirectoryRoot = new File(System.getProperty("user.home"), tdhJavaSubdirectory);

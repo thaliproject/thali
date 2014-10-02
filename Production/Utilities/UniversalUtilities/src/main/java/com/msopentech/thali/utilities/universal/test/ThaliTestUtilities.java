@@ -134,6 +134,7 @@ public class ThaliTestUtilities {
         List<String> docIdsDB2 = database2.getAllDocIds();
 
         if (docIdsDB1.size() != docIdsDB2.size()) {
+            Log.v("thali_debug", "DB1 Size: " + docIdsDB1.size() + ", DB2 Size: " + docIdsDB2.size());
             throw new RuntimeException();
         }
 
@@ -141,6 +142,7 @@ public class ThaliTestUtilities {
             CouchDBDocumentBlogClassForTests docDB1 = database1.get(CouchDBDocumentBlogClassForTests.class, docIdDB1);
             CouchDBDocumentBlogClassForTests docDB2 = database2.get(CouchDBDocumentBlogClassForTests.class, docIdDB1);
             if (docDB1.equals(docDB2) == false) {
+                Log.v("thali_debug", "Docs with same id didn't match");
                 throw new RuntimeException();
             }
         }
@@ -285,10 +287,10 @@ public class ThaliTestUtilities {
     public static void ValidateReplicationCompletion(
             CouchDbConnector sourceTestConnector, CouchDbConnector targetTestConnector)
             throws InterruptedException {
-        int maxRepeatCount = 6 * 3; // Each wait is 10 seconds, 6 per minute, 3 minutes total (yes, it can be that slow)
+        int maxRepeatCount = 10* 10 * 6 * 3; // Each wait is 10 seconds, 6 per minute, 3 minutes total (yes, it can be that slow)
         Exception lastException = null;
         for(int repeatCount = 0; repeatCount < maxRepeatCount; ++repeatCount) {
-            Thread.sleep(10*1000);
+            Thread.sleep(100);
 
             try {
                 validateDatabaseEquality(sourceTestConnector, targetTestConnector);

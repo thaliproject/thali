@@ -154,7 +154,7 @@ public class ThaliTestEktorpClient {
     /**
      * This code tests replicating data between two databases, one is local and the other is remote. The push
      * variable controls if replication is push based (in which case the local database will initially be filled
-     * with data and the remote database will be empty) or pull base (in which case the local database will be left
+     * with data and the remote database will be empty) or pull based (in which case the local database will be left
      * empty initially and the remote database filled with data).
      * @param push
      * @param useTor Access 'remote' database using Tor

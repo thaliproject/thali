@@ -90,7 +90,7 @@ public class HttpKeyHttpClient extends DefaultHttpClient {
     protected final Proxy proxy;
     protected final SchemeRegistry schemeRegistry;
     protected int torProxyRequestRetryCount = 10;
-    protected int maxConnections = 20;
+    protected int maxConnections = 200;
 
     public HttpKeyHttpClient(PublicKey serverPublicKey, KeyStore clientKeyStore, char[] clientKeyStorePassPhrase,
             Proxy proxy, HttpParams params) throws UnrecoverableKeyException, NoSuchAlgorithmException,
