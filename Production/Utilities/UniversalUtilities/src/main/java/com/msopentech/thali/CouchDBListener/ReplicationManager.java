@@ -26,7 +26,7 @@ import com.couchbase.lite.util.Log;
 import com.msopentech.thali.utilities.universal.CblLogTags;
 
 public class ReplicationManager {
-    private static String replicationDatabaseName = "replicationdb";
+    public static String replicationDatabaseName = "replicationdb";
 
     private final Manager couchManager;
     private final Database replicationDatabase;

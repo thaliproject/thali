@@ -75,7 +75,7 @@ public class CommonListenerTestBasis extends UtilitiesTestCase {
                     secondThaliListenerTorHttpKey.getPort(), ThaliCryptoUtilities.DefaultPassPhrase,
                     getCreateClientBuilder(), getNewRandomCouchBaseContext(), null, secondThaliListener.getSocksProxy());
 
-            // Provision secondThaliListener to trust requests from thaliListener
+            // Provision secondThaliListener to trust requests from perfThaliListener
             ThaliClientToDeviceHubUtilities.configureKeyInServersKeyDatabase(thaliListener.getServerPublicKey(),
                     secondConfigureRequestObjects.thaliCouchDbInstance);
 

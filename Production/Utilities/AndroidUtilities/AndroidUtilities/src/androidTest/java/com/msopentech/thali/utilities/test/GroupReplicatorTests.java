@@ -49,7 +49,7 @@ public class GroupReplicatorTests extends CommonListenerTestBasis {
         HttpKeyURL repManager2HttpKeyUrl = new HttpKeyURL(thaliListener.getServerPublicKey(), "127.0.0.1",
                 thaliListener.getSocketStatus().getPort(), repManager2Name, null, null);
         try {
-            // Create repmanage and put some docs inside it
+            // Create repmanager and put some docs inside it
             List<CouchDbDocument> generatedDocs =
                     ThaliTestUtilities.setUpData(configureRequestObjects.thaliCouchDbInstance, repManagerName, 1, 10);
             // Send in replication request for repmanager2
@@ -141,7 +141,7 @@ public class GroupReplicatorTests extends CommonListenerTestBasis {
             // problem is us and not Ektorp. I know we could write the below as a simple create a database and
             // then create connector but I am keeping it this way so we will eventually figure out what the heck
             // is going on!
-            CouchDbConnector addressBookCouchDbConnector = null;
+            CouchDbConnector addressBookCouchDbConnector;
             try {
                 addressBookCouchDbConnector = configureRequestObjects.thaliCouchDbInstance.createConnector(
                         GroupReplicator.addressBookDatabaseName, true);

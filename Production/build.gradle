@@ -36,14 +36,14 @@ def getAllProjects() {
         ['../../couchbase-lite-java-native/build.gradle',           [testTask()]],
         ['../../couchbase-lite-java-core/build.gradle',             [testTask()]],
         ['../../couchbase-lite-java-listener/build.gradle',         [testTask()]],
-        ['../../couchbase-lite-android/build.gradle',               [androidTestTask(false)]],
+        ['../../couchbase-lite-android/build.gradle',               [androidTestTask()]],
 
         // Couchbase Lite currently requires syncgateway to test or a special
         // config that supports listener. But in newer releases of the gateway this
         // was all fixed and uses mocks. We aren't going to upgrade right now for
         // stability reasons so we are turning off the tests until we get the upgrade.
         // https://github.com/thaliproject/thali/issues/53
-        ['../../couchbase-lite-java/build.gradle',                  [testTask(false)]],
+        ['../../couchbase-lite-java/build.gradle',                  [testTask()]],
         ['Utilities/UniversalUtilities/build.gradle',               [testTask()]],
         ['Utilities/JavaUtilities/build.gradle',                    [testTask()]],
         ['Utilities/AndroidUtilities/build.gradle',                 [androidTestTask()]],
