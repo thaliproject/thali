@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html>
+ 
+<head>
+
+<title>
+  {% if page.title != null %}
+    {{ page.title }}
+    {% else %}
+    <title>Thali</title>
+    {% endif %}
+</title>
+ <link rel="stylesheet" type="text/css" href="/thali/stylesheets/stylesheet.css"> 
+ <link rel="stylesheet" type="text/css" href="/stylesheets/stylesheet.css"> 
+</head>
+
+<body>
+
+  {% if page.title != null %}
+    <h1 class="PageTitle">{{ page.title }}</h1>
+  {% endif %}
+  
+ <table>
+  
+ <tr>
+ <td valign="top" style="width:15%;background-color:lightgray">
+
+  {% include TableOfContents.html %}
+</tdv>
+
+<td>
+ &nbsp;&nbsp;&nbsp;&nbsp;
+</td>
+
+<td valign="top">
+  
+<div id="main">
+  {{ content }}
+</div>
+
+</td>
+</tr>
+</table>
+
+</body>
+</html>
