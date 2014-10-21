@@ -42,6 +42,7 @@ In addition to the -D command to set variables there is also a GYP_DEFINES envir
 
 #My current (incomplete, non-functional) attempt at instructions#
 Setting up IntelliJ on Linux
+
  1. Run 'npm -g install node-gyp'
  2. Clone node-leveldown (https://github.com/rvagg/node-leveldown.git)
  3. Open IntelliJ and open a project at the root directory, node-leveldown
@@ -68,21 +69,15 @@ List tests:
 
 - item 1
 - item 2
-
  - item 1
  - item 2
 
 * item 1
 * item 2
-
  * item 1
  * item 2
 
 1. item 1
 2. item 2
-
  1. item 1
  2. item 2
-
-
-Ignore me
