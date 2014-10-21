@@ -3,6 +3,10 @@ title: Notes on Node-Gyp for Android
 layout: default
 ---
 
+#WARNING#
+These are my raw notes trying to figure out how to get Node-Gyp on Linux to build for Android. As I learn more I'll clean these up and eventually (if things work) turn them into instructions or (if things don't work) explain the problem. But for now, they are just a mess. You have been warned!
+
+#The Notes#
 The immediate goal is to build node-leveldown. 
 
 I started simply on my Linux box and ran "npm install leveldown". That worked just fine, including building leveldb which is a C program.
@@ -36,6 +40,7 @@ One of the first things I leanred is that the python code will also look for an 
 
 In addition to the -D command to set variables there is also a GYP_DEFINES environmental variable looked at in line 41 of __init__.py. I'm not sure of the details of how it works but it seems potentially useful if we are going to start setting things up via environmental variables. In line 478 a similar mechanism is used for submitting GYP_GENERATOR_FLAGS. I have a feeling we'll need that at least for the ndk if not for the tool chain we will have to generate ourselves (a la how we build Node.js for Android).
 
+#My current (incomplete, non-functional) attempt at instructions#
 Setting up IntelliJ on Linux
  1. Run 'npm -g install node-gyp'
  2. Clone node-leveldown (https://github.com/rvagg/node-leveldown.git)
@@ -52,4 +57,9 @@ Setting up IntelliJ on Linux
 
 ```
 binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
+```
+
+This is a test to see if redcarpet is picking things up or not
+```Java
+int a = 1;
 ```
