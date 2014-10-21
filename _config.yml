@@ -1,2 +1,2 @@
 markdown: rdiscount
-highlighter: pygments
+highlighter: redcarpet
