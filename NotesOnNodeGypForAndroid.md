@@ -52,17 +52,17 @@ Setting up IntelliJ on Linux
      1. I had to hit the "X items more" entry at the end to make Python show up
  7. For Script navigate to node-leveldown/node_modules/node-gyp/gyp/gyp_main.py and set that
  8. For Script parameters try the ones given at the end of this list.
-    1. ```
+  1. ```
 binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
 ```
-     1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
+  1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
  9. For Python Interpreter set to 'Use specified interpreter' and choose the one set for your project
  10. For working directory set it to the full path to wherever you cloned node-leveldown
 
 
 
 This is a test to see if redcarpet is picking things up or not
-```Java
+```java
 int a = 1;
 ```
 
