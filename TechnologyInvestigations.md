@@ -1,5 +1,5 @@
 ---
-title: TechnologyInvestigations
+title: Technology Investigations
 layout: default
 ---
 
