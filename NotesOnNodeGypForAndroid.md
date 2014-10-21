@@ -36,6 +36,20 @@ One of the first things I leanred is that the python code will also look for an 
 
 In addition to the -D command to set variables there is also a GYP_DEFINES environmental variable looked at in line 41 of __init__.py. I'm not sure of the details of how it works but it seems potentially useful if we are going to start setting things up via environmental variables. In line 478 a similar mechanism is used for submitting GYP_GENERATOR_FLAGS. I have a feeling we'll need that at least for the ndk if not for the tool chain we will have to generate ourselves (a la how we build Node.js for Android).
 
-Setting up IntelliJ
-1. If you don't have python support then just open up a python file and IntelliJ will prompted you to put in Python support
-1. 
+Setting up IntelliJ on Linux
+ 1. Run 'npm -g install node-gyp'
+ 2. Clone node-leveldown (https://github.com/rvagg/node-leveldown.git)
+ 3. Open IntelliJ and open a project at the root directory, node-leveldown
+ 4. Open any .py file and see if IntelliJ prompts you to install Python support, if so, install and reload
+ 5. Go to File->Project Structure and hit new and add the Python SDK as the Project SDK
+ 6. Go to Run->Edit Configurations->Green Plus and select Python
+  1. I had to hit the "X items more" entry at the end to make Python show up
+ 7. For Script navigate to node-leveldown/node_modules/node-gyp/gyp/gyp_main.py and set that
+ 8. For Script parameters try the ones given at the end of this list.
+  1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
+ 9. For Python Interpreter set to 'Use specified interpreter' and choose the one set for your project
+ 10. For working directory set it to the full path to wherever you cloned node-leveldown
+
+```
+binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
+```
