@@ -62,7 +62,8 @@ binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.g
 
 
 This is a test to see if redcarpet is picking things up or not
-```ruby
+
+``` ruby
 int a = 1;
 ```
 
