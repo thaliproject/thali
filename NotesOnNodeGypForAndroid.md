@@ -63,3 +63,23 @@ This is a test to see if redcarpet is picking things up or not
 ```Java
 int a = 1;
 ```
+
+List tests:
+
+- item 1
+- item 2
+
+ - item 1
+ - item 2
+
+* item 1
+* item 2
+
+ * item 1
+ * item 2
+
+1. item 1
+2. item 2
+
+ 1. item 1
+ 2. item 2
