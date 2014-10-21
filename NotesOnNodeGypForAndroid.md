@@ -52,7 +52,7 @@ Setting up IntelliJ on Linux
      1. I had to hit the "X items more" entry at the end to make Python show up
  7. For Script navigate to node-leveldown/node_modules/node-gyp/gyp/gyp_main.py and set that
  8. For Script parameters try the ones given at the end of this list.
- ```
+```
 binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
 ```
      1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
