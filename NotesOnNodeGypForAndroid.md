@@ -63,14 +63,3 @@ Setting up IntelliJ on Linux
   1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
  9. For Python Interpreter set to 'Use specified interpreter' and choose the one set for your project
  10. For working directory set it to the full path to wherever you cloned node-leveldown
-
-
-2. I'm going to include a fenced code block as part of this bullet:
-
-    ```
-    Code
-    More Code
-    ```
-
-3. We can put fenced code blocks inside nested bullets, too.
-   1. Like this:
