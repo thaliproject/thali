@@ -67,6 +67,10 @@ O.k. so I guess we'll have to go back to fixing snappy. My sleezy little fix is 
 , ['OS=="android"', {'os_include': 'linux'}]
 ```
 
+So once we make that one line change then that eventually results in android.py being called and getting an error on line 950 where we find out that ANDROID_BUILD_TOP isn't set.
+
+Now, whose job is it to really set that? And why do they need it anyway? My understanding (flawed I'm sure) is that ANDROID_BUILD_TOP (output by lunch) is used to build all of Android, not just an Android app. Or is it? I honestly don't know. Since I don't actually know anything useful I'll have to switch to magic.
+
 #My current (incomplete, non-functional) attempt at instructions#
 Setting up IntelliJ on Linux
 
