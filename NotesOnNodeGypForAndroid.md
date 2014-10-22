@@ -62,6 +62,7 @@ So obviously this requires a visit to https://github.com/joyent/libuv/blob/maste
 As someone who doesn't actually know anything about gyp the most interesting part is line 69-71 where the various gyp config files are submitted. But other than that. I just don't see much that is really fundamentally different from what we are doing. Sigh....
 
 O.k. so I guess we'll have to go back to fixing snappy. My sleezy little fix is to go to /deps/snappy and edit snappy.gyp to add in an entry:
+
 ```json
 , ['OS=="android"', {'os_include': 'linux'}]
 ```
