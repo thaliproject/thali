@@ -43,6 +43,29 @@ One of the first things I leanred is that the python code will also look for an 
 
 In addition to the -D command to set variables there is also a GYP_DEFINES environmental variable looked at in line 41 of __init__.py. I'm not sure of the details of how it works but it seems potentially useful if we are going to start setting things up via environmental variables. In line 478 a similar mechanism is used for submitting GYP_GENERATOR_FLAGS. I have a feeling we'll need that at least for the ndk if not for the tool chain we will have to generate ourselves (a la how we build Node.js for Android).
 
+Right now I'm getting an exception from snappy when input.py tries to call LoadTargetBuildFile on binding.gyp. I already know this issue. Snappy doesn't have an os_include for Android and so it fails. In the past I worked around this by manually editing snappy to include an os_include for Android that maps to Linux. But I'm not sure if that is right.
+
+However something caught my attention. Which is https://github.com/joyent/libuv#android. Those are the build instructions for libuv for Android. Notice how it calls Gyp! Could this finally be the example I need to figure out how to get leveldown building? So the command line is:
+
+```bash
+source ./android-configure NDK_PATH gyp
+```
+
+The [script](https://github.com/joyent/libuv/blob/master/android-configure) starts with the traditional android-toolchain script we see in the node.js build script. The interesting part is the bottom where it calls:
+
+``` bash
+./gyp_uv.py -Dtarget_arch=arm -DOS=android
+```
+
+So obviously this requires a visit to https://github.com/joyent/libuv/blob/master/gyp_uv.py
+
+As someone who doesn't actually know anything about gyp the most interesting part is line 69-71 where the various gyp config files are submitted. But other than that. I just don't see much that is really fundamentally different from what we are doing. Sigh....
+
+O.k. so I guess we'll have to go back to fixing snappy. My sleezy little fix is to go to /deps/snappy and edit snappy.gyp to add in an entry:
+```json
+, ['OS=="android"', {'os_include': 'linux'}]
+```
+
 #My current (incomplete, non-functional) attempt at instructions#
 Setting up IntelliJ on Linux
 
@@ -63,3 +86,8 @@ Setting up IntelliJ on Linux
   1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
  9. For Python Interpreter set to 'Use specified interpreter' and choose the one set for your project
  10. For working directory set it to the full path to wherever you cloned node-leveldown
+ 11. Now find your comment line and edit deps/snappy/snappy.gyp and add the following to targets/variables/conditions:
+
+    ``` json
+    , ['OS=="android"', {'os_include': 'linux'}]
+    ```
