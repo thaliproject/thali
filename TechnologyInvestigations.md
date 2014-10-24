@@ -24,4 +24,5 @@ Thali has also looked at how it can leverage existing technologies. Those invest
 
 In October 2014 Thali began exploring a new approach based on Node. Here are related investigations
 
+* [Node.js on Devices](nodeondevices)
 * [Node Gyp for Android](NotesOnNodeGypForAndroid)
