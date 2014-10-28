@@ -3,10 +3,8 @@ title: Node on Devices
 layout: default
 ---
 
-# Getting funding to get Node.js on Android, iOS and WinRT
-I have a number of ideas ranging from [packaged apps](http://www.goland.org/html6packagedapps/) to running Thali on Node.js that require Node.js to be available on Android, iOS and WinRT. My goal is to convince my employer that they want to fund this effort. To do that I need to come in with real customers who would want to use Node.js on these OS's if it was available.
-
-To help identify potential customers for this technology I put together below a list of the characteristics that I believe a customer would have.
+# Scenarios for Node.js on Android, iOS and WinRT
+I have a number of ideas ranging from [packaged apps](http://www.goland.org/html6packagedapps/) to running Thali on Node.js that require Node.js to be available on Android, iOS and WinRT. The purpose of this page is to capture scenarios that other people have for wanting node.js on Android, iOS and WinRT. Below I capture some archtypal scenarios. But what I personally need are specific customers (open source, government, companies, etc.) and their specific requirements that result in them needing Node.js on Android, iOS and WinRT.
 
 ## Device Hubs
 Any IoT device that runs on Android, iOS or WinRT is usually a candidate. Typically any device that has enough power to run one of those OS's will act as a hub and receive commands, so it needs a listener. Node.js would be an awesome choice. Also devices that coordinate other IoT devices would also be a great example of this scenario.
