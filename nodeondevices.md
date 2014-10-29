@@ -30,3 +30,13 @@ Note that if the refrigerator or coffee maker is itself a hub then this scenario
 
 ## Reducing Cloud Costs
 Solutions that require all data, all the time, to transit the cloud can potentially be quite expensive in terms of bandwidth and CPU costs. So enabling local devices to communicate directly can save costs by only forcing the cloud system to deal with high value data.
+
+# Use Cases
+I talk with lots of folks and some of them let me put their use cases here. I am using this as a use case dump for right now.
+
+## [Novisecurity](http://www.novisecurity.com/#home)
+Provide a base station and sensors for home security. Use the cloud to provide notifications for alarm events to, amongst other things, user’s phones. Their current phone client is written in Cordova.
+### Node.js Scenario
+A user is home, the alarm system is not armed, but the user wishes to receive a notification when a door or window is opened (to let them know if someone is coming or going in the house). Today this scenario would require routing the notification through the cloud and back down to the user’s phone. With node.js capabilities on the phone the base station could notify the phone directly. Having two ways to notify the user enables the feature to work in homes that have limitations of cell or wi-fi capability.
+### Limiting Issue
+The scenario is compelling but only if it works on both Android and iOS. The current limitations on iOS’s ability to run background services mean that the node.js listener couldn’t ‘always’ listen and so isn’t that interesting. The feature still has value and in a later stage of development may still be worth doing for Android only but the lack of iOS support does downgrade interest.
