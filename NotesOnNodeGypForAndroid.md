@@ -111,6 +111,7 @@ Of these I suspect that for a non-native solution medeadown is our best choice (
 So the obviously sane thing for me to do now is to start without any native code and then go native.
 
 So in the source code I need to put in:
+
 ```Javascript
 var pouch = new PouchDB('myDB', {db: require('medeadown')});
 ```
