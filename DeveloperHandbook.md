@@ -120,7 +120,7 @@ NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](
 
 The [Thali Guide to Git](ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there.
 
-# Debugging #
+# Debugging
 
 Please see the [Guide to Debugging](GuideToDebugging) for more information than you could ever want on how debugging works across our various dependencies.
 
@@ -132,4 +132,28 @@ Just install the latest from [here](https://www.virtualbox.org/wiki/Downloads). 
 
 See [Android Emulator](AndroidEmulator)
 
+# Notes on adventures in node.js land
+I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran into is that I use IntelliJ as my IDE and I needed a way to run PouchDB's mocha tests. Normally this is handled easily by just executing ./bin/test-node.sh which handles all the details. The good news is that what test-node.sh does is very straight forward and easy to set up as a test in IntelliJ. Except.... it turns out that in the tests directory there are tests both for node.js and tests for the browser. test-node.sh works around this by providing a test file path that ends with test.*.js where all files that match that pattern are guaranteed to be safe for node.js. The shell then expands the wild card into a set of files and then node/mocha gets called. The issue is https://youtrack.jetbrains.com/issue/WEB-10067 which doesn't support wild card expansing of files when specifying the test directory. To work around this here is what I do.
 
+1. Run -> Edit Configurations -> Green Plus -> Mocha
+2. Set Node Interpreter (if not already set) to /usr/bin/node
+3. Set working directory to the pouchdb root directory from git
+4. Set Mocha package to the path for the working directory plus /node_modules/mocha
+5. Set extra Mocha options to "--timeout 50000 --require ./tests/node.setup.js --grep test.replication.js" (obviously grep should be set to whatever you need, in my case I was running replication tests)
+6. Set test directory to working directory plus /tests/ (MAKE SURE TO END WITH A FINAL SLASH)
+7. Do NOT check 'Include sub directory"
+8. Now hit OK
+9. Now get out your favorite editor and open up working directory plus node\_modules/mocha/bin/_mocha
+10. At line 23 (right after the initial var declaration with all the dependencies) insert the code below
+
+```Javascript
+/*
+ Awful hack for which I will burn in hades for eternity. But it lets me run the pouchdb node.js tests
+ */
+var lastIndexOfArgv = process.argv.length - 1;
+process.argv[lastIndexOfArgv] += "test.*.js";
+var globMatchedFiles = glob.sync(process.argv[process.argv.length - 1]);
+process.argv = process.argv.slice(0, -1).concat(globMatchedFiles);
+```
+
+This code specifically extends the last argument to add the wildcard 'test.*.js' and then uses glob to extend it to a list of matching files and then adding those to the args. This is an awful hack. The right way to do this would be to add a new argument to mocha specifying a wildcard for files to be processed (which is different than grep, that is applied AFTER the list of files is chosen). But honestly I don't care. I just need this one thing to work for PouchDB so I can debug.
