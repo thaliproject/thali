@@ -19,16 +19,16 @@ Our first dependency is Tor_Onion_Proxy_Library. It contains three sub-projects,
 
 Next up is our CouchBase forks. These contain custom versions of CouchBase with extensions we need. The dependency structure is:
 
-<pre>
+```
  couchbase-lite-java-native <- couchbase-lite-java-core <- couchbase-lite-listener 
                                                         <- couchbase-lite-java
                                                         <- couchbase-lite-android
-</pre>
+```
 
 
 We then have the Thali project which is where we build the TDH. Right now there is an odd structure in there involving two root directories, Production and Prototype. When we resolve [https://www.pivotaltracker.com/story/show/78493988](https://www.pivotaltracker.com/story/show/78493988) we will get rid of Prototype and hoist the contents of Production to the root. For now we will ignore Prototype.
 
-<pre>
+```
  Thali
   -Production
    -Utilities
@@ -37,20 +37,20 @@ We then have the Thali project which is where we build the TDH. Right now there 
     -AndroidUtilities
     -DotNetUtilities
     -WindowsStoreUtilities
-</pre>
+```
 
 Of these right now active development is focused on UniversalUtilities, JavaUtilities and AndroidUtilities. They have the same relationship as the similarly named projects in Tor_Onion_Proxy_Library. The bulk of the logic is in UniversalUtilities which produces a jar consumed by JavaUtilities and AndroidUtilities who themselves produce a Jar and AAR respectively.
 
 This then takes us to:
 
-<pre>
+```
  Thali
   -Production
    -ThaliDeviceHub
     -Universal
     -android
     -java
-</pre>
+```
 
 Same structure as before.
 
