@@ -133,6 +133,7 @@ Just install the latest from [here](https://www.virtualbox.org/wiki/Downloads). 
 See [Android Emulator](AndroidEmulator)
 
 # Notes on adventures in node.js land
+## How to debug PouchDB tests in Node.js and Intellij
 I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran into is that I use IntelliJ as my IDE and I needed a way to run PouchDB's mocha tests. Normally this is handled easily by just executing ./bin/test-node.sh which handles all the details. The good news is that what test-node.sh does is very straight forward and easy to set up as a test in IntelliJ. Except.... it turns out that in the tests directory there are tests both for node.js and tests for the browser. test-node.sh works around this by providing a test file path that ends with test.*.js where all files that match that pattern are guaranteed to be safe for node.js. The shell then expands the wild card into a set of files and then node/mocha gets called. The issue is https://youtrack.jetbrains.com/issue/WEB-10067 which doesn't support wild card expansing of files when specifying the test directory. To work around this here is what I do.
 
 1. Run -> Edit Configurations -> Green Plus -> Mocha
@@ -157,3 +158,14 @@ process.argv = process.argv.slice(0, -1).concat(globMatchedFiles);
 ```
 
 This code specifically extends the last argument to add the wildcard 'test.*.js' and then uses glob to extend it to a list of matching files and then adding those to the args. This is an awful hack. The right way to do this would be to add a new argument to mocha specifying a wildcard for files to be processed (which is different than grep, that is applied AFTER the list of files is chosen). But honestly I don't care. I just need this one thing to work for PouchDB so I can debug.
+
+## How to get better pull replication perf out of PouchDB in Node.js
+Assuming that [my pr](https://github.com/pouchdb/pouchdb/pull/3015) gets accepted then it becomes possible to get reasonable pull replication perf with PouchDB. The logic that PouchDB uses is that it collects B GET requests into a batch. With the PR the entries in the batch will be spread across C parallel connections. By default B = 100 and C = 5. But in heavy replication those numbers suck. Especially because of a bug in Node.js 0.10 that causes it to be extremely aggressive in garbage collecting connections which in practice means all TCP connections are closed between batches. So one wants a bigger batch size to increase the number of requests that use the same pool of connections (before they get recycled at the end of the batch) and one wants more connections in the connection pool because real world testing shows that 15 is much better than 5 connections (note that after 15 we didn't see as good a perf increase). 
+
+To set the batch size one has to pass in an option 'batch_size' to replicate.
+
+To set the connection pool size one has two options. One option is to globally set 'http.globalAgent.maxSockets' and 'https.globalAgent.maxSockets'. These require('http') and require('https') respectively. Another way to do this is to pass in {ajax: {pool: {maxSockets: 15}}} to the PouchDB constructor for a DB. This option CANNOT be passed into the replicate method. It has to be passed into the PouchDB constructor used to create the database instance.
+
+There is however another complication. The default timeout for node.js ajax requests is 10 second. In practice 1000 batches * 15 connections can push over that limit (because the time the request sits in the queue is considered part of the time out, not just the time the request was outstanding on the wire). So depending on your usage profile you have to play around with the timeout. The way to set this is via the ajax option passed into the PouchDB constructor. E.g. {ajax: {timeout: 30000, pool: {maxSockets: 15}}}.
+
+In node.js 0.11 the aggressive connection recycling is supposed to go away. If true then it means that it's safe to use smaller batch sizes and therefore not worry about the timeout. So at that point the only thing one should have to set is how many connections are in the pool. So let's hope we get to node.js 0.12 soon.
