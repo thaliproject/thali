@@ -176,3 +176,4 @@ We often seem to be running custom version of PouchDB so it's useful to know how
 1. Go to where we have cloned our pouchdb repro and run 'npm link' in that directory
 2. Go to the node_modules directory which already contains pouchdb where you want to hook in the custom pouchdb and run 'npm link pouchdb'
  3. An issue I ran into is permissions because of where I happened to have the code I wanted to link to. Since I'm using windows I had to open a git bash window as an admin and then run 'npm link pouchdb'.
+3. Anytime you refresh (such as with npm install pouchdb-server, in my case) the parent project the link to pouchdb gets lost and has to be re-created.
