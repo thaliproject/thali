@@ -179,4 +179,6 @@ We often seem to be running custom version of PouchDB so it's useful to know how
 3. Anytime you refresh (such as with npm install pouchdb-server, in my case) the parent project the link to pouchdb gets lost and has to be re-created.
 
 ## How to get debug statements to output in node.js using IntelliJ
-Go edit your configuration and set Environment variables to have the name "NODE_DEBUG" and the value equal to a comma separated list of the 'require' values you want to output debug for. For example "thalinode, express, pouchdb, request" (wouldn't recommend using that particular list as you'll drown in output).
+Go edit your configuration and set Environment variables to have the name "NODE_DEBUG" and the value equal to a comma separated list of the 'require' values you want to output debug for. For example "thalinode, express, request".
+
+For reasons I don't understand the previous doesn't work with pouchdb. Instead one must set the variable "DEBUG" and give the value of "pouchdb:*"
