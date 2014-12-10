@@ -140,7 +140,7 @@ I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran i
 2. Set Node Interpreter (if not already set) to /usr/bin/node
 3. Set working directory to the pouchdb root directory from git
 4. Set Mocha package to the path for the working directory plus /node_modules/mocha
-5. Set extra Mocha options to "--timeout 50000 --require ./tests/node.setup.js --grep test.replication.js" (obviously grep should be set to whatever you need, in my case I was running replication tests)
+5. Set extra Mocha options to "--timeout 50000 --require ./tests/integration/node.setup.js --grep test.replication.js" (obviously grep should be set to whatever you need, in my case I was running replication tests)
 6. Set test directory to working directory plus /tests/ (MAKE SURE TO END WITH A FINAL SLASH)
 7. Do NOT check 'Include sub directory"
 8. Now hit OK
