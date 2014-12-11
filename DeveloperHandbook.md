@@ -182,3 +182,6 @@ We often seem to be running custom version of PouchDB so it's useful to know how
 Go edit your configuration and set Environment variables to have the name "NODE_DEBUG" and the value equal to a comma separated list of the 'require' values you want to output debug for. For example "request".
 
 However the default debug package that folks like PouchDB as well as Thali use require a different variable, "DEBUG". In the case of pouchdb one wants a value such as "pouchdb:\*" because pouchdb actually breaks down its debug targets. For Thali, at least right now, one can just say thalinode. So something like "pouchdb:\*, thalinode" should work.
+
+## How to run PouchDB Integration tests against IE locally
+When running tests locally while developing PouchDB we need to test things in IE, e.g. navigating IE to http://127.0.0.1:8000/tests/integration/ etc. Unfortunately CORS requests to localhost pretty much fail by default. This is a [known bug in IE](http://stackoverflow.com/questions/22098259/access-denied-in-ie-10-and-11-when-ajax-target-is-localhost). The work around is to go to internet options -> Security -> Trusted Sites -> Sites and then disable 'Require server verification (https:) for all sites in this zone) and then put 'http://127.0.0.1' into 'Add this website to the zone' and then add.
