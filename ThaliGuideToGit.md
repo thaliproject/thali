@@ -201,36 +201,36 @@ An example of this situation is CouchBase Lite. I have a branch of their depots 
 
 This looks as follows:
 
-<pre>
+```
  git checkout -b issue36
-</pre>
+```
 
 This creates and switches to a new branch, issue36, which is the issue that I'm resolving in this example.
 
-<pre>
+```
  git fetch upstream [Note: I need to experiment to see if this command is really necessary]
  git reset upstream/master
-</pre>
+```
 
 These commands pull down the latest stream of the upstream depo and then resets my state for this branch to be identical. So I am now dealing with what should be an identical copy to the state of the upstream master branch.
 
-<pre>
+```
  Edit Stuff
-</pre>
+```
 
 Now I edit whatever files I need for the pull request. In the case of issue 36 this was a minor change to the build.gradle file.
 
-<pre>
+```
  git add [new stuff]
  git commit
  git push origin issue36
-</pre>
+```
 
 Now I issue commands like git add to add any files that aren't tracked and do a local commit. Usually I handle this part, where I've finished making my changes and want to commit in preparation for the pull request, using the Git GUI using the commit/push routine.
 
-<pre>
+```
  Go to github and issue the Pull Request!
-</pre>
+```
 
 And we are done!
 
@@ -238,48 +238,62 @@ And we are done!
 
 In most cases I need to make tiny changes to existing libraries to add new features or fix bugs. In this case I typically want to submit all of my changes in the pull request. This is different than above where I have a tidal wave of changes in my branch but only want to submit a tiny subset in the pull request.
 
-<pre>
+```
  git fetch upstream
  git merge upstream/master
  git mergetool
-</pre>
+```
 
 Most of the time these commands do nothing as I'm usually already in synch with the upstream repo. But if not this is good hygiene to do before a pull request so you make sure you aren't about to submit code that is behind the upstream. But once I'm done my branch is now fully sync'd and up to date with the master as well as having any of my changes on top.
 
-<pre>
+```
  git checkout -b proposal
-</pre>
+```
 
 I now create a new branch from which I will make the pull request.
 
-<pre>
+```
  git rebase upstream/master
-</pre>
+```
 
 This command takes all the commits I've created and resets them to be ahead of the HEAD of the upstream's master branch. This will set up me up to make a clean pull request by making sure that my history comes after whatever has gone on in upstream. A command like this would be a screaming nightmare in the case of CouchBase because I have so many changes trying to dig through them all to find what I want to submit and getting rid of everything else would be error prone and take forever. So in CouchBase's case it's easier to just copy over what I need. But for lots of other forks the changes are small and I want to submit them all. So with this command all my changes are now teed up quite nicely.
 
-<pre>
+```
  git add [stuff]
  git commit
-</pre>
+```
 
 These commands will add my changes from the current state of the master branch as a commit on the local branch. But in some cases I don't need these commands. The reason is that I often check in my changes to my origin for safe keeping. If the upstream hasn't changed since those commits then the rebase above doesn't do anything.
 
-<pre>
+What happens next depends on your relationship to the project. If you are a committer on the project then Dale Harvey pointed out a very nice trick that will you take the changes from your branch without worrying about screwing up the history.
+
+The first step is to take the branch you created above, proposal and use it to make a pull request. This will create a pull request with your full history so you don't want the project to take it. But it will now give you a URL for your pull request against your own project. E.g. something like https://github.com/yaronyg/project/pull/issueNumber. Github will automatically turn that request into a patch if you use the right URL and then Github has an easy way to apply that patch. This can, of course, all be done locally. The reason for the pull request is that, for example, when we are committing to PouchDB we have Travis hooked up to Github so by submitting the pull request we trigger Travis. If it passes then we can use the trick below knowing we are committing to the project the right code.
+
+```
+ cd /directory/of/open/source/project
+ git checkout master
+ curl https://github.com/yaronyg/project/pull/issueNumber.patch | git am 
+```
+
+Then commit and submit the master branch and you're good!
+
+For cases where you aren't a committer and the folks running the project don't want to use the above trick themselves (they really should) then you need to rebase all of your committs into a single commit. The good news is that Git supports doing this. The bad news is that I've run into a bunch of gotchas so it seems (for me at least) pretty error prone.
+
+```
  git rebase -i HEAD~N
-</pre>
+```
 
 This command is needed in the case that I have committed changes to origin. In that case I now have a visible history to deal with. The folks getting the pull request aren't going to be particularly interested in my history making a mess of their history. So I want to crunch down my history to a single commit. That's what this command lets me do. I check (usually using the history function in the GIT GUI) how many commits I have and enter that number in N. I then leave the first entry in VI alone and mark all the other entries with either a f (if I want to lose the commit statements) or a s (if I want to keep those commit statements). 
 
-<pre>
+```
  git push origin proposal
-</pre>
+```
 
 I use the GIT GUI here normally but this is the point where I check in my pull branch to my depot.
 
-<pre>
+```
  Go to github and issue the Pull Request!
-</pre>
+```
 
 And we are done!
 
