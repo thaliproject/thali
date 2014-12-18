@@ -38,8 +38,9 @@ So it turns out that IoT needs Node.js running everywhere (including Android, iO
 As mentioned above all the IoT customers we are talking with need to build apps for GPCs (especially phones) to interact with their things. Yes, they want to use Node.js to handle events, but they also want to use HTML 5/Cordova for the front end. In fact when we talk to them about the [vision](http://www.goland.org/html6packagedapps/) for Cordova+Node.js they get really excited and want to adopt it.
 
 So yet again, we find Thali and IoT interests converging. Specifically, what we want to build is:
-* a Cordova plugin for Node.js
-* a Cordova build environment to run on desktops (most IoT customers are focused on Phones but they all need desktop as well)
+
+ * a Cordova plugin for Node.js
+ * a Cordova build environment to run on desktops (most IoT customers are focused on Phones but they all need desktop as well)
 
 # AdHocWireless Node.js Package
 Our IoT customers need all devices (e.g. both GPCs and things) to be able to talk to each other. And they need to be able to do it over a variety of transports. They need GPCs and things talking to each other using Bluetooth, Bluetooth LE, Wi-Fi, Wi-Fi direct, Alljoyn, etc. And yes, [nothing new here for Thali](http://www.goland.org/thalimesh/). Interesting enough we also have scenarios that started off as IoT and ended up with needing peer to peer communication between GPCs. 
@@ -47,6 +48,7 @@ Our IoT customers need all devices (e.g. both GPCs and things) to be able to tal
 So what we need is a library that will expose standard discovery and communication capabilities in node.js and then hook that up to whatever radios the device we are running on supports. In other words we don't just need to support things talking to GPCs, we need to support GPCs talking to each other.
 
 The idea is that we would expose interfaces in node.js that let one:
+
 * register for events when new peers are detected
 * enumerate what peers are around
 * receive standalone messages and streams from peers
