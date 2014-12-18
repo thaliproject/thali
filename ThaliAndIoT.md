@@ -8,9 +8,7 @@ layout: default
 # Introduction
 The Internet of Things (IoT) needs the web as much as anyone else does. But, perhaps not surprisingly, in many scenarios it specifically needs a peer to peer web. And where there is a peer to peer web, there is Thali.
 
-By default I'm finding that most IoT scenarios involve things talking to the cloud. The reason that IoT systems are so heavily dependent on the cloud is that the centralized cloud makes issues from data synchronization to identity easier to deal with. But the cost for this ease of use is fragility. If the cloud goes down or connectivity is lost then the whole IoT infrastructure shuts down.
-
-For many IoT scenarios this level of fragility is unacceptable. The "show must go on", regardless of cloud availability.
+By default I'm finding that most IoT scenarios involve things talking to the cloud. IoT systems leverage the cloud heavily for a number of reasons including having a centralized cloud makes issues from data synchronization to identity easier to deal with, gives cross device and even site data collection and data analysis and much more. However, a peer to peer system makes for an incredibly resilient network without a single point of failure, allows your devices to operate in an offline mode as a system rather than disconnected devices and gives you incredibly fast collaboration between the devices because the "show must go on", regardless of cloud availability.
 
 This is where Thali and the peer to peer web come in. In building solutions for the peer to peer web Thali has had to deal with the hard problems that show up when one wants to remain functional even when the cloud is not available. It answers questions such as how to confirm identity or keep data in synch in a peer to peer manner.
 
