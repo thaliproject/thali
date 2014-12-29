@@ -1,5 +1,5 @@
 ---
-title: Experimenting with FireChat
+title: Experimenting with FireChat on Android
 layout: default
 ---
 # Executive Summary
