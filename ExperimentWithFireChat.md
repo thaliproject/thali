@@ -2,70 +2,31 @@
 title: Experimenting with FireChat
 layout: default
 ---
+### Executive Summary
+FireChat running offline on three Android devices was able to successfully communicate without any Internet connectivity using what appears to be a combination of Bluetooth and Wifi. No user interaction was needed to set up anything (e.g. no Bluetooth of WiFi approval dialogs from the OS) and notifications worked just fine when the apps were in the background. This is a pretty exciting proof that one can do a reasonable mesh application on Android. Oddly, FireChat worked less well when connected to the Internet.
 
-On 12/29/2014 I had a couple of Android devices hanging around so I decided to try out FireChat and see what I could see. 
+### Devices
+* Samsung Galaxy S4 running stock OS, no SIM.
+* Nexus 7 running stock OS.
+* HTC One running Cyanogenmod
 
-### Setup
-I have a Samsung Galaxy S4 (Samsung) and a Nexus 7 (Nexus).
-Note that the Samsung does not have a SIM.
-Both devices are running their stock OS's.
-Each device has its own unique FireChat account.
-I kept the devices hooked to the Internet via WiFi.
-I made each device a follower of the other device's account.
+### Configuration
+Each device has a different FireChat account.
+Two of the devices (Samsung and Nexus) are followers of each other, the HTC doesn't follow anyone.
 
-### Experience
-As soon as I installed FireChat each device displayed a notification that there was another device around.
+### Internet Connected Results
+I ran the first set of tests while the devices were all connected to the local Internet connected WiFi router. The HTC had a nearly 99% success record in communicating with the Samsung and Nexus and vice versa from the Samsung and Nexus to the HTC. But for some odd reason the Samsung and Nexus had a lot of trouble talking to each other. 50% plus failure rates weren't uncommon.
 
-I went to the nearby chat room on the Samsung and sent a message that was picked up by the Nexus. But no subsequent messages in the nearby chat room ever made it. Either from the Samsung to the Nexus or vice versa.
+### Turning off the Internet
+I made all the devices forget the local WiFi router, turned on Airplane mode and then manually turned on WiFi and Bluetooth (no pairing of any kind though).
 
-I then went to the 'following' area and posted messages on both the Samsung and Nexus that did successfully make it across.
+The first tests all failed 100%. It was only when I forceably stopped the FireChat app and restarted it that I then had 100% success across the board. I went to parts of my house and outside that the old wifi router I recently replaced couldn't get a signal to and I still was able to succesfully communicate.
 
-But all further attempts to use the nearby chatroom failed. Only that one message, from the Samsung to the Nexus, ever made it across. Otherwise I could only communicate using the 'following' area not the Nearby chatroom.
+I tried testing with bluetooth on and wifi off and with wifi off and bluetooth on and those tests all failed.
 
-I still get notifications that FireChat users are nearby but communication does not actually work.
+### So how does FireChat work?
+I found very little online about how FireChat works on Android. I tried to turn on/off wifi and bluetooth but the app seems to refuse to work unless both are activated. I tried to separate the devices by a sufficient distance that bluetooth couldn't reach but wifi could but couldn't find a distance far enough that didn't cause issues with experimenting. For example, no where in my house was far enough! I'll grab a friend at work and try some experiments there.
 
-### Setup 2
-To make things more interesting I threw in my personal Android device, a HTC One running CyanogenMod.
-I ran FireChat in privacy guard mode but I did give it access to my location.
+But honestly it just plain doesn't matter how FireChat actually works. That's just an implementation detail. What matters is that one can create a good mesh experience on Android. At no point did we need to have any OS level dialogs bothering the user. It 'just worked' (except for the multiple times when it didn't but you get the idea).
 
-### Experience 2
-Even before signing in (as with the previous setup) it detected that other FireChat users are nearby.
-
-Before following anyone I went to the Nearby chat room where it showed 3 people chatting.
-
-I sent a message out from the HTC and both the Samsung and Nexus instantly got it!
-
-I then sent a message from the Samsung in the Nearby room. The Nexus did not get it but the HTC One did.
-
-I then had the Nexus send out a message. The HTC One got it but the Samsung did not.
-
-### Tests
-#### Sending device right next to receiving devices
-In this test the device listed on the left is trying to send a message to the devices on the right.
-
-|         | Nexus | Samsung | HTC One |
-|---------|-------|---------|---------|
-| Nexus   |       | Occasionally      | Always     |
-| Samsung | Occasionally    |         | Always     |
-| HTC One | Always   | Always     |         |
-
-#### Sending device is in the next room from the receiving devices
-
-|         | Nexus | Samsung | HTC One |
-|---------|-------|---------|---------|
-| Nexus   |       | Occasionally    | Always     |
-| Samsung | Occasionally      |         | Always     |
-| HTC One | Always      | Always     |         |
-
-
-
-Devices a full floor away from each other
-
-
-
-
-
-### Setup 2
-To just make sure I push things a bit I intentionally 'forgot' the local WiFi access point on both devices. If they are going to communicate it is going to have to be directly.
-
-### Experience
+So at this point I'm more interested in playing around with the Bluetooth and wifi APIs in Android than I am in investigating FireChat directly.
