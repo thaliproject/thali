@@ -17,6 +17,7 @@ You build Thali apps for Android, Windows, Linux, and Mac using HTML5 or native 
 Personal devices can store our data, exchange it with trusted peers, and sync to the cloud. For most developers, cloud sync is a given. Thali developers use the cloud when needed, but can alternatively use Thali in peer-to-peer mode. That means app deployment can scale cheaply and users' data can live primarily on devices they control.
 
 # Thali Scenarios 
+**Internet Of Things** How do devices find and communicate with each other regardless of the availability of a wi-fi or cellular infrastructure? It turns out connectivity is a big problem for IoT (see our [scenarios](nodeondevices)) and the peer to peer web is here to help. See [here](http://thaliproject.org/ThaliAndIoT) for our current product plans.
 
 **Peer-to-peer social** For conventional social apps that are cloud-based and ad-supported, users' data is a product that's sold. For Thali apps, users are customers who own and control their data. Here are some [scenarios](PeerToPeerSocial).
 
