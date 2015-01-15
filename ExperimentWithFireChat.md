@@ -5,6 +5,8 @@ layout: default
 # Executive Summary
 FireChat running offline on three Android devices was able to successfully communicate without any Internet connectivity using what appears to be a combination of Bluetooth and Wifi. No user interaction was needed to set up anything (e.g. no Bluetooth of WiFi approval dialogs from the OS) and notifications worked just fine when the apps were in the background. This is a pretty exciting proof that one can do a reasonable mesh application on Android. Oddly, FireChat worked less well when connected to the Internet.
 
+Unfortunately in a follow up study using the same devices plus an iPhone with updated Firechat on all devices the results were a complete mess. Even though the phones were all next to each other and sometimes I would even get notifications that there were other firechat devices around I wasn't able to exchange any messages. I switched all the devices onto local wifi and even then the iPhone could sometimes see the Android devices but the Android devices could not see the iPhone or each other.
+
 # Devices
 * Samsung Galaxy S4 running stock OS, no SIM.
 * Nexus 7 running stock OS.
