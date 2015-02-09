@@ -1,6 +1,6 @@
 # redcarpet is what github uses so we are used to it 
 markdown: redcarpet
-highlighter: redcarpet
+highlighter: pygments
 
 redcarpet:
  extensions: ["no_intra_emphasis","tables","fenced_code_blocks","with_toc_data"]
