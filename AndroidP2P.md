@@ -42,6 +42,7 @@ The main issue is that Android requires user confirmation before joining a Wi-Fi
 It seems like Android refers to discovering other Wi-Fi direct groups as peer discovery while it discusses using SSDP or mDNS over Wi-Fi direct as service discovery. I think what's going on is that since SSDP and mDNS both use UDP Android is at least willing to allow those protocols to run even over a Wi-Fi direct connection that has not been confirmed. While to run a TCP connection (or potentially even a UDP connection over a port other than the ones used for SSDP and mDNS) one has to get user confirmation.
 
 For our Wi-Fi Direct investigation what we need to know for Android is:
+
 * Can we discover peers while in stand by mode?
 * Can we be discovered by peers while in stand by mode?
 * Can we discover services while in stand by mode?
@@ -70,6 +71,7 @@ Android also supports directly connecting to an unpaired Bluetooth device if one
 So we really need to do two different investigations.
 
 Vanilla Bluetooth
+
 * How ugly is the UX for pairing?
 * How do we detect other paired Bluetooth devices when the device is in stand by mode? Can we register for notifications? Do we have to do some kind of polling?
 * How long does a device have to be in range before we typically will 'see' it?
@@ -79,13 +81,13 @@ Vanilla Bluetooth
 * What is the effective bandwidth between devices?
 
 Hacky Bluetooth 
+
 * Can we use the polling mechanism to discover other devices when we are in stand by mode?
 * How long does a device have to be in range before polling will 'see' it?
 * How do we advertise ourselves to other Bluetooth devices who know our UUID while in stand by mode?
 * What is the power consumption for advertising ourselves and being discovered using polling while in stand by mode?
 * How long does it take from detecting another device until the first byte is successfully delivered?
 * What is the effective bandwidth between devices? 
-
 
 ### Bluetooth Low Energy (BLE)
 BLE is unfortunately not useful given our requirement that we run on 4.x Android devices. The problem is that for a device to be discoverable it must support the BLE peripheral profile. In Android 4.x there is only support for being a BLE consumer, not a BLE peripheral. So this means that an Android device can connect to a BLE peripheral but can't actually be a BLE peripheral.
