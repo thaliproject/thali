@@ -4,7 +4,8 @@ layout: default
 ---
 This is an investigation of getting multiple Android handsets, 4.x series, to successfully talk to each other.
 
-## Acknowledgements
+Acknowledgements
+================
 Lots of the data here is taken from Michael Rogers of the [Briar Project](https://briarproject.org).
 
 ## Warning
@@ -17,7 +18,8 @@ I am going to assume that there is an identity exchange. It could be done locall
 
 It turns out that there is a wide range of connectivity scenarios and we need to address them all.
 
-### Everyone is on the same local Wi-Fi infrastructure
+Everyone is on the same local Wi-Fi infrastructure
+--------------------------------------------------
 In this scenario users A, B and C all have their devices registered to either the same access point (AP) or to APs that are part of the same local network.
 
 In theory we could then allow the devices to find each other by using either broadcast or multi-cast via a protocol like mDNS or SSDP and then establish point to point connections to allow communication.
