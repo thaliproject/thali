@@ -16,6 +16,8 @@ If you would like to contribute, consider these options:
 * Tell others about the project.
 * Tell the developers how much you appreciate the product!
 
+You can also track our current work items on [our backlog](https://www.pivotaltracker.com/n/projects/1163162).
+
 ## Contributing Code
 
 Before submitting a feature or substantial code contribution please discuss it with the team on the discussion list to make sure it's something that fits our goals and direction. Note that all code submissions will be rigorously reviewed and tested by the Thali team, and only those that meet an extremely high bar for both quality and design/roadmap appropriateness will be merged into the source.
