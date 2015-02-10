@@ -1,9 +1,11 @@
-# redcarpet is what github uses so we are used to it 
+title: "The Thali Project"
+# redcarpet is what github uses so we are using to it 
 markdown: redcarpet
+# Github told us they don't support redcarpet as a highlighter and we should switch to pygments
 highlighter: pygments
 
 redcarpet:
- extensions: ["no_intra_emphasis","tables","fenced_code_blocks","with_toc_data"]
+ extensions: ["lax_spacing","no_intra_emphasis","strikethrough","tables","fenced_code_blocks","with_toc_data"]
 
 gems:
   - jekyll-sitemap
