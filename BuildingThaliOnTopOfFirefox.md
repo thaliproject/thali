@@ -1,4 +1,4 @@
-﻿---
+---
 title: Building Thali on Top of Firefox
 layout: default
 ---
