@@ -1,3 +1,8 @@
+---
+title: Web RTC Investigation
+layout: default
+---
+
 #### TLDR 
 
 WebRTC's data protocol is a UDP based alternative to TCP and HTTP. It is being built into browsers but it is not currently compatible with the existing TCP/HTTP infrastructure. It's benefit in terms of browser support and performance do not appear to offset its disadvantages that it requires building and/or retrofitting all the existing HTTP software.
