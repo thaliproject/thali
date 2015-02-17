@@ -1,3 +1,8 @@
+---
+title: Building the HTML 5 Environment that Thali Needs
+layout: default
+---
+
 #### Introduction
 
 Thali's ideal vision would be that we had our own browser that we could take to all the major versions of all the major mobile platforms and all the major versions of all the major desktops. In the case of mobile it doesn't seem like this vision is possible. Crosswalk gives us a consistent platform on Android but only for Android 4.x and higher. iOS and Windows Mobile don't seem to have the equivalent of Crosswalk so one really has to use whatever webview is there. We might potentially have better luck with our own stand alone wrapper browser on the desktop, but we have to see how well this works in practice.
