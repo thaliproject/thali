@@ -3,7 +3,7 @@ title: Web RTC Investigation
 layout: default
 ---
 
-#### TLDR 
+#### TL;DR 
 
 WebRTC's data protocol is a UDP based alternative to TCP and HTTP. It is being built into browsers but it is not currently compatible with the existing TCP/HTTP infrastructure. It's benefit in terms of browser support and performance do not appear to offset its disadvantages that it requires building and/or retrofitting all the existing HTTP software.
 
@@ -21,7 +21,7 @@ SCTP is an abstract model so it can be 'mounted' or 'run' over different transpo
 
 #### Datagram Transport Layer Security (DTLS) 
 
-This is standardized in [RFC 6347]. For our purposes one can think of it providing the exact same security guarantees as TLS 1.2 but in a manner that is compatible with protocols like SCTP that support out of order delivery, retry, etc. This is necessary because TLS assumes it runs over a transport like TCP that provides these guarantees and SCTP doesn't work quite that way.
+This is standardized in [RFC 6347](http://tools.ietf.org/html/rfc6347). For our purposes one can think of it providing the exact same security guarantees as TLS 1.2 but in a manner that is compatible with protocols like SCTP that support out of order delivery, retry, etc. This is necessary because TLS assumes it runs over a transport like TCP that provides these guarantees and SCTP doesn't work quite that way.
 
 #### WebRTC Data Channel Protocol 
 
@@ -29,7 +29,7 @@ Now we can get back to where we started, the WebRTC data channel protocol. This 
 
 #### Firewalls/NATs 
 
-SCTP and by extension WebRTC faces the same problems with Firewall and NATs that everyone else does and so ends up using ICE. This is reasonable but as I explain in [[Stun_Turn_ICE_Investigation]] this is not a good option for Thali. 
+SCTP and by extension WebRTC faces the same problems with Firewall and NATs that everyone else does and so ends up using ICE. This is reasonable but as I explain in [Stun_Turn_ICE_Investigation] this is not a good option for Thali. 
 
 #### Quick UDP Internet Connections (QUIC) 
 
