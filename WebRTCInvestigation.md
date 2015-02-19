@@ -29,7 +29,7 @@ Now we can get back to where we started, the WebRTC data channel protocol. This 
 
 #### Firewalls/NATs 
 
-SCTP and by extension WebRTC faces the same problems with Firewall and NATs that everyone else does and so ends up using ICE. This is reasonable but as I explain in {{Stun_Turn_ICE_Investigation}} this is not a good option for Thali. 
+SCTP and by extension WebRTC faces the same problems with Firewall and NATs that everyone else does and so ends up using ICE. This is reasonable but as I explain in [Stun/Turn/ICE Investigation](Stun_Turn_ICE_Investigation) this is not a good option for Thali. 
 
 #### Quick UDP Internet Connections (QUIC) 
 
