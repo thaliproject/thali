@@ -28,7 +28,7 @@ The use of HttpKey means that Thali doesn't work with the open web as we know it
 
 ## Firewalls & NATs 
 
-As a practical matter firewalls and NATs make it between difficult and impossible to host services behind them. The good news is that there are standardized efforts to address these problems, the bad news is that these efforts are either often unsupported by real world firewalls/NATs or not fit for our purposes (e.g. see [here](StunTurnICEInvestigation). However there is one solution that is free and widely deployed that does meet our needs in many, although not all, cases - [Tor hidden services](https://www.torproject.org/docs/hidden-services.html.en ). So we will be adopting Tor hidden services as our foundational mechanism for exposing server endpoints on devices.
+As a practical matter firewalls and NATs make it between difficult and impossible to host services behind them. The good news is that there are standardized efforts to address these problems, the bad news is that these efforts are either often unsupported by real world firewalls/NATs or not fit for our purposes (e.g. see [here](StunTurnICEInvestigation)). However there is one solution that is free and widely deployed that does meet our needs in many, although not all, cases - [Tor hidden services](https://www.torproject.org/docs/hidden-services.html.en ). So we will be adopting Tor hidden services as our foundational mechanism for exposing server endpoints on devices.
 
 ## Device Discovery 
 
@@ -66,23 +66,26 @@ But once we had the CouchDB server it became quite natural to ask - well what ab
 <dd> A local application running on the same device as a Thali Device Hub</dd>
 </dl>
 
-<pre>
+```
                      -------------------------------------------------------------------
-                     |                    Thali Device Hub                             |
+                     |                    Local Thali Device Hub                       |
                      |                                                                 |
-Local Thali App -->  | Local CouchDB Singleton Service  --  Local Replication Manager  |
+Local Thali App -->  | Local CouchDB Singleton Service  <-- Local Replication Manager  |
+                     |           /|\        |                                          |
+                     |            |         \                                          |
+                     |            |          ----------------------------              |
                      |            |                                     |              |
-                     |            |                                     |              |
-                     |            |                                     |              |
-                     |            |                                     |              |
+                     |            |                                    \|/             |
                      | Local Tor Hidden Service Proxy           Local Tor Client       |
                      -------------|-------------------------------------|---------------
+                                 /|\                                    |
                                   |                                     |
-                      Tor Hidden Service Infrastructure ]               |
+                                   [ Tor Hidden Service Infrastructure ]               
                                   |                                     |
-                       Remote Authorized Entities            Remote Authorized Entities
+                                  |                                    \|/
+                                       Remote Authorized Entities            
 
-</pre>
+```
 
 ## Talking to the  Thali Device Hub 
 
@@ -106,7 +109,7 @@ ACL membership will either be individual principals or groups. Both principals a
 
 ### Replication - The Replication Service 
 
-For now any database created on a device will be replicated to all other devices by the replication service. Due to the often unique requirements of Thali replication including handling disconnected remote entities, Tor, httpkey, quotas, etc. we will almost certainly have our own bespoke replication service rather than try to use the replication service built into CouchDB.
+For now any database created on a device will be replicated to all other devices by the replication service. Due to the often unique requirements of Thali replication including handling disconnected remote entities, Tor, httpkey, quotas, etc. we will almost certainly have our own bespoke replication service that can manage these issues.
 
 For now all replication will be 'last writer wins'. That is, if there is a conflict whichever entry has the newest time stamp will win.
 
@@ -116,48 +119,31 @@ None of this is enough of course. We will inevitably need databases that are loc
 
 An obvious question is - how the heck do people communicate? Are folks supposed to memorize 4k RSA keys? Or maybe just the hashes? In general we expect discovery to happen in a number of ways:
 
-<dl>
+#### Email
+Yes, email. Seriously. No it's not secure. But it's not quite as insecure as it sounds. We expect Thali to encourage (in reasonable situations) different users to compare notes on the identities they know. This includes fun things like comparing [pet names](http://www.erights.org/elib/capability/pnml.html). So in most cases if someone does a MITM on the identity exchange it will eventually be discovered.
 
-<dt> Email</dt>
-<dd> Yes, email. Seriously. No it's not secure. But it's not quite as insecure as it sounds. We expect Thali to encourage (in reasonable situations) different users to compare notes on the identities they know. This includes fun things like comparing [pet names](http://www.erights.org/elib/capability/pnml.html). So in most cases if someone does a MITM on the identity exchange it will eventually be discovered.</dd>
+#### In person with QRCodes
+This involves two users who want to exchange identities having their devices display QRCodes and then pointing their device's cameras at each other. On balance this is probably the most secure way to exchange identities but when we implemented it we found it too be too fiddly for practical use. We do have ideas on making it better though.
 
-<dt> In person with QRCodes</dt>
-<dd> This involves two users who want to exchange identities having their devices display QRCodes and then pointing their device's cameras at each other. On balance this is probably the most secure way to exchange identities.</dd>
+#### Comparing shared value
+This is what's known as a coin-flip or commitment protocol. A common example is Bluetooth's secure simple pairing protocol with numeric comparison. Two people choose to pair and each of their devices display a number. The two users then make sure the values are the same and if so accept the identity exchange. This approach is not as secure as QRCodes. If the compared number is say 6 digits then there is a 1/1,000,000 chance of an attacker successfully attacking the identity exchange. But it's good enough for most scenarios and much easier than QRCodes.
 
-<dt> In person with Near Field Communication (NFC)</dt>
-<dd> This is slightly less secure than QRCodes because there are potential MITM attacks but it's easier than QRCodes (bump and go as it were)</dd>
+#### In person with Near Field Communication (NFC)
+In theory we could also exchange via NFC. There are potential MITM attacks so it's less secure than QRCodes. In practice we have stayed away from NFC because of the difficulty in identifying the NFC pair points on two devices. Watching two people trying to exchange data between different phones using NFC seems even more painful than QRCodes.
 
-<dt> In person with passwords</dt>
+#### Via Groups
+We expect that it will be normal for people to share group membership data with their friends and that this data will be stored, compared and made available for discovering new identities.
 
-<dd> This is really just meant when trying to add a device without a camera to one's personal device mesh, think of an old PC. In that case a password can be displayed that can be typed in to the other device and used to bootstrap the actual authentication process.</dd>
-
-<dt> Via Groups</dt>
-
-<dd> We expect that it will be normal for people to share group membership data with their friends and that this data will be stored, compared and made available for discovering new identities.</dd>
-
-<dt> Directories</dt>
-
-<dd> In certain scenarios, corporations are an obvious one, a user might have a directory of identities it trusts within a particular context. E.g. if I'm going to communicate to someone at work and the corporate directory says what their key is then I'm going to trust it.</dd>
-
-</dl>
+#### Directories
+In certain scenarios, corporations are an obvious one, a user might have a directory of identities it trusts within a particular context. E.g. if I'm going to communicate to someone at work and the corporate directory says what their key is then I'm going to trust it.
 
 We will be providing a standard JSON format hosted in the Thali Device Hub where a user can provide information about themselves that they want to publish. This will include things like their messaging endpoint (e.g. where they can receive unsolicited messages).
 
 ## Thali Device Hub 
 
-### Picking the server 
-
-We are starting off with CouchBase Lite for Android. But there should be an update soon to that code base to allow for an interface that can swap out the database and logging layers. This enables us to make CouchbaseLite for Android into a generic Java project!!!!
-
-### UX 
-
 There is some common UX that the Thali Device Hub needs to support. Minimally it will need a UX to handle pairing devices as well as exchanging keys with friends. It will need some kind of status page to help users when things go wrong. It will probably also need some kind of storage management UX to deal with stores that get too big.
 
-Because we want to run on multiple environments (Android and Java) and multiple form factors we are going for a HTML based UX as our base UX for the device hub. See later on in this article for more on how we want to handle HTML.
-
-### Quick specs for components of the Thali Device Hub 
-
-[TDH Replication Manager](TDHReplicationManager)
+[TDH Replication Manager](TDHReplicationManager) provides more details on how we manage replication.
 
 ## Thali Application 
 
@@ -166,5 +152,3 @@ A Thali Application is a web application and so it's expected to be able to talk
 This means that the Thali Device Hub's "api" is its protocol interface, so anything that can speak CouchDB and authenticate via TLS mutual auth (plus Tor if they aren't on the same device as the Thali Device Hub they want to talk to) can play. So we don't have any restrictions on things like programming language.
 
 But we also don't want to make people go through all the pain of setting up things like mutual SSL Auth validation and Tor handling (for off device connections). So we provide a number of 'out of the box' enabled libraries to make writing Thali Applications easier.
-
-For Java we support Ektorp. For .net we support LoveSeat. But where we spend a ton of time is on HTML application support. We need this both to implement the Thali Device Hub's modest UX but also as a tool to make it easy to quickly write a Thali Application that will run everywhere. See [here](Building_the_HTML5_Environment_Thali_Needs) for an overview on exactly how we enable app developers to use HTML5 + PouchDB to write apps that can run both on the desktop and on Android with full Thali capabilities.
