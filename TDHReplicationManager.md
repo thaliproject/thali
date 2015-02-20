@@ -15,7 +15,7 @@ The replication manager's job is just to handle deciding who should synch with t
 
 # Background Reading 
 
-This spec assumes the reader is reasonably familiar with the CouchDB synch model. That is the difference between one time and continuous synch as well as push vs pull. [This](http://guide.couchdb.org/draft/consistency.html) is a very high level overview of CouchDB sync but I would also read [this](http://wiki.apache.org/couchdb/Replication) and the links it has at the bottom. CouchBase lite does have [docs](http://developer.couchbase.com/mobile/develop/guides/couchbase-lite/native-api/index.html) but the key part for this spec is [here](http://developer.couchbase.com/mobile/develop/guides/couchbase-lite/native-api/replication/index.html).
+This spec assumes the reader is reasonably familiar with the CouchDB synch model. That is the difference between one time and continuous synch as well as push vs pull. [This](http://guide.couchdb.org/draft/consistency.html) is a very high level overview of CouchDB sync but I would also read [this](http://wiki.apache.org/couchdb/Replication) and the links it has at the bottom. 
 
 # Synching Scenarios 
 
@@ -39,7 +39,7 @@ An interesting question for this app is - should it be push or pull based?
 
 ### Calendar App 
 
-A user opens their calendar app and creates a new appointment with a friend. The appointment is entered into the user's local calendar database. The calendar app has registered with the replication manager all the users who have any kind of permission to see the user's calendar would be expected to get a push replication that would be filtered. For example some users may only be authorized to see free/busy time, others might be able to see everything that is not marked as private (which would just show up as free/busy), etc. Note however that the person invited to the appointment may not have any permissions to the users calendar. It's highly likely that instead the calendar app will send a message to that user's Thali inbox with the invite. This is essentially a queuing problem and it's not the replication manager's job to manage how that invite gets delivered. The calendar app will also register with the replication manager a number of pull replications for calendars the user has permissions to.
+A user opens their calendar app and creates a new appointment with a friend. The appointment is entered into the user's local calendar database. The calendar app has registered with the replication manager all the users who have any kind of permission to see the user's calendar. The calendar app will also want to be able to create filtered versions of the data that restrict what information can be synch'd. For example some users may only be authorized to see free/busy time, others might be able to see everything that is not marked as private (which would just show up as free/busy), etc. Note however that the person invited to the appointment may not have any permissions to the users calendar. It's highly likely that instead the calendar app will send a message to that user's Thali inbox with the invite. This is essentially a queuing problem and it's not the replication manager's job to manage how that invite gets delivered. The calendar app will also register with the replication manager a number of pull replications for calendars the user has permissions to.
 
 In general the calendar app will want its synchs to be periodic and occur with reasonable priority at all times. If the calendar app is in the foreground it might ask the replication manager to execute its synchs immediately to get a refresh but generally calendar synching is high latency with relatively rare changes so it doesn't make sense to continuously replicate. What makes more sense is periodic replication. But even when the calendar app isn't in the foreground it will still want its replications to continue since rendezvous with other TDHs can be challenging (especially if the remote TDHs are purely mobile and largely on cell and so not frequently available).
 
@@ -76,9 +76,9 @@ This also applies for incoming change requests. We probably want to be able to p
 
 ## Synch Filtering 
 
-When synch'ing there are a number of potential filter options. See [here](http://docs.couchdb.org/en/latest/api/database/changes.html) for a list of potential filters that can be applied when getting changes. Note that CouchDB doesn't provide an official way to specify these filters on a replication request so we will have to add something. Also note that I haven't checked how many (if any) of these options are currently supported by CouchBase Lite.
+When synch'ing there are a number of potential filter options. See [here](http://docs.couchdb.org/en/latest/api/database/changes.html) for a list of potential filters that can be applied when getting changes. Note that CouchDB doesn't provide an official way to specify these filters on a replication request so we will have to add something.
 
-Also not that filtering goes both ways. A filter on a pull replication means "I only want to see X" while a filter on a push replication means "You only get to see X". The replication manager needs to be able to apply filters it has been given. And of course both can apply at the same time. That is, a remote TDH can make a filtered request on the change feed and what the local TDH produces on the change feed can itself be filtered based on the requester's identity.
+Also note that filtering goes both ways. A filter on a pull replication means "I only want to see X" while a filter on a push replication means "You only get to see X". The replication manager needs to be able to apply filters it has been given. And of course both can apply at the same time. That is, a remote TDH can make a filtered request on the change feed and what the local TDH produces on the change feed can itself be filtered based on the requester's identity.
 
 ## Synch Routing 
 
@@ -117,10 +117,6 @@ So what if there isn't a replication manager at all? What if each app is respons
 There is also the issue of prioritization. Bandwidth is at a premium and so we do need to make choices. That's hard to do if every app is running its own synchs independently of each other. And if the apps are going to coordinate then we just created the replication manager via the back door.
 
 So it looks like we really do need a replication manager. But let's see how little we can do.
-
-## Work to do in CouchBase 
-
-I have made some changes to CouchBase's replication so we don't handle authorization in the way they do. Take a look at couchbase-lite-java-core/Manager/getReplicator. We need to decide if the replication manager will even use notifications. Clearly it should eventually but below we would just use one offs so we don't need the notifications until we get to the library that needs to figure out who to replicate with. The reason that one needs it is to detect when replications have failed for whatever reason. But if we are going to stick with one offs then right fix may be to make CouchBase's behavior consistent with CouchDB's where one off replications don't return until they finish. Otherwise we will need to enhance data.createPush(Pull)Replication to support our extensions but that should be pretty easy.
 
 ## Replication persistence 
 
