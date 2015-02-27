@@ -22,7 +22,7 @@ You can also track our current work items on [our backlog](https://www.pivotaltr
 
 Before submitting a feature or substantial code contribution please discuss it with the team on the discussion list to make sure it's something that fits our goals and direction. Note that all code submissions will be rigorously reviewed and tested by the Thali team, and only those that meet an extremely high bar for both quality and design/roadmap appropriateness will be merged into the source.
 
-You will need to sign a [Contributor License Agreement](https://cla.msopentech.com/) before submitting your pull request. To complete the Contributor License Agreement (CLA), you will need to submit a request via the form and then electronically sign the Contributor License Agreement when you receive the email containing the link to the document. This needs to only be done once for any Microsoft Open Technologies OSS project.
+You will need to sign a [Contributor License Agreement](https://cla.microsoft.com/) before submitting your pull request. To complete the Contributor License Agreement (CLA), you will need to submit a request via the form and then electronically sign the Contributor License Agreement when you receive the email containing the link to the document. 
 
 Make sure to configure git with a username and email address to use for your commits. Your username should be your CodePlex username, so that people will be able to relate your commits to you. From a command prompt, run the following commands:
 
