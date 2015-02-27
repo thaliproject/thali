@@ -105,11 +105,15 @@ Android provides APIs that let one automatically switch Wi-Fi Infrastructure Mod
 
 Potentially we could advertise the passwords as part of service discovery over Wi-Fi Direct or we could use a different technology like Bluetooth to move the password.
 
-To make things more complex the client's Wi-Fi Infrastructure Mode can only connect to a single access point (AP) at a time. So we have to disconnect whatever AP is currently being used and switch it to a different AP to communicate. Ick. This can cause all sorts of problems.
+To make things more complex the client's Wi-Fi Infrastructure Mode can only connect to a single access point (AP) at a time. So we have to disconnect whatever AP is currently being used and switch it to a different AP to communicate. Ick. This can cause all sorts of problems. 
+  Imagine you are in a hotel or a corporate site and are using the guest network. To login to the guest wi-fi you typically get a web page challenge where you might have to type in a password or accept a TOU. Only after you answer the challenge are you allowed to the network. Some guest wi-fi systems are not well behaved and if you disconnect and reconnect they don't necessarily remember you and will challenge you again. So if we are constantly shifting someone's AP, taking them on and off the guest network, we could inadvertantly force them to constantly log back in.
+  Also what do we do if a user is actively using their Android device via the AP and we detect someone we want to exchange data with. Do we yank the user off their AP and kill their Internet connection while we communicate with the remote device?
 
 Also Michael said that he ran into issues where a device was both advertising itself via Wi-Fi Direct while accepting incoming connections from legacy clients. We need to investigate that more.
 
 If Bluetooth or Wi-Fi Direct don't hack it though we may have to go down this route.
+
+Note that Jukka found an [article](http://www.informatica.si/PDF/38-4/11_Wong%20-%20Automatic%20Android-based%20Wireless%20Mesh%20Networks.pdf) that proposes the exact same thing. However that article is for using fixed Android devices. So some of the complications about messing with APs don't apply since the Android devices in the article are dedicated for relaying. They aren't intended to be user's primarily devices.
 ## TOR
 We already know that TOR works just fine in Android land. Heck we have a whole [project](https://github.com/thaliproject/Tor_Onion_Proxy_Library) whose only purpose is to make this easy on Android. But the problem is that we really never did much if any perf or battery draw work. We really need to know:
 
