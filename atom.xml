@@ -1,0 +1,24 @@
+---
+layout: nil
+---
+<?xml version="1.0" encoding="utf-8"?>
+<feed xmlns="http://www.w3.org/2005/Atom">
+<title type="text" xml:lang="en">{{ site.root_desc }}</title>
+<link type="application/atom+xml" href="http://www.thaliproject.org/atom.xml/" rel="self"/>
+<link type="text" href="http://www.thaliproject.org" rel="alternate"/>
+<updated>{{ site.time | date_to_xmlschema }}</updated>
+<id>http://www.thaliproject.org</id>
+<author>
+<name>Thali Project</name>
+</author>
+<rights>Copyright (c) 2005-2011, Thali Project; all rights reserved.</rights>
+{% for post in site.posts limit:20 %}
+<entry>
+<title>{{ post.title }}</title>
+<link href="http://www.thaliproject.org{{ post.url }}"/>
+<updated>{{ post.date | date_to_xmlschema }}</updated>
+<id>http://www.thaliproject.org{{ post.id }}</id>
+<content type="html">{{ post.content | xml_escape }}{% include rss_footer.html %}</content>
+</entry>
+{% endfor %}
+</feed> 
