@@ -13,6 +13,16 @@ Go off to [https://github.com/thaliproject/](https://github.com/thaliproject/) a
 
 Next go [here](https://www.pivotaltracker.com/n/projects/1163162). That is where we keep our backlog. If you are officially part of the project then go bug Yaron to set up an account for you so you can be assigned items. By default however it is world readable so anyone can track what we are up to.
 
+# Blogging
+
+We like to blog but most of us blog on our own blogs. But we would like to republish here interesting articles. So here are the instructions on how to use our blog.
+
+1. Go to https://github.com/thaliproject/thali/tree/gh-pages/_posts
+2. Create a new entry following the date format you see in the directory, the definition is given [here](http://jekyllrb.com/docs/posts/)
+3. Make sure you put in the 'front matter' (just look at any of the existing posts, they all have it at the top) and then write up your blog article.
+
+That's it. The article will automatically be picked up by our blog feed.
+
 # Code Lay out 
 
 Our first dependency is Tor_Onion_Proxy_Library. It contains three sub-projects, universal, java and android. Most of the code lives in universal who builds a JAR that then the java and android projects depend on. The java project then produces a Jar apps can use to enable themselves with Tor and android produces an AAR for the same purpose.
