@@ -29,3 +29,4 @@ In October 2014 Thali began exploring a new approach based on Node. Here are rel
 * [Thali and IoT](ThaliAndIoT)
 * [FireChat on Android](ExperimentWithFireChat)
 * [P2P between Android Devices](AndroidP2P)
+* [Using commitment protocols to simplify identity exchange](http://www.goland.org/coinflippingforthali/)
