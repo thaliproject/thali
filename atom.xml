@@ -7,7 +7,7 @@ layout: nil
     <link type="application/atom+xml" href="http://www.thaliproject.org/atom" rel="self"/>
     <link type="text" href="http://www.thaliproject.org" rel="alternate"/>
     <updated>{{ site.time | date_to_xmlschema }}</updated>
-    <id>http://www.thaliproject.org</id>
+    <id>http://www.thaliproject.org/</id>
     <author>
       <name>Thali Project</name>
     </author>
