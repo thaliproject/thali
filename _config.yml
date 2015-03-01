@@ -4,6 +4,9 @@ markdown: redcarpet
 # Github told us they don't support redcarpet as a highlighter and we should switch to pygments
 highlighter: pygments
 
+description: "Thali - Making the peer to peer web happen!"
+root_desc: "www.thaliproject.org - All the news that's fit to Thali"
+
 redcarpet:
  extensions: ["lax_spacing","no_intra_emphasis","strikethrough","tables","fenced_code_blocks","with_toc_data"]
 
