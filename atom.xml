@@ -5,7 +5,7 @@ layout: nil
   <feed xmlns="http://www.w3.org/2005/Atom">
     <title type="text" xml:lang="en">{{ site.root_desc }}</title>
     <link type="application/atom+xml" href="http://www.thaliproject.org/atom" rel="self"/>
-    <link type="text" href="http://www.thaliproject.org" rel="alternate"/>
+    <link type="text/html" href="http://www.thaliproject.org" rel="alternate"/>
     <updated>{{ site.time | date_to_xmlschema }}</updated>
     <id>http://www.thaliproject.org/</id>
     <author>
