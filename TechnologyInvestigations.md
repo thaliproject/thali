@@ -14,7 +14,6 @@ Thali has looked at a number of possible ways to implement itself. Below we prov
 Thali has also looked at how it can leverage existing technologies. Those investigations are below.
 
 * [Thali Requirements for Couchbase](ThaliRequirementsForCouchbase)
-* [Crosswalk and Cordova](CrosswalkAndCordova)
 * [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
 * [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
 * [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
