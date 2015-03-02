@@ -26,7 +26,7 @@ The previous all produce libraries. So they are built as given below.
 
 To actually do a build:
 
-1. Follow the instructions in [UnderstandingThalisUseOfMaven](UnderstandingThalisUseOfMaven)
+1. Follow the instructions in [UnderstandingThalisUseOfMaven](archive/UnderstandingThalisUseOfMaven)
 
 1. Open the Git bash shell, go to the root of each project (in the order listed above, order matters since they have dependencies on each other) and issue 'gradlew uploadArchives'
 
