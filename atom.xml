@@ -11,7 +11,7 @@ layout: nil
     <author>
       <name>Thali Project</name>
     </author>
-    <rights>Copyright (c) 2005-2011, Thali Project; all rights reserved.</rights>
+    <rights>Copyright (c) 2015, Thali Project; all rights reserved.</rights>
     {% for post in site.posts limit:20 %}
       <entry>
         <title>{{ post.title }}</title>
