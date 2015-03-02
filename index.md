@@ -23,9 +23,25 @@ Personal devices can store our data, exchange it with trusted peers, and sync to
 
 **Secure communication** Thali apps always use mutual SSL authentication, so users know they're always communicating with trusted parties on encrypted channels. And because Thali uses the Tor network, they also know that their communication resists surveillance. Here are some [scenarios](SecureCommunication).
 
+# How?
+On the wire we create our peer to peer web using:
+* CouchDB's HTTP based synch protocol, 
+* public keys for identity, 
+* mutual TLS auth for authentication and secrecy, 
+* Tor Hidden Services for traffic analysis protection and NAT/Firewall penetration,
+* BLE/Bluetooth/Wi-Fi for local peer to peer communication, and
+* Our soon to be invented HTTP based protocol for high latency mesh formation
+
+Our software is based on:
+* Cordova,
+* a Cordova plugin to provide local Node.js support,
+* PouchDB,
+* OpenSSL, and
+* the Tor Onion Proxy
+
 # Who?
 
-Thali is being actively developed by Brian Lambert, Jukka Silvennoinen and Yaron Y. Goland for Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
+Thali is being actively developed by Brian Lambert, Jukka Silvennoinen, Srikanth Challa, and Yaron Y. Goland for Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
 
 
 
