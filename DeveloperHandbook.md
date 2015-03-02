@@ -5,16 +5,15 @@ layout: default
 
 # Introduction 
 
-This document is exclusively intended for people who are developing Thali itself. This document is not for those who wish to build apps on top of Thali.
+Welcome to Thali! So you want to learn more? Great!
 
-# FIRST THING 
+# Read!
+The first thing to do is read. Please start [here](ThaliAndCouch). You can probably skip most of the links except for [this one](ThaliAndIoT) which will drive all of our immediate work. With these two articles you should have the background you need to understand what we are up to.
 
-Go off to [https://github.com/thaliproject/](https://github.com/thaliproject/) and after you login with your GitHub account please go to each of the projects and hit 'watch'. We don't send out emails with notifications of PRs, issues, builds, etc. We use GitHub for that. So you need to be set up to watch (and make sure your settings at GitHub are that you should be emailed when a watch even happens) or you will miss what's going on.
-
-Next go [here](https://www.pivotaltracker.com/n/projects/1163162). That is where we keep our backlog. If you are officially part of the project then go bug Yaron to set up an account for you so you can be assigned items. By default however it is world readable so anyone can track what we are up to.
+# Sign up to follow us
+Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, bookmark our backlog webpage, etc.
 
 # Blogging
-
 We like to blog but most of us blog on our own blogs. But we would like to republish here interesting articles. So here are the instructions on how to use our blog.
 
 1. Go to https://github.com/thaliproject/thali/tree/gh-pages/_posts
@@ -30,8 +29,7 @@ Right now we are using stock PouchDB. We just keep this section around if we hav
 [Configuring PouchDB](ConfiguringPouchDB)
 
 # Dev Machine Set Up 
-
-We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. In addition one needs the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
+We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
 
 We have a bunch of instructions on how to get this software for Windows, see [set up for windows](SetupForWindows) but we have tested everything on Mac and Linux and it all runs just fine there as well.
 
