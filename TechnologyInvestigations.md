@@ -15,7 +15,6 @@ Thali has also looked at how it can leverage existing technologies. Those invest
 
 * [Thali Requirements for Couchbase](ThaliRequirementsForCouchbase)
 * [Crosswalk and Cordova](CrosswalkAndCordova)
-* [Building the HTML5 Environment Thali Needs](BuildingTheHTML5EnvironmentThaliNeeds)
 * [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
 * [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
 * [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
