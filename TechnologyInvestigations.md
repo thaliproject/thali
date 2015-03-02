@@ -19,7 +19,7 @@ Thali has also looked at how it can leverage existing technologies. Those invest
 * [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
 * [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
 * [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
-* [Technologies to pick for ad-hoc and mesh networking](TechnologiesToPickForAd-hocAndMeshNetworking)
+* [Technologies to pick for ad-hoc and mesh networking](http://www.goland.org/thalimesh/)
 * [Picking a backlog manager for Thali](PickingABacklogManagerForThali)
 
 In October 2014 Thali began exploring a new approach based on Node. Here are related investigations
