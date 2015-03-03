@@ -41,7 +41,7 @@ Our software is based on:
 
 # Who?
 
-Thali is being actively developed by Brian Lambert, Jukka Silvennoinen, Srikanth Challa, and Yaron Y. Goland for Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
+Thali is being actively developed by Brian Lambert, Jukka Silvennoinen, Matthew Podwysocki, Srikanth Challa, Wenhui Lu and Yaron Y. Goland for Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
 
 
 
