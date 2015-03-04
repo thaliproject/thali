@@ -82,6 +82,10 @@ The real requirement here is that we need to be able to do the following at run 
 
 Our current approach is to use OpenSSL for this. It has been suggested that perhaps instead we should expand the crypto library in Node.js to handle this since OpenSSL is already compiled into Node.js. This isn't necessarily a bad idea but we really don't want to create our own custom version of Node.js on our own. So in general we just look for OpenSSL support.
 
+Requirement ABE - The platform MUST support calling out to the host platform's local toast/notification mechanism.
+
+Since we primarily run in the background it is often the case that upon receiving certain kinds of data by synch we will need to notify the user so they can respond.
+
 # Cordova requirements
 Requirement AAT - For platforms that support a display it MUST be possible to deploy our applications to the platform using Apache Cordova.
 
@@ -127,4 +131,4 @@ In addition we need a way for applications to know if they are really talking to
 
 # Last used requirement ID
 Note: Requirement IDs are meaningless strings. They have no inherent ordering. The only reason we hand them out in sequence is because we are doing it manually and want to avoid accidentally assigning the same ID to two requirements. Also note that if requirements are removed this will result in some IDs in the sequence being missing. Since the IDs are not inherently meaningful this shouldn't matter.
-ABD
+ABE
