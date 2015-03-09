@@ -97,3 +97,15 @@ However the default debug package that folks like PouchDB as well as Thali use r
 
 ## How to run PouchDB Integration tests against IE locally
 When running tests locally while developing PouchDB we need to test things in IE, e.g. navigating IE to http://127.0.0.1:8000/tests/integration/ etc. Unfortunately CORS requests to localhost pretty much fail by default. This is a [known bug in IE](http://stackoverflow.com/questions/22098259/access-denied-in-ie-10-and-11-when-ajax-target-is-localhost). The work around is to go to internet options -> Security -> Trusted Sites -> Sites and then disable 'Require server verification (https:) for all sites in this zone) and then put 'http://127.0.0.1' into 'Add this website to the zone' and then add.
+
+## How to build and deploy JXCore for Android
+In theory we should be able to build JXCore for Android on Windows. Google's NDK tools are supposed to support it. But in practice I couldn't get it working and it wasn't worth the time to figure it out when it 'just works' on Linux. So I'm using Linux for the build. I do, however, do the deployment from Windows so I can do my normal development on Windows.
+
+1. Get our your favorite Linux image (I use Elementary OS running in Virtual Box)
+2. Following JXCore's [instructions](https://github.com/jxcore/jxcore/blob/master/doc/Android_Compile.md), they worked great for me on Linux (not so much on Windows). This builds JXCore. Remember the path to the project.
+3. Get a coffee or a tea, maybe a magazine, that compile takes forever.
+4. Go to the project you want to use JXCore with. In my case this was a demo project provided by JXCore. I had to edit jni/Android.mk which contains a value JXCORE_OUT_ANDROID that I needed to point to the jxcore/out_android/android/bin/ sub-directory created in step 2.
+5. Now run android-ndk-r10d/ndk-build in the root of the Android project we want to use JXCore in. This will produce outputs both in obj/local and in libs.
+6. I then switch to the same JXCore android project in Windows and I copy obj/local and libs from the Linux directories to their equivalent directories in Windows.
+
+I strongly suspect that I don't need obj/local, just libs. I need to run an experiment to verify that suspicion.
