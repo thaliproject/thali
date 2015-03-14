@@ -109,3 +109,34 @@ In theory we should be able to build JXCore for Android on Windows. Google's NDK
 6. I then switch to the same JXCore android project in Windows and I copy obj/local and libs from the Linux directories to their equivalent directories in Windows.
 
 I strongly suspect that I don't need obj/local, just libs. I need to run an experiment to verify that suspicion.
+
+## How to run the PouchDB perf tests on our existing node.js Android system
+I wanted to benchmark our existing node.js Android system against JXCore and decided to do it by running the PouchDB perf tests. I set up the tests so that both the node code that runs the test and the remote server are running on the Android device. To make this work I took our existing Cordova plugin and:
+
+1. Went to the directory that contains node_modules
+2. Ran "npm install express pouchdb memdown express-pouchdb"
+3. Went into node_modules/pouchdb and issued "npm install" (this will put in place the dev dependencies we need to run the perf tests)
+4. Went inside of pouchdb/tests/performance/index.js and replaced:
+
+```Javascript
+var PouchDB = process.browser ? window.PouchDB : require('../..');
+```
+
+with
+
+```Javascript
+var PouchDB = require('../..').defaults({db: require("memdown")});
+```
+
+I also edited in a new service which when called runs:
+
+```Javascript
+    // Set up our test server
+    pouchDBApp.use("/", require("express-pouchdb")(InMemPouchDB, {mode: "minimumForPouchDB"}));
+    // Node tests by default will look at http://localhost:5984
+    pouchDBApp.listen(5984);
+
+    var eek = require('pouchdb/tests/performance/index.js');
+```
+
+The PouchDB perf results will be automatically output to the Android log.
