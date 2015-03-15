@@ -129,12 +129,17 @@ var PouchDB = require('../..').defaults({db: require("memdown")});
 I also edited in a new service which when called runs:
 
 ```Javascript
-    // Set up our test server
-    pouchDBApp.use("/", require("express-pouchdb")(InMemPouchDB, {mode: "minimumForPouchDB"}));
-    // Node tests by default will look at http://localhost:5984
-    pouchDBApp.listen(5984);
+var express = require("express");
+var pouchDBApp = express();
+var PouchDB = require("pouchdb");
+var InMemPouchDB = PouchDB.defaults({db: require("memdown")});
 
-    var eek = require('pouchdb/tests/performance/index.js');
+// Set up our test server
+pouchDBApp.use("/", require("express-pouchdb")(InMemPouchDB, {mode: "minimumForPouchDB"}));
+// Node tests by default will look at http://localhost:5984
+pouchDBApp.listen(5984);
+
+var eek = require('pouchdb/tests/performance/index.js');
 ```
 
 The PouchDB perf results will be automatically output to the Android log.
