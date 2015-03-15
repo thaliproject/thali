@@ -106,9 +106,7 @@ In theory we should be able to build JXCore for Android on Windows. Google's NDK
 3. Get a coffee or a tea, maybe a magazine, that compile takes forever.
 4. Go to the project you want to use JXCore with. In my case this was a demo project provided by JXCore. I had to edit jni/Android.mk which contains a value JXCORE_OUT_ANDROID that I needed to point to the jxcore/out_android/android/bin/ sub-directory created in step 2.
 5. Now run android-ndk-r10d/ndk-build in the root of the Android project we want to use JXCore in. This will produce outputs both in obj/local and in libs.
-6. I then switch to the same JXCore android project in Windows and I copy obj/local and libs from the Linux directories to their equivalent directories in Windows.
-
-I strongly suspect that I don't need obj/local, just libs. I need to run an experiment to verify that suspicion.
+6. I have taken to keeping the test project in a folder shared between the Linux VM and my host OS. That way all the binaries end up in the right place and I can now continue development using the host OS.
 
 ## How to run the PouchDB perf tests on our existing node.js Android system
 I wanted to benchmark our existing node.js Android system against JXCore and decided to do it by running the PouchDB perf tests. I set up the tests so that both the node code that runs the test and the remote server are running on the Android device. To make this work I took our existing Cordova plugin and:
