@@ -98,16 +98,6 @@ However the default debug package that folks like PouchDB as well as Thali use r
 ## How to run PouchDB Integration tests against IE locally
 When running tests locally while developing PouchDB we need to test things in IE, e.g. navigating IE to http://127.0.0.1:8000/tests/integration/ etc. Unfortunately CORS requests to localhost pretty much fail by default. This is a [known bug in IE](http://stackoverflow.com/questions/22098259/access-denied-in-ie-10-and-11-when-ajax-target-is-localhost). The work around is to go to internet options -> Security -> Trusted Sites -> Sites and then disable 'Require server verification (https:) for all sites in this zone) and then put 'http://127.0.0.1' into 'Add this website to the zone' and then add.
 
-## How to build and deploy JXCore for Android
-In theory we should be able to build JXCore for Android on Windows. Google's NDK tools are supposed to support it. But in practice I couldn't get it working and it wasn't worth the time to figure it out when it 'just works' on Linux. So I'm using Linux for the build. I do, however, do the deployment from Windows so I can do my normal development on Windows.
-
-1. Get our your favorite Linux image (I use Elementary OS running in Virtual Box)
-2. Following JXCore's [instructions](https://github.com/jxcore/jxcore/blob/master/doc/Android_Compile.md), they worked great for me on Linux (not so much on Windows). This builds JXCore. Remember the path to the project.
-3. Get a coffee or a tea, maybe a magazine, that compile takes forever.
-4. Go to the project you want to use JXCore with. In my case this was a demo project provided by JXCore. I had to edit jni/Android.mk which contains a value JXCORE_OUT_ANDROID that I needed to point to the jxcore/out_android/android/bin/ sub-directory created in step 2.
-5. Now run android-ndk-r10d/ndk-build in the root of the Android project we want to use JXCore in. This will produce outputs both in obj/local and in libs.
-6. I have taken to keeping the test project in a folder shared between the Linux VM and my host OS. That way all the binaries end up in the right place and I can now continue development using the host OS.
-
 ## How to run the PouchDB perf tests on our existing node.js Android system
 I wanted to benchmark our existing node.js Android system against JXCore and decided to do it by running the PouchDB perf tests. I set up the tests so that both the node code that runs the test and the remote server are running on the Android device. To make this work I took our existing Cordova plugin and:
 
@@ -143,3 +133,19 @@ var eek = require('pouchdb/tests/performance/index.js');
 ```
 
 The PouchDB perf results will be automatically output to the Android log.
+
+## How to build and deploy JXCore for Android
+The core depot for JXCore's Android code is [here](https://github.com/obastemur/jxcore-android-basics). However it's designed for eclipse and not for IntelliJ. I had to use Intellij 14.0.3 specifically to import the project and even then I ran into issues. We have my own [fork](https://github.com/thaliproject/jxcore-android-basics) that works in Intellij. See the first commit that we made to understand what we had to do in order to get it to work in IntelliJ.
+
+### Hopefully you don't need to do this
+When you clone our fork if you are using Windows you are going to have a problem because we need to use the NDK and it doesn't work all that well on Windows. The way I have been working around this is that I have a Linux image in a VM with a shared folder. I put the clone into the shared folder. I then go into Linux, into jxcore-droid and run android-ndk-r10d/ndk-build to hook things together. BUT!!! You may not need to do this. The binaries are already compiled and (sigh) checked in. So it might 'just work' without further effort.
+
+### How to get a newer JXCore binary
+The downside to jxcore-android-basics is that it ships with the jx core binaries which means if you want to run later binaries you have to set things up yourself. The way to do that is to:
+
+1. Get our your favorite Linux image (I use Elementary OS running in Virtual Box)
+2. Following JXCore's [instructions](https://github.com/jxcore/jxcore/blob/master/doc/Android_Compile.md), they worked great for me on Linux (not so much on Windows). This builds JXCore. Remember the path to the project.
+3. Get a coffee or a tea, maybe a magazine, that compile takes forever.
+4. Go to jxcore-droid/jni/Android.mk which contains a value JXCORE_OUT_ANDROID that I needed to point to the jxcore/out_android/android/bin/ sub-directory created in step 2.
+5. Now run android-ndk-r10d/ndk-build in the root of the Android project we want to use JXCore in.
+
