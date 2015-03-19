@@ -26,8 +26,7 @@ Personal devices can store our data, exchange it with trusted peers, and sync to
 # How?
 On the wire we create our peer to peer web using:
 * CouchDB's HTTP based synch protocol, 
-* public keys for identity, 
-* mutual TLS auth for authentication and secrecy, 
+* public keys for identity with mutual TLS auth for authentication and secrecy, 
 * Tor Hidden Services for traffic analysis protection and NAT/Firewall penetration,
 * BLE/Bluetooth/Wi-Fi for local peer to peer communication, and
 * Our soon to be invented HTTP based protocol for high latency mesh formation
@@ -41,12 +40,7 @@ Our software is based on:
 
 # Who?
 
-Thali is being actively developed by Brian Lambert, Jukka Silvennoinen, Matthew Podwysocki, Srikanth Challa, Wenhui Lu and Yaron Y. Goland for Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
+Thali is being actively developed by Brian Lambert, Jukka Silvennoinen, Matthew Podwysocki, Srikanth Challa, Wenhui Lu, and Yaron Y. Goland from Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing.
 
-
-
-
-
-
-
-
+<a href="https://twitter.com/thaliproject" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @thaliproject</a>
+<script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
