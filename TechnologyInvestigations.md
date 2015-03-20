@@ -26,5 +26,14 @@ Thali has also looked at how it can leverage existing technologies. Those invest
 * [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
 * [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
 * [Technologies to pick for ad-hoc and mesh networking](http://www.goland.org/thalimesh/)
-* [Picking a backlog manager for Thali](PickingABacklogManagerForThali)
+* [Picking another backlog manager for Thali](http://www.goland.org/anotherthalibacklog/)
 * [FireChat on Android](ExperimentWithFireChat)
+* [A detailed summary of our investigation into JXCore](http://www.goland.org/jxcore/)
+* [JXCore Performance](http://www.goland.org/jxcoreperf/)
+
+Our P2P Connectivity Investigation on Android
+* [Initial Investigation with Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=24)
+* [Data from Wi-Fi Direct Tests](http://www.drjukka.com/blog/wordpress/?p=29)
+* [Dealing with the connection acceptance dialog in WiFi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
+* [Minimizing user interaction on Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
+* [Improving the Wi-Fi Direct Application Logic](http://www.drjukka.com/blog/wordpress/?p=41)
