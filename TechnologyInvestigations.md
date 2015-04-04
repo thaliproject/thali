@@ -37,3 +37,4 @@ Our P2P Connectivity Investigation on Android
 * [Dealing with the connection acceptance dialog in WiFi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
 * [Minimizing user interaction on Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
 * [Improving the Wi-Fi Direct Application Logic](http://www.drjukka.com/blog/wordpress/?p=41)
+* [Service Discovery Oddities](http://www.drjukka.com/blog/wordpress/?p=52)
