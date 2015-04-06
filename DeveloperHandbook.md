@@ -23,6 +23,7 @@ We like to blog but most of us blog on our own blogs. But we would like to repub
 1. Go to https://github.com/thaliproject/thali/tree/gh-pages/_posts
 2. Create a new entry following the date format you see in the directory, the definition is given [here](http://jekyllrb.com/docs/posts/)
 3. Make sure you put in the 'front matter' (just look at any of the existing posts, they all have it at the top) and then write up your blog article.
+4. Keep in mind that your blog article will be automatically pushed to our twitter feed so please make the first sentence in the blog article something that will read reasonably well on Twitter.
 
 That's it. The article will automatically be picked up by our blog feed.
 
