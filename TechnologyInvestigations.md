@@ -2,17 +2,39 @@
 title: Technology Investigations
 layout: default
 ---
-
-Articles about things we are actively working on:
+Thali, Node.js & PouchDB
 * [Node.js on Devices](nodeondevices)
-* [Thali and IoT](ThaliAndIoT)
-* [P2P between Android Devices](AndroidP2P)
-* [Simplifying exchanging identities](http://www.goland.org/coinflippingforthali/)
 * [Securing WebView/Node.js communication](SecuringCordovaAndNodeJs)
 * [Thali Platform Checklist](PlatformChecklist)
 * [Node Gyp for Android](NotesOnNodeGypForAndroid)
+* [A detailed summary of our investigation into JXCore](http://www.goland.org/jxcore/)
+* [JXCore Performance](http://www.goland.org/jxcoreperf/)
+* [Proposal for ACLS in PouchDB](http://www.goland.org/thaliacls/)
 
-The rest of these articles are mostly for reference.
+Our P2P Connectivity Investigation on Android
+* [BTConApp - where we keep the p2p code](https://github.com/thaliproject/BTConApp)
+* [P2P between Android Devices](AndroidP2P)
+* [Initial Investigation with Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=24)
+* [Data from Wi-Fi Direct Tests](http://www.drjukka.com/blog/wordpress/?p=29)
+* [Dealing with the connection acceptance dialog in WiFi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
+* [Minimizing user interaction on Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
+* [Improving the Wi-Fi Direct Application Logic](http://www.drjukka.com/blog/wordpress/?p=41)
+* [Service Discovery Oddities](http://www.drjukka.com/blog/wordpress/?p=52)
+* [Announcing the first release of the P2P library](http://www.drjukka.com/blog/wordpress/?p=75)
+
+Our P2P Connectivity Investigation on iOS
+* [Thali Bubbles - where we keep the P2P code](https://github.com/thaliproject/ThaliBubbles)
+* There should be articles coming on this soon!
+
+Other relevant articles
+* [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
+* [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
+* [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
+* [Technologies to pick for ad-hoc and mesh networking](http://www.goland.org/thalimesh/)
+* [Picking another backlog manager for Thali](http://www.goland.org/anotherthalibacklog/)
+* [FireChat on Android](ExperimentWithFireChat)
+* [Simplifying exchanging identities](http://www.goland.org/coinflippingforthali/)
+* [Thali and IoT](ThaliAndIoT)
 
 Thali has looked at a number of possible ways to implement itself. Below we provide links to those investigations.
 * [WebRTC Investigation](WebRTCInvestigation)
@@ -20,21 +42,3 @@ Thali has looked at a number of possible ways to implement itself. Below we prov
 * [HTML 5 Raw Sockets Investigation](HTML5RawSocketsInvestigation)
 * [Building Thali on top of Firefox](BuildingThaliOnTopOfFirefox)
 * [Building Thali on top of I2P](BuildingThaliOnTopOfI2P)
-
-Thali has also looked at how it can leverage existing technologies. Those investigations are below.
-* [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
-* [Thali and Tor Hidden Services](ThaliAndTorHiddenServices)
-* [CouchDB Clients to Thali enable](CouchDBClientsToThaliEnable)
-* [Technologies to pick for ad-hoc and mesh networking](http://www.goland.org/thalimesh/)
-* [Picking another backlog manager for Thali](http://www.goland.org/anotherthalibacklog/)
-* [FireChat on Android](ExperimentWithFireChat)
-* [A detailed summary of our investigation into JXCore](http://www.goland.org/jxcore/)
-* [JXCore Performance](http://www.goland.org/jxcoreperf/)
-
-Our P2P Connectivity Investigation on Android
-* [Initial Investigation with Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=24)
-* [Data from Wi-Fi Direct Tests](http://www.drjukka.com/blog/wordpress/?p=29)
-* [Dealing with the connection acceptance dialog in WiFi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
-* [Minimizing user interaction on Wi-Fi Direct](http://www.drjukka.com/blog/wordpress/?p=35)
-* [Improving the Wi-Fi Direct Application Logic](http://www.drjukka.com/blog/wordpress/?p=41)
-* [Service Discovery Oddities](http://www.drjukka.com/blog/wordpress/?p=52)
