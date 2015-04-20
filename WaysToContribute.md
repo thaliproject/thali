@@ -17,7 +17,7 @@ If you would like to contribute, consider these options:
 * Tell others about the project.
 * Tell the developers how much you appreciate the product!
 
-You can also track our current work items on [our backlog](https://www.pivotaltracker.com/n/projects/1163162).
+You can also track our current work items on [our backlog](https://waffle.io/thaliproject/thali).
 
 ## Contributing Code
 
