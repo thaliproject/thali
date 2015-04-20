@@ -1,3 +1,7 @@
+---
+title: Thali Alumni
+layout: default
+---
 The main group at Microsoft that works on Thali uses an agile model where we can pull in resources as we need them. This means we don't have a standing team for Thali. Therefore the purpose of this page is to honor the folks who have contributed to Thali.
 
 [Jon Udell](http://blog.jonudell.net/)  - Thali's first PM, first advocate and first user!
