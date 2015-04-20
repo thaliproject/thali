@@ -11,9 +11,7 @@ Welcome to Thali! So you want to learn more? Great!
 The first thing to do is read. Please start [here](ThaliAndCouch). You can probably skip most of the links except for [this one](nodeondevices) and [this one](ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
 
 # Sign up to follow us
-Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, bookmark our backlog webpage, etc. Also make sure you go to our main projects and hit 'watch' on them in GitHub. At the time I write this the two most relevant projects are:
-* https://github.com/thaliproject/thali
-* https://github.com/thaliproject/Tor_Onion_Proxy_Library
+Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, bookmark our backlog webpage, etc. Also make sure you go to our main projects and hit 'watch' on them in GitHub.
 
 If you don't 'watch' the projects then you won't get notified when we have updates, new issues, etc. So please hit 'watch'.
 
