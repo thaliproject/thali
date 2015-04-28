@@ -69,7 +69,7 @@ E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, MD5(Kx) + HMAC-MD5(Sxy, Timestamp
 
 In each of the three options the first thing we have to do is use the ephemeral key with the receiver's key to generate an Ellptic Curve Diffie Hellman key. For the performance test we used secp256k1 as our curve. We picked this solely because it was a 256 bit key thus providing roughly AES 128 equivalent strength and it was supported by bouncy castle on Android which was our test environment. The test device is a Nexus 7 phone running Android 4.4.4.
 
-In each case the ECDH key is generated once regardless of how many identities are advertised in the presence announcement. That same key is then used to try to check each value. To test how expensive generating this ECDH key is I generated 1000 keys in a test run and got the following results:
+In each case the ECDH key is generated once regardless of how many identities are advertised in the presence announcement. That same key is then used to try to check each value. To test how expensive generating this ECDH key is I generated one key per test run and ran the test 1000 times. The cost to generate a single ECDH key was:
 
 | Min | Median | Max |
 |-----|--------|-----|
@@ -92,4 +92,4 @@ To compare each approach I generated 20 entries in a single presence announcemen
 |----------|-----|--------|-----|
 | HMAC/HMAC| 1264 ms | 1299 ms | 1854 ms |
 | HMAC/AES-CBC| 25 ms |  35.5 ms |  75 ms |
-| AEC-GCM |       |       |       |
+| AEC-GCM | 27 ms   | 55 ms | 72 ms |
