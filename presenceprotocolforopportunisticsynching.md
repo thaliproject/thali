@@ -36,7 +36,12 @@ During the time window T1 - T2 a random set of devices will come within range of
 The goal then is to figure out how to enable devices to discover if someone who is in their target set is within range without disclosing their identity to anyone who is not in the target set and without disclosing the contents of Lx beyond the obvious fact that if Device x and y talk then x must have been in Device y's target set and y must have been in Device x's target set.
 
 # Beacons
+See the perf work I'm doing below. Still not done.
 
+# Hot List
+Exy = Timestamp + (HMAC-MD5(Sxy, Timestamp))?
+
+The obvious problem being that you have to generate a HMAC for every entry in the address book and see if any match. So with a large address book that is just not going to work. But in most cases Dunbar's number saves us. Most people don't regularly work with more than a tiny number of people and pretty much can't work with more than 150 or so people meaningfully. So this means that most folks can have a "hot list" of frequently used addresses and if someone knows they are on someone else's hot list then they can just use that list. This is an optimization but it's a powerful one.
 
 # Q&A
 # Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
@@ -85,5 +90,6 @@ To compare each approach I generated 20 entries in a single presence announcemen
 
 | Approach | Min | Median | Max |
 |----------|-----|--------|-----|
-| HMAC/HMAC| 1264 | 1299 | 1854 |
-| HMAC/AES-CBC|   |      |      |
+| HMAC/HMAC| 1264 ms | 1299 ms | 1854 ms |
+| HMAC/AES-CBC| 25 ms |  35.5 ms |  75 ms |
+| AEC-GCM |       |       |       |
