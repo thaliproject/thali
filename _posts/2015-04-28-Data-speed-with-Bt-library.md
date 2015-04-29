@@ -1,7 +1,5 @@
 ---
 layout: post
-title: Data speed tests data for Bt-connector library
+title: Data speed test results for Bt-connector library
 ---
-Bluetooth connections between Android devices appears often to be unreliable, and the data exchange speed varies between sending times. I Finally got some data measured for the published library, and the data is available in my blog.
-
-So to see the values, do read the [blog article](http://www.drjukka.com/blog/wordpress/?p=100)
+Bluetooth connections between Android devices are often unreliable so I measured "effective" speeds over Bluetooth, that is, how fast can you move data when you take regular connection failures into consideration. The results are available in my [blog article](http://www.drjukka.com/blog/wordpress/?p=100)
