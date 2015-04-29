@@ -59,13 +59,17 @@ For example, imagine that Alice creates a new discussion group with Bob and they
 And, of course, our discovery channel is quite limited. So if there are lots and lots of groups there won't be enough bandwidth to announce them all.
 
 # Comparing Addressbook Size Invariant Options - HMAC vs AES-GCM vs ECIES
-E(HMAC)xy = Ke + Timestamp + (HMAC-MD5(Sey, Timestamp) + HMAC-MD5(Sxy, Timestamp))?
+E(HMAC)xy = Ke + Timestamp + (HMAC-MD5(Sey, Timestamp) + HMAC-MD5(Sxy, Timestamp))+
 
-E(HMAC-AES-CBC)xy = Ke + Timestamp + IV + (HMAC-MD5(Sey, Timestamp) + AES-CBC(Sey, MD5(Kx) + HMAC-MD5(Sxy, Timestamp)))?
+E(HMAC-AES-CBC)xy = Ke + Timestamp + IV + (HMAC-MD5(Sey, IV + Timestamp) + AES-CBC(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp)))+
 
-E(AES-GCM)xy = Ke + Timestamp + IV + (AES-GCM(Sey, MD5(Kx) + HMAC-MD5(Sxy, Timestamp))?
+E(AES-GCM)xy = Ke + Timestamp + IV + (AES-GCM(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp))+
 
-E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, MD5(Kx) + HMAC-MD5(Sxy, Timestamp))?
+E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp))+
+
+I put the IV into the HMAC's (where there was an IV) on the advice of Tolga Alcar who suggested this would add some additional randomness to the HMAC-MD5 output. Since it's cheap to do and doesn't increase the size of the output this seemed reasonable.
+
+Tolga also said that using the ECDH values (for Sey and Sxy) directly is a bad idea. That the output secret is effectively a point on the curve and that the is a non-uniform space (e.g. the points are predictably on the curve). He suggested looking up NIST SP800-108 and looking for the simplest possible hash based KDF and setting its counter to 1 and using that. Effectively just hashing the ECDH secret so that we map it into a uniform space from a non-uniform space. Bouncy Castle suports KDFCounterBytesGenerator so I can add that in for testing purposes.
 
 In each of the three options the first thing we have to do is use the ephemeral key with the receiver's key to generate an Ellptic Curve Diffie Hellman key. For the performance test we used secp256k1 as our curve. We picked this solely because it was a 256 bit key thus providing roughly AES 128 equivalent strength and it was supported by bouncy castle on Android which was our test environment. The test device is a Nexus 7 phone running Android 4.4.4.
 
