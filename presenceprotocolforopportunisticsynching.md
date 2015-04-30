@@ -39,7 +39,7 @@ The goal then is to figure out how to enable devices to discover if someone who 
 See the perf work I'm doing below. Still not done.
 
 # Hot List
-Exy = Timestamp + (HMAC-MD5(Sxy, Timestamp))+
+Exy = Timestamp + (HMAC-SHA256(Sxy, Timestamp))+
 
 The obvious problem being that you have to generate a HMAC for every entry in the address book and see if any match. So with a large address book that is just not going to work. But in most cases Dunbar's number saves us. Most people don't regularly work with more than a tiny number of people and pretty much can't work with more than 150 or so people meaningfully. So this means that most folks can have a "hot list" of frequently used addresses and if someone knows they are on someone else's hot list then they can just use that list. This is an optimization but it's a powerful one.
 
@@ -58,16 +58,33 @@ For example, imagine that Alice creates a new discussion group with Bob and they
 
 And, of course, our discovery channel is quite limited. So if there are lots and lots of groups there won't be enough bandwidth to announce them all.
 
-# Comparing Addressbook Size Invariant Options - HMAC vs AES-GCM vs ECIES
-E(HMAC)xy = Ke + Timestamp + (HMAC-MD5(Sey, Timestamp) + HMAC-MD5(Sxy, Timestamp))+
+# HMAC-MD5 vs HMAC-SHA256
+I started this work out just using HMAC-MD5 both because of size but more importantly because of performance. CPU is at a premium. I would also (naively) argue that most of the attacks on MD5 wouldn't work properly in our scenario anyway because of the limited data size. But using SHA256 would make it easier for the crypto dieties to be happy with us and it's not really a size issue since we can just truncate the hash. But what about perf? Given that we are using the AES-GCM approach perf really isn't that big a deal to be honest. We just aren't using that many hashes. But for the 'hot list' approach the perf really matters since we have to do a lot of hashing.
 
-E(HMAC-AES-CBC)xy = Ke + Timestamp + IV + (HMAC-MD5(Sey, IV + Timestamp) + AES-CBC(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp)))+
+So I ran some quick tests. In the first test I checked 20 hashes against an address book with 1000 keys where all comparisons fail. I repeated the test 100 times.
 
-E(AES-GCM)xy = Ke + Timestamp + IV + (AES-GCM(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp))+
+|Algorithm | Min | Median | Max|
+|----------|-----|--------|----|
+|HMAC-MD5  |131 ms | 136 ms   |230 ms |
+|HMAC-SHA256 | 152 ms | 179.5 ms | 454 ms |
 
-E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, MD5(Kx) + HMAC-MD5(Sxy, IV + Timestamp))+
+For the next test I generated 20 HMACs using 20 different keys. This simulates creating beacons in an announcement.
 
-I put the IV into the HMAC's (where there was an IV) on the advice of Tolga Alcar who suggested this would add some additional randomness to the HMAC-MD5 output. Since it's cheap to do and doesn't increase the size of the output this seemed reasonable.
+|Algorithm | Min | Median | Max|
+|----------|-----|--------|----|
+|HMAC-MD5  |1 ms | 2 ms   |26 ms|
+|HMAC-SHA256 | 2 ms | 3 ms | 26 ms|
+
+The perf difference for generating tokens is noise. The slightly bigger issue is with validating them where using SHA256 looks to reduce performance by roughly 30%. That is small enough (and my tests are ham fisted enough) that I suspect the real world perf difference will be noise. So let's make the crypto gods happy and just use SHA-256 with a truncated output to 128 bits to save space on the wire.
+
+# Comparing Addressbook Size Invariant Options - HMAC vs HMAC-AES-CBC vs AES-GCM
+E(HMAC)xy = Ke + Timestamp + (HMAC-SHA256(Sey, Timestamp) + HMAC-SHA256(Sxy, Timestamp))+
+
+E(HMAC-AES-CBC)xy = Ke + Timestamp + IV + (HMAC-SHA256(Sey, IV + Timestamp) + AES-CBC(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp)))+
+
+E(AES-GCM)xy = Ke + Timestamp + IV + (AES-GCM(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp))+
+
+I put the IV into the HMAC's (where there was an IV) on the advice of Tolga Alcar who suggested this would add some additional randomness to the HMAC-SHA256 output. Since it's cheap to do and doesn't increase the size of the output this seemed reasonable.
 
 Tolga also said that using the ECDH values (for Sey and Sxy) directly is a bad idea. That the output secret is effectively a point on the curve and that the is a non-uniform space (e.g. the points are predictably on the curve). He suggested looking up NIST SP800-108 and looking for the simplest possible hash based KDF and setting its counter to 1 and using that. Effectively just hashing the ECDH secret so that we map it into a uniform space from a non-uniform space. Bouncy Castle suports KDFCounterBytesGenerator so I can add that in for testing purposes.
 
@@ -88,12 +105,22 @@ In the size table below we will ignore both Ke and Timestamp since they are the 
 | HMAC     | 0                   | 16 + 16 = 32 bytes               |
 | HMAC-AES-CBC | 16              | 16 + (32 bytes unencrypted -> 48 bytes encrypted) = 64 bytes |
 | AES-GCM  | 16                  | 32 bytes unencrypted -> 48 bytes encrypted |
-| ECIES    |                     |                                  |
 
 To compare each approach I generated 20 entries in a single presence announcement. The last entry will match against the receiver. The receiver has an address book with 10,000 entries in it. The only reason for even specifying the number of entries is to give us a meaningful comparison between the cost of the HMAC approach versus everything else. We will intentionally match on the last entry in the address book to provide the worse case scenario. Each test was run 100 times.
 
 | Approach | Min | Median | Max |
 |----------|-----|--------|-----|
-| HMAC/HMAC| 1264 ms | 1299 ms | 1854 ms |
-| HMAC/AES-CBC| 25 ms |  35.5 ms |  75 ms |
-| AEC-GCM | 27 ms   | 55 ms | 72 ms |
+| HMAC/HMAC| 1691 ms | 1694 ms | 1741 ms |
+| HMAC/AES-CBC| 22 ms |  36 ms |  73 ms |
+| AEC-GCM | 24 ms   | 52 ms | 59 ms |
+
+# What about ECIES?
+E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp))+
+
+One can reasonably argue that AES-GCM and ECIES are morally equivalent. And I would expect them to produce outputs of comparable size and processing time.
+
+But in practice that doesn't seem to be the case. For example, the ECIES output I generate in my sample code is 133 bytes as opposed to the 48 bytes generated by AES-GCM. But I strongly suspect that this isn't a fair comparison because I'm pretty sure my configuration for ECIES is wrong. I don't think I'm using comparable hash functions or KDFs. My suspicion is that with the right configuration AES-GCM and ECIES would produce similar results.
+
+But I have to admit my limits. I found hacking through the Bouncy Castle code really painful. Docs and examples are few and far between and out of date. I found one [test file](https://github.com/bcgit/bc-java/blob/master/prov/src/test/java/org/bouncycastle/jce/provider/test/ECIESTest.java) and one [mail thread](http://bouncy-castle.1462172.n4.nabble.com/ECC-with-ECIES-Encrypt-Decrypt-Questions-td4656750.html) that even discuss ECIES. Not much else.
+
+So my current thinking is basically that ECIES is not a standard, it's not supported in the same way in different environments, the Bouncy Castle implementation is tricky and the AES-GCM approach seems to work well using widely available crypto primitives. So my plan is to bring both ECIES and AES-GCM to the crypto gurus at work and let them tell me what they think I should do.
