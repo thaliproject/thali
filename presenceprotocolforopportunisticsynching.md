@@ -35,16 +35,147 @@ During the time window T2 - T1 a random set of devices will come within range of
 
 The goal then is to figure out how to enable devices to discover if someone who is in their target set is within range without disclosing their identity to anyone who is not in the target set and without disclosing the contents of Lx beyond the obvious fact that if Device x and y talk then x must have been in Device y's target set and y must have been in Device x's target set.
 
-# Beacons
-See the perf work I'm doing below. Still not done.
+# Terminology
 
-# Hot List
-Exy = Timestamp + (HMAC-SHA256(Sxy, Timestamp))+
+Cx
 
-The obvious problem being that you have to generate a HMAC for every entry in the address book and see if any match. So with a large address book that is just not going to work. But in most cases Dunbar's number saves us. Most people don't regularly work with more than a tiny number of people and pretty much can't work with more than 150 or so people meaningfully. So this means that most folks can have a "hot list" of frequently used addresses and if someone knows they are on someone else's hot list then they can just use that list. This is an optimization but it's a powerful one.
+Discovery Announcement
+
+Version Id
+
+Pre-Amble
+
+Beacon
+
+# Overview of Thali discovery for opportunistic synchronization
+The base scenario for this specification is that there are two or more devices who are at least occassionally within radio range of each other but do not otherwise have a means to communicate directly. When one of these devices has information it would like to synch with another device then the first device will try to discover the second device. In other words, for any device x there is a list of contacts Cx which consists of all the other devices that device x would like to discover and synchronize data with.
+
+Device x will use whatever discovery mechanism is supported by its radios, this can be BLE, Wi-Fi Direct, Bluetooth, etc. Device x will create a discovery announcement which will consist of a version ID, a pre-amble and one or more beacons. One beacon for each member of Cx.
+
+If device y, which is a member of Cx, receives device x'd discovery announcement, identifies itself in one of the beacons and decides that it wishes to respond to the discovery request then device y will contact device x and negotiate a connection. The exact details of how the connection is to be negotiated varies based on radio type and will be defined below.
+
+# Generating the pre-amble and beacons
+A discovery announcement consists of three parts. A version Id, a pre-amble and one or more beacon values. How the version Id is transmitted is radio technology specific and will be defined below. This section of the document just defines the content of the pre-amble and beacon values which are the same regardless of transport.
+
+The pre-amble and beacon are defined using Augmented BNF as specified in RFC 4234 with the exception that I changed the section 3.7 requirement on nRule to be n-Rule because 88OCTET look like 880 instead of 88:
+
+```
+DiscoveryAnnouncementWithoutVersionId = PreAmble 1*Beacon
+PreAmble = Expiration Ke IV
+Expiration = 8-OCTET
+Ke = 88-OCTET
+IV = 16-OCTET
+Beacon = 48-OCTET
+```
+
+Ke MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
+
+Ke is an emphemeral public key that MUST be regenerated everytime expiration changes.
+
+__OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the size to 66 bytes (no point compression) or 33 bytes with point compression. We should discuss. 
+
+__OPEN ISSUE:__ I am asserting that the X.509 encoding (with point compression explicitly disallowed) is always 88 bytes long. But I haven't actually proven this.
+
+Expiration MUST encode a 64 bit network byte order encoding of the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
+
+Implementers MUST NOT honor discovery announcements with Timestamps that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
+
+IV MUST encode a 16 byte cryptographically secure nonce in network byte order. A new IV MUST be generated whenever the Expiration is changed on a discovery announcement.
+
+Beacons are generated as given in the following pseudocode:
+
+```
+function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke) {
+  beacons = []
+  for(PubKy : listOfPublicKeysToSyncWith) {
+    InsideBeaconKeyId = SHA256(Kx.public()).first(16)
+
+    Sxy = ECDH(Kx.private(), PubKy)
+    HKxy = HKDF(SHA256, Sxy, IV, 32)
+    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Timestamp).first(16)
+    
+    Sey = ECDH(Ke.private(), PubKy)
+    HKey = HKDF(SHA256, Sey, IV, 16)
+    beacons.append(AESEncrypt(GCM, HKey, InsideBeaconKeyId + InsideBeaconHmac))
+  }
+  return beacons
+}
+```
+
+The variables used above are:
+
+listOfReceivingDevicesPublicKeys is a list containing the public keys of the devices that the creator the discovery announcement, device X, wants to synch with.
+
+Kx is a public/private key pair.
+
+PubKy is a public key taken from listOfReceivingDevicesPublicKeys.
+
+The functions used above are defined as follows:
+
+public() - The public key of a public/private key pair
+
+private() - The private key of a public/private key pair
+
+ECDH(private key, public key) - Generates an ECDH shared secret using the given public key and private key (which are assumed to be from the same curve).
+
+HKDF(digest, IKM, salt, length) - Implements RFC 5869's HKDF function using the specified digest, IKM and salt. It will then return length number of bytes of keying material.
+
+HMAC(Digest, key, value) - Generates the HMAC of the specified value using the given digest and key.
+
+"+" - When applied to two arrays it concatenates them together
+
+First(length) - Returns the first length bytes of the array the function was called on
+
+SHA256(value) - Generates the SHA-256 digest of the given value
+
+AESEncrypt(mode, key, value) - Returns the AES encryption of the value using the specified mode and key.
+
+append(value) - Appends the given value to the array the function was called on. In this case we are appending a stream of bytes  returned by the AES encryption.
+
+# Processing the pre-amble and beacons
+When a device receives a discovery announcement its first job is to parse the expiration. If the expiration defines a time in the past or a time too far into the future then the receiver MUST ignore the discovery announcement.
+
+If the expiration is good then receiver parses the ephemeral public key and the IV.
+
+The receiver then parses through the beacon values included in the announcement. Each beacon value is processed as follows:
+
+```
+function parseBeacons(beaconStream, Ky, IV, PubKe) {
+   while(beaconStream.empty() == false) {
+    encryptedBeacon = beaconStream.read(48);
+    Sey = ECDH(Ky.private, PubKe)
+    HKey = HKDF(SHA256, Sey, IV, 16)
+    unencryptedBeacon = AESDecrypt(GCM, HKey, encryptedBeacon)
+   }
+}
+function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke) {
+  beacons = []
+  for(PubKy : listOfPublicKeysToSyncWith) {
+    InsideBeaconKeyId = SHA256(Kx.public()).first(16)
+
+    Sxy = ECDH(Kx.private(), PubKy)
+    HKxy = HKDF(SHA256, Sxy, IV, 32)
+    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Timestamp).first(16)
+    
+    Sey = ECDH(Ke.private(), PubKy)
+    HKey = HKDF(SHA256, Sey, IV, 16)
+    beacons.append(AES(GCM, HKey, InsideBeaconKeyId + InsideBeaconHmac))
+  }
+  return beacons
+}
+```
+
+## Re-sending discovery announcements
+It's o.k. so long as they aren't expired
+Yes, it's o.k. to add beacons to an existing discovery announcement if you really want to.
+# BLE Binding
+
+# Wi-Fi Direct Discovery Binding
+
+# Transfering from Discovery to TLS
 
 # Q&A
-# Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
+## Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
 
 Looking at our informal definition we can imagine that one way for Bob to find Alice is for Alice to just announce her public key over BLE. In fact, if everyone would just announce their public keys over BLE everything would be so much simpler! Everyone can see exactly who is around, figure out if they have something for them and then transmit it. The problem is that now everyone is announcing their identity to anyone who will listen.
 
@@ -58,7 +189,7 @@ For example, imagine that Alice creates a new discussion group with Bob and they
 
 And, of course, our discovery channel is quite limited. So if there are lots and lots of groups there won't be enough bandwidth to announce them all.
 
-# HMAC-MD5 vs HMAC-SHA256
+## HMAC-MD5 vs HMAC-SHA256
 I started this work out just using HMAC-MD5 both because of size but more importantly because of performance. CPU is at a premium. I would also (naively) argue that most of the attacks on MD5 wouldn't work properly in our scenario anyway because of the limited data size. But using SHA256 would make it easier for the crypto dieties to be happy with us and it's not really a size issue since we can just truncate the hash. But what about perf? Given that we are using the AES-GCM approach perf really isn't that big a deal to be honest. We just aren't using that many hashes. But for the 'hot list' approach the perf really matters since we have to do a lot of hashing.
 
 So I ran some quick tests. In the first test I checked 20 hashes against an address book with 1000 keys where all comparisons fail. I repeated the test 100 times.
@@ -77,7 +208,7 @@ For the next test I generated 20 HMACs using 20 different keys. This simulates c
 
 The perf difference for generating tokens is noise. The slightly bigger issue is with validating them where using SHA256 looks to reduce performance by roughly 30%. That is small enough (and my tests are ham fisted enough) that I suspect the real world perf difference will be noise. So let's make the crypto gods happy and just use SHA-256 with a truncated output to 128 bits to save space on the wire.
 
-# Comparing Addressbook Size Invariant Options - HMAC vs HMAC-AES-CBC vs AES-GCM
+## Comparing Addressbook Size Invariant Options - HMAC vs HMAC-AES-CBC vs AES-GCM
 E(HMAC)xy = Ke + Timestamp + (HMAC-SHA256(Sey, Timestamp) + HMAC-SHA256(Sxy, Timestamp))+
 
 E(HMAC-AES-CBC)xy = Ke + Timestamp + IV + (HMAC-SHA256(Sey, IV + Timestamp) + AES-CBC(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp)))+
@@ -114,7 +245,7 @@ To compare each approach I generated 20 entries in a single presence announcemen
 | HMAC/AES-CBC| 22 ms |  36 ms |  73 ms |
 | AEC-GCM | 24 ms   | 52 ms | 59 ms |
 
-# What about ECIES?
+## What about ECIES?
 E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp))+
 
 One can reasonably argue that AES-GCM and ECIES are morally equivalent. And I would expect them to produce outputs of comparable size and processing time.
@@ -124,3 +255,8 @@ But in practice that doesn't seem to be the case. For example, the ECIES output 
 But I have to admit my limits. I found hacking through the Bouncy Castle code really painful. Docs and examples are few and far between and out of date. I found one [test file](https://github.com/bcgit/bc-java/blob/master/prov/src/test/java/org/bouncycastle/jce/provider/test/ECIESTest.java) and one [mail thread](http://bouncy-castle.1462172.n4.nabble.com/ECC-with-ECIES-Encrypt-Decrypt-Questions-td4656750.html) that even discuss ECIES. Not much else.
 
 So my current thinking is basically that ECIES is not a standard, it's not supported in the same way in different environments, the Bouncy Castle implementation is tricky and the AES-GCM approach seems to work well using widely available crypto primitives. So my plan is to bring both ECIES and AES-GCM to the crypto gurus at work and let them tell me what they think I should do.
+
+## Hot List
+Exy = Timestamp + (HMAC-SHA256(Sxy, Timestamp))+
+
+The obvious problem being that you have to generate a HMAC for every entry in the address book and see if any match. So with a large address book that is just not going to work. But in most cases Dunbar's number saves us. Most people don't regularly work with more than a tiny number of people and pretty much can't work with more than 150 or so people meaningfully. So this means that most folks can have a "hot list" of frequently used addresses and if someone knows they are on someone else's hot list then they can just use that list. This is an optimization but it's a powerful one.
