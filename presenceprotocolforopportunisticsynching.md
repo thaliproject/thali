@@ -61,38 +61,38 @@ The pre-amble and beacon are defined using Augmented BNF as specified in RFC 423
 
 ```
 DiscoveryAnnouncementWithoutVersionId = PreAmble 1*Beacon
-PreAmble = Expiration Ke IV
+PreAmble = Expiration PubKe IV
 Expiration = 8-OCTET
-Ke = 88-OCTET
+PubKe = 88-OCTET
 IV = 16-OCTET
 Beacon = 48-OCTET
 ```
 
-Ke MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
+Expiration MUST encode a 64 bit network byte order encoding of the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
 
-Ke is an emphemeral public key that MUST be regenerated everytime expiration changes.
+Implementers MUST NOT honor discovery announcements with Timestamps that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
+
+PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
+
+PubKe is an emphemeral public key that MUST be regenerated everytime expiration changes.
 
 __OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the size to 66 bytes (no point compression) or 33 bytes with point compression. We should discuss. 
 
 __OPEN ISSUE:__ I am asserting that the X.509 encoding (with point compression explicitly disallowed) is always 88 bytes long. But I haven't actually proven this.
-
-Expiration MUST encode a 64 bit network byte order encoding of the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
-
-Implementers MUST NOT honor discovery announcements with Timestamps that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
 
 IV MUST encode a 16 byte cryptographically secure nonce in network byte order. A new IV MUST be generated whenever the Expiration is changed on a discovery announcement.
 
 Beacons are generated as given in the following pseudocode:
 
 ```
-function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke) {
+function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration) {
   beacons = []
-  for(PubKy : listOfPublicKeysToSyncWith) {
-    InsideBeaconKeyId = SHA256(Kx.public()).first(16)
+  InsideBeaconKeyId = SHA256(Kx.public().encode()).first(16)
 
+  for(PubKy : listOfPublicKeysToSyncWith) {
     Sxy = ECDH(Kx.private(), PubKy)
     HKxy = HKDF(SHA256, Sxy, IV, 32)
-    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Timestamp).first(16)
+    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Expiration).first(16)
     
     Sey = ECDH(Ke.private(), PubKy)
     HKey = HKDF(SHA256, Sey, IV, 16)
@@ -108,6 +108,10 @@ listOfReceivingDevicesPublicKeys is a list containing the public keys of the dev
 
 Kx is a public/private key pair.
 
+Ke is the ephemeral key public/private key pair
+
+Expiration is the expiration date for the beacons
+
 PubKy is a public key taken from listOfReceivingDevicesPublicKeys.
 
 The functions used above are defined as follows:
@@ -115,6 +119,8 @@ The functions used above are defined as follows:
 public() - The public key of a public/private key pair
 
 private() - The private key of a public/private key pair
+
+encode() - Returns a byte array with the X.509 SubjectPublicKeyInfo encoding
 
 ECDH(private key, public key) - Generates an ECDH shared secret using the given public key and private key (which are assumed to be from the same curve).
 
