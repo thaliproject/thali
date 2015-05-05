@@ -31,6 +31,7 @@ We have 1 week sprints.
 Monday - Sprint starts!
 
 Wednesday/Thursday - Each dev is responsible for putting their proposed work items for the next sprint in the ready column of https://waffle.io/thaliproject/thali. Items in the ready column should be one week or less of work. And yes, this means that if you have some huge item assigned to you in the backlog we expect you to break off one week or less pieces that go to the ready column.
+
  Items should ideally result in working code. For example, let's say we are doing discovery. The first week we might just announce our location. The next week we might put in the crypto. The idea is to break things into steps that each result in some code that can run. And yes, we are willing to have things take longer. Experience shows that by ending each sprint with running code, even if this means creating additional mini-milestones, in the long run we are more likely to have good code.
 
 Friday - On Friday we walk through all the items "in progress" and see how we did. Success means doing a demo showing the working functionality. The demo can just be test code. It doesn't need to be pretty. We then close all successfully completed items and review the items in proposed work. All the approved items are then moved to 'in progress' to start the new sprint.
