@@ -25,11 +25,15 @@ We like to blog but most of us blog on our own blogs. But we would like to repub
 
 That's it. The article will automatically be picked up by our blog feed.
 
-## Building our Javascript Projects 
+# Process!!!!
+We have 1 week sprints.
 
-Right now we are using stock PouchDB. We just keep this section around if we have to remember how we used to build our own version.
+Monday - Sprint starts!
 
-[Configuring PouchDB](ConfiguringPouchDB)
+Wednesday/Thursday - Each dev is responsible for putting their proposed work items for the next sprint in the ready column of https://waffle.io/thaliproject/thali. Items in the ready column should be one week or less of work. And yes, this means that if you have some huge item assigned to you in the backlog we expect you to break off one week or less pieces that go to the ready column.
+ Items should ideally result in working code. For example, let's say we are doing discovery. The first week we might just announce our location. The next week we might put in the crypto. The idea is to break things into steps that each result in some code that can run. And yes, we are willing to have things take longer. Experience shows that by ending each sprint with running code, even if this means creating additional mini-milestones, in the long run we are more likely to have good code.
+
+Friday - On Friday we walk through all the items "in progress" and see how we did. Success means doing a demo showing the working functionality. The demo can just be test code. It doesn't need to be pretty. We then close all successfully completed items and review the items in proposed work. All the approved items are then moved to 'in progress' to start the new sprint.
 
 # Dev Machine Set Up 
 We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
@@ -44,6 +48,12 @@ The [Thali Guide to Git](ThaliGuideToGit) has a bunch of information about how w
 But please, DO NOT SUBMIT COMMITS DIRECTLY TO THE DEPOT! Fork and then submit PRs from a branch on your fork. The *only* exception to this rule is update to gh-pages for the website. Those (and those alone) may be pushed directly to the depot.
 
 # Notes on adventures in node.js land
+## Building our Javascript Projects 
+
+Right now we are using stock PouchDB. We just keep this section around if we have to remember how we used to build our own version.
+
+[Configuring PouchDB](ConfiguringPouchDB)
+
 ## How to debug PouchDB tests in Node.js and Intellij
 I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran into is that I use IntelliJ as my IDE and I needed a way to run PouchDB's mocha tests. Normally this is handled easily by just executing ./bin/test-node.sh which handles all the details. The good news is that what test-node.sh does is very straight forward and easy to set up as a test in IntelliJ. Except.... it turns out that in the tests directory there are tests both for node.js and tests for the browser. test-node.sh works around this by providing a test file path that ends with test.*.js where all files that match that pattern are guaranteed to be safe for node.js. The shell then expands the wild card into a set of files and then node/mocha gets called. The issue is https://youtrack.jetbrains.com/issue/WEB-10067 which doesn't support wild card expansing of files when specifying the test directory. To work around this here is what I do.
 
