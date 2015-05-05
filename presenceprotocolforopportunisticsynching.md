@@ -141,33 +141,37 @@ append(value) - Appends the given value to the array the function was called on.
 # Processing the pre-amble and beacons
 When a device receives a discovery announcement its first job is to parse the expiration. If the expiration defines a time in the past or a time too far into the future then the receiver MUST ignore the discovery announcement.
 
-If the expiration is good then receiver parses the ephemeral public key and the IV.
+If the expiration is good then receiver parses the ephemeral public key and the IV. The public key and IV MUST be parsed into the correct size and format as previously specified.
 
 The receiver then parses through the beacon values included in the announcement. Each beacon value is processed as follows:
 
 ```
-function parseBeacons(beaconStream, Ky, IV, PubKe) {
+function parseBeacons(beaconStream, addressBook, Ky, IV, PubKe, Expiration) {
    while(beaconStream.empty() == false) {
     encryptedBeacon = beaconStream.read(48);
     Sey = ECDH(Ky.private, PubKe)
     HKey = HKDF(SHA256, Sey, IV, 16)
     unencryptedBeacon = AESDecrypt(GCM, HKey, encryptedBeacon)
-   }
-}
-function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke) {
-  beacons = []
-  for(PubKy : listOfPublicKeysToSyncWith) {
-    InsideBeaconKeyId = SHA256(Kx.public()).first(16)
-
-    Sxy = ECDH(Kx.private(), PubKy)
-    HKxy = HKDF(SHA256, Sxy, IV, 32)
-    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Timestamp).first(16)
     
-    Sey = ECDH(Ke.private(), PubKy)
-    HKey = HKDF(SHA256, Sey, IV, 16)
-    beacons.append(AES(GCM, HKey, InsideBeaconKeyId + InsideBeaconHmac))
-  }
-  return beacons
+    if (unencryptedBeacon == null) {
+       next;
+    }
+    
+    InsideBeaconKeyId = unencryptedBeacon.first(16)
+    PubKx = addressBook.get(rawBeaconKeyId)
+    
+    if (InsideBeaconKeyId == null) {
+      next;
+    }
+    
+    InsideBeaconHmac = unencryptedBeacon.skip(16).first(16);
+    Sxy = ECDH(Ky.private(), PubKx)
+    HKxy = HKDF(SHA256, Sxy, IV, 32)
+    if (InsideBeaconHmac.equals(HMAC(SHA256, HKxy, IV + Expiration).first(16)) {
+      return InsideBeaconKeyId;
+    }
+   }
+   return null;
 }
 ```
 
