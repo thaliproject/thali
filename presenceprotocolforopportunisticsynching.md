@@ -3,7 +3,7 @@ title: Thali local P2P presence protocol for opportunistic synching
 layout: default
 ---
 # Informally defining the problem
-Bob creates a post on his phone. The only way for Bob to communicate this post is via local radios (BLE, Bluetooth and Wi-Fi) because there is no Internet infrastructure in the neighborhood. In other words, all we have are mobile ad-hoc networks. Bob addressed the post to Alice, among others. So Bob wants to determine if Alice and the other people on the post are around and if so send them the post. The only way for Bob to figure this out is using his local radios.
+Bob creates a post on his phone. The only way for Bob to communicate this post is via local radios (BLE, Bluetooth and Wi-Fi) because there is no Internet infrastructure in the neighbourhood. In other words, all we have are mobile ad-hoc networks. Bob addressed the post to Alice, among others. So Bob wants to determine if Alice and the other people on the post are around and if so send them the post. The only way for Bob to figure this out is using his local radios.
 
 The challenge is that Bob is being harassed by someone in his business group and he doesn't want that person able to determine his location. In other words, he doesn't ever want any of his local radios to give away his location to the person.
 
@@ -35,24 +35,12 @@ During the time window T2 - T1 a random set of devices will come within range of
 
 The goal then is to figure out how to enable devices to discover if someone who is in their target set is within range without disclosing their identity to anyone who is not in the target set and without disclosing the contents of Lx beyond the obvious fact that if Device x and y talk then x must have been in Device y's target set and y must have been in Device x's target set.
 
-# Terminology
-
-Cx
-
-Discovery Announcement
-
-Version Id
-
-Pre-Amble
-
-Beacon
-
 # Overview of Thali discovery for opportunistic synchronization
-The base scenario for this specification is that there are two or more devices who are at least occassionally within radio range of each other but do not otherwise have a means to communicate directly. When one of these devices has information it would like to synch with another device then the first device will try to discover the second device. In other words, for any device x there is a list of contacts Cx which consists of all the other devices that device x would like to discover and synchronize data with.
+The base scenario for this specification is that there are two or more devices who are at least occasionally within radio range of each other but do not otherwise have a means to communicate directly. When one of these devices has information it would like to synch with another device then the first device will try to discover the second device. In other words, for any device x there is a target set of other devices Tx which consists of all the other devices that device x would like to discover and synchronize data with.
 
-Device x will use whatever discovery mechanism is supported by its radios, this can be BLE, Wi-Fi Direct, Bluetooth, etc. Device x will create a discovery announcement which will consist of a version ID, a pre-amble and one or more beacons. One beacon for each member of Cx.
+Device x will use whatever discovery mechanism is supported by its radios, this can be BLE, Wi-Fi Direct, Bluetooth, etc. Device x will create a discovery announcement which will consist of a version ID, a pre-amble and one or more beacons. One beacon for each member of Tx. In other words, device X isn't going to announce its identity. Instead its going to announce, in a secure way, the identities of the devices it is looking for.
 
-If device y, which is a member of Cx, receives device x'd discovery announcement, identifies itself in one of the beacons and decides that it wishes to respond to the discovery request then device y will contact device x and negotiate a connection. The exact details of how the connection is to be negotiated varies based on radio type and will be defined below.
+If device y, which is a member of Tx, receives device x's discovery announcement, identifies itself in one of the beacons and decides that it wishes to respond to the discovery request then device y will contact device x and negotiate a connection. The exact details of how the connection is to be negotiated varies based on radio type and will be defined below.
 
 # Generating the pre-amble and beacons
 A discovery announcement consists of three parts. A version Id, a pre-amble and one or more beacon values. How the version Id is transmitted is radio technology specific and will be defined below. This section of the document just defines the content of the pre-amble and beacon values which are the same regardless of transport.
@@ -68,24 +56,24 @@ IV = 16-OCTET
 Beacon = 48-OCTET
 ```
 
-Expiration MUST encode a 64 bit network byte order encoding of the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
+Expiration MUST encode a 64 bit integer, in network byte order, specifying the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
 
 Implementers MUST NOT honor discovery announcements with Timestamps that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
 
 PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
 
-PubKe is an emphemeral public key that MUST be regenerated everytime expiration changes.
+PubKe is an ephemeral public key that MUST be regenerated any time any part of the pre-amble or beacon list change.
 
-__OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the size to 66 bytes (no point compression) or 33 bytes with point compression. We should discuss. 
+__OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the size to 66 bytes (no point compression) or 33 bytes with point compression. I didn't do this because I wanted to use an encoding that was widely supported rather than create our own.
 
 __OPEN ISSUE:__ I am asserting that the X.509 encoding (with point compression explicitly disallowed) is always 88 bytes long. But I haven't actually proven this.
 
-IV MUST encode a 16 byte cryptographically secure nonce in network byte order. A new IV MUST be generated whenever the Expiration is changed on a discovery announcement.
+IV MUST encode a 16 byte cryptographically secure nonce. A new IV MUST be generated whenever any changes are made to a discovery announcement's content.
 
-Beacons are generated as given in the following pseudocode:
+Beacons are generated as given in the following pseudo-code:
 
 ```
-function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration) {
+function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration) {
   beacons = []
   InsideBeaconKeyId = SHA256(Kx.public().encode()).first(16)
 
@@ -104,39 +92,43 @@ function generateBeacons(listOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiratio
 
 The variables used above are:
 
-listOfReceivingDevicesPublicKeys is a list containing the public keys of the devices that the creator the discovery announcement, device X, wants to synch with.
+__beacons__ - a byte array containing beacon content.
 
-Kx is a public/private key pair.
+__Expiration__ - a 64 bit integer encoding the desired expiration date for the discovery announcement.
 
-Ke is the ephemeral key public/private key pair
+__GCM__ - Specifies Galois/Counter Mode for AES encryption.
 
-Expiration is the expiration date for the beacons
+__Ke__ - an ephemeral key public/private key pair.
 
-PubKy is a public key taken from listOfReceivingDevicesPublicKeys.
+__Kx__ - a public/private key pair for device x.
+
+__PubKy__ - a public key taken from setOfReceivingDevicesPublicKeys.
+
+__setOfReceivingDevicesPublicKeys__ - a set containing the public keys of the devices that the creator of the discovery announcement, device X, wants to synch with.
 
 The functions used above are defined as follows:
 
-public() - The public key of a public/private key pair
+__AESEncrypt(mode, key, value)__ - Returns the AES encryption of the value using the specified mode and key.
 
-private() - The private key of a public/private key pair
+__append(value)__ - Appends the given value to the array the function was called on. In this case we are appending a stream of bytes  returned by the AES encryption.
 
-encode() - Returns a byte array with the X.509 SubjectPublicKeyInfo encoding
+__ECDH(private key, public key)__ - Generates an ECDH shared secret using the given public key and private key (which are assumed to be from the same curve).
 
-ECDH(private key, public key) - Generates an ECDH shared secret using the given public key and private key (which are assumed to be from the same curve).
+__encode()__ - Returns a byte array with X.509 SubjectPublicKeyInfo encoding
 
-HKDF(digest, IKM, salt, length) - Implements RFC 5869's HKDF function using the specified digest, IKM and salt. It will then return length number of bytes of keying material.
+__first(length)__ - Returns the first length bytes of the array the function was called on.
 
-HMAC(Digest, key, value) - Generates the HMAC of the specified value using the given digest and key.
+__HKDF(digest, IKM, salt, length)__ - Implements RFC 5869's HKDF function using the specified digest, IKM and salt. It will then return length number of bytes of keying material.
 
-"+" - When applied to two arrays it concatenates them together
+__HMAC(Digest, key, value)__ - Generates the HMAC of the specified value using the given digest and key.
 
-First(length) - Returns the first length bytes of the array the function was called on
+__public()__ - The public key of a public/private key pair
 
-SHA256(value) - Generates the SHA-256 digest of the given value
+__private()__ - The private key of a public/private key pair
 
-AESEncrypt(mode, key, value) - Returns the AES encryption of the value using the specified mode and key.
+__SHA256(value)__ - Generates the SHA-256 digest of the given value.
 
-append(value) - Appends the given value to the array the function was called on. In this case we are appending a stream of bytes  returned by the AES encryption.
+__+__ - When applied to two arrays it concatenates them together.
 
 # Processing the pre-amble and beacons
 When a device receives a discovery announcement its first job is to parse the expiration. If the expiration defines a time in the past or a time too far into the future then the receiver MUST ignore the discovery announcement.
@@ -164,7 +156,7 @@ function parseBeacons(beaconStream, addressBook, Ky, IV, PubKe, Expiration) {
       next;
     }
     
-    InsideBeaconHmac = unencryptedBeacon.skip(16).first(16);
+    InsideBeaconHmac = unencryptedBeacon.first(16);
     Sxy = ECDH(Ky.private(), PubKx)
     HKxy = HKDF(SHA256, Sxy, IV, 32)
     if (InsideBeaconHmac.equals(HMAC(SHA256, HKxy, IV + Expiration).first(16)) {
@@ -175,14 +167,34 @@ function parseBeacons(beaconStream, addressBook, Ky, IV, PubKe, Expiration) {
 }
 ```
 
-## Re-sending discovery announcements
-It's o.k. so long as they aren't expired
-Yes, it's o.k. to add beacons to an existing discovery announcement if you really want to.
+Where variables or functions used above have the same names as in the previous section then they have the same functionality. Below are only listed variables and functions that do not appear above.
+
+The new variables are:
+
+__addressBook__ - A dictionary object whose key is the SHA256 hash of the X.509 SubjectPublicKeyInfo serialization of a public key and whose value is an object representing that public key.
+
+__beaconStream__ - A byte stream containing all the beacons in a discovery announcement concatenated together.
+
+__Ky__ - The public/private key pair for the device parsing the discovery announcement.
+
+__PubKe__ - The de-serialized ephemeral public key from the discovery announcement.
+
+The new functions are:
+
+__AESDecrypt(mode, key, value)__ - Returns the AES decryption of the value using the specified mode and key.
+
+__empty()__ - Specifies if a stream still has remaining content.
+
+__get(k)__ - Returns the value associated with the submitted key, null if there is no associated value.
+
+__read(n)__ - Reads n bytes from a stream.
+
 # BLE Binding
 
 # Wi-Fi Direct Discovery Binding
+Service Announcements over Wi-Fi Direct Discovery
 
-# Transfering from Discovery to TLS
+# Transferring from Discovery to TLS
 
 # Q&A
 ## Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
