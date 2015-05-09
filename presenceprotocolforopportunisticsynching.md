@@ -221,7 +221,7 @@ For example, imagine that Alice creates a new discussion group with Bob and they
 And, of course, our discovery channel is quite limited. So if there are lots and lots of groups there won't be enough bandwidth to announce them all.
 
 ## Code anyone?
-https://github.com/yaronyg/cryptopresencetest
+[https://github.com/yaronyg/cryptopresencetest](https://github.com/yaronyg/cryptopresencetest)
 
 The repro has a reference implementation of the discovery announcement. It is not as well tested as it should be but it gives the idea. It also contains a bunch of hacked together perf tests I used to learn how APIs worked and to test out different approaches. See the readme for details.
 
