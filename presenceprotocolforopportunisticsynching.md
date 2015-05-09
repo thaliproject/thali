@@ -3,7 +3,7 @@ title: Thali local P2P presence protocol for opportunistic synching
 layout: default
 ---
 # Informally defining the problem
-Bob creates a post on his phone. The only way for Bob to communicate this post is via local radios (BLE, Bluetooth and Wi-Fi) because there is no Internet infrastructure in the neighbourhood. In other words, all we have are mobile ad-hoc networks. Bob addressed the post to Alice, among others. So Bob wants to determine if Alice and the other people on the post are around and if so send them the post. The only way for Bob to figure this out is using his local radios.
+Bob creates a post on his phone. The only way for Bob to communicate this post is via local radios (BLE, Bluetooth and Wi-Fi) because there is no Internet infrastructure in the neighborhood. In other words, all we have are mobile ad-hoc networks. Bob addressed the post to Alice, among others. So Bob wants to determine if Alice and the other people on the post are around and if so send them the post. The only way for Bob to figure this out is using his local radios.
 
 The challenge is that Bob is being harassed by someone in his business group and he doesn't want that person able to determine his location. In other words, he doesn't ever want any of his local radios to give away his location to the person.
 
@@ -47,18 +47,14 @@ A discovery announcement consists of three parts. A version Id, a pre-amble and 
 
 The pre-amble and beacon are defined using Augmented BNF as specified in RFC 4234 with the exception that I changed the section 3.7 requirement on nRule to be n-Rule because 88OCTET look like 880 instead of 88:
 
+
 ```
 DiscoveryAnnouncementWithoutVersionId = PreAmble 1*Beacon
-PreAmble = Expiration PubKe IV
+PreAmble = PubKe Expiration
 Expiration = 8-OCTET
 PubKe = 88-OCTET
-IV = 16-OCTET
 Beacon = 48-OCTET
 ```
-
-Expiration MUST encode a 64 bit integer, in network byte order, specifying the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
-
-Implementers MUST NOT honor discovery announcements with Timestamps that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
 
 PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
 
@@ -68,23 +64,27 @@ __OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the
 
 __OPEN ISSUE:__ I am asserting that the X.509 encoding (with point compression explicitly disallowed) is always 88 bytes long. But I haven't actually proven this.
 
-IV MUST encode a 16 byte cryptographically secure nonce. A new IV MUST be generated whenever any changes are made to a discovery announcement's content.
+Expiration MUST encode a 64 bit integer, in network byte order, specifying the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
+
+Implementers MUST NOT honor discovery announcements with expirations that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
 
 Beacons are generated as given in the following pseudo-code:
 
 ```
 function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration) {
   beacons = []
-  InsideBeaconKeyId = SHA256(Kx.public().encode()).first(16)
+  UnencryptedKeyId = SHA256(Kx.public().encode()).first(16)
 
   for(PubKy : listOfPublicKeysToSyncWith) {
     Sxy = ECDH(Kx.private(), PubKy)
-    HKxy = HKDF(SHA256, Sxy, IV, 32)
-    InsideBeaconHmac = HMAC(SHA256, HKxy, IV + Expiration).first(16)
+    HKxy = HKDF(SHA256, Sxy, Expiration, 32)
+    BeaconHmac = HMAC(SHA256, HKxy, Expiration).first(16)
     
     Sey = ECDH(Ke.private(), PubKy)
-    HKey = HKDF(SHA256, Sey, IV, 16)
-    beacons.append(AESEncrypt(GCM, HKey, InsideBeaconKeyId + InsideBeaconHmac))
+    KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
+    IV = KeyingMaterial.slice(0,16)
+    HKey = KeyingMaterial.slice(16, 32)
+    beacons.append(AESEncrypt(GCM, HKey, IV, 128, UnencryptedKeyId) + BeaconHmac)
   }
   return beacons
 }
@@ -108,9 +108,9 @@ __setOfReceivingDevicesPublicKeys__ - a set containing the public keys of the de
 
 The functions used above are defined as follows:
 
-__AESEncrypt(mode, key, value)__ - Returns the AES encryption of the value using the specified mode and key.
+__AESEncrypt(mode, key, IV, GCMHashSizeInBits, value)__ - Returns the AES encryption of the value using the specified mode, GCM hash size in bits and key.
 
-__append(value)__ - Appends the given value to the array the function was called on. In this case we are appending a stream of bytes  returned by the AES encryption.
+__append(value)__ - Appends the given value to the array the function was called on. In this case we are appending a stream of bytes returned by the AES encryption.
 
 __ECDH(private key, public key)__ - Generates an ECDH shared secret using the given public key and private key (which are assumed to be from the same curve).
 
@@ -128,39 +128,46 @@ __private()__ - The private key of a public/private key pair
 
 __SHA256(value)__ - Generates the SHA-256 digest of the given value.
 
+__slice(a, b)__ - Returns a sub-set of an array starting at byte a and end at the byte before b
+
 __+__ - When applied to two arrays it concatenates them together.
 
 # Processing the pre-amble and beacons
-When a device receives a discovery announcement its first job is to parse the expiration. If the expiration defines a time in the past or a time too far into the future then the receiver MUST ignore the discovery announcement.
+When a device receives a discovery announcement it has to validate several things.
 
-If the expiration is good then receiver parses the ephemeral public key and the IV. The public key and IV MUST be parsed into the correct size and format as previously specified.
+If the device has seen the PubKe value previous then it MUST ignore the discovery announcement it has just received as a duplicate of a discovery announcement it has seen before. Therefore devices MUST have a cache to store PubKe values (or a secure hash therefore) they have seen before and SHOULD keep entries in the cache until the associated expiration time of the discovery announcement they were received on has passed. A should is specified versus a must in recognition of the fact that the cache MAY have to be purged due to space issues.
+
+If a device hasn't previously seen the PubKe then it MUST validate that the PubKe is from the appropriate curve or it MUST be ignored.
+
+A device MUST also validate the expiration. If the expiration defines a time in the past or a time too far into the future then the receiver MUST ignore the discovery announcement.
 
 The receiver then parses through the beacon values included in the announcement. Each beacon value is processed as follows:
 
 ```
-function parseBeacons(beaconStream, addressBook, Ky, IV, PubKe, Expiration) {
+function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
    while(beaconStream.empty() == false) {
-    encryptedBeacon = beaconStream.read(48);
+    encryptedBeaconKeyId = beaconStream.read(48)
     Sey = ECDH(Ky.private, PubKe)
-    HKey = HKDF(SHA256, Sey, IV, 16)
-    unencryptedBeacon = AESDecrypt(GCM, HKey, encryptedBeacon)
+    KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
+    IV = KeyingMaterial.slice(0,16)
+    HKey = KeyingMaterial.slice(16, 32)
+	UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
     
-    if (unencryptedBeacon == null) {
+    if (UnencryptedKeyId == null) { // GCM mac check failed
        next;
     }
     
-    InsideBeaconKeyId = unencryptedBeacon.first(16)
-    PubKx = addressBook.get(rawBeaconKeyId)
+    PubKx = addressBook.get(UnencryptedKeyId)
     
-    if (InsideBeaconKeyId == null) {
+    if (PubKx == null) { // Device that claims to have sent the announcement is not recognized
       next;
     }
     
-    InsideBeaconHmac = unencryptedBeacon.first(16);
+    BeaconHmac = encryptedBeacon.slice(32, 48)
     Sxy = ECDH(Ky.private(), PubKx)
-    HKxy = HKDF(SHA256, Sxy, IV, 32)
-    if (InsideBeaconHmac.equals(HMAC(SHA256, HKxy, IV + Expiration).first(16)) {
-      return InsideBeaconKeyId;
+    HKxy = HKDF(SHA256, Sxy, Expiration, 32)
+    if (BeaconHmac.equals(HMAC(SHA256, HKxy, Expiration).first(16)) {
+      return UnencryptedKeyId;
     }
    }
    return null;
@@ -181,7 +188,7 @@ __PubKe__ - The de-serialized ephemeral public key from the discovery announceme
 
 The new functions are:
 
-__AESDecrypt(mode, key, value)__ - Returns the AES decryption of the value using the specified mode and key.
+__AESDecrypt(mode, key, GCMHashSizeInBits, value)__ - Returns the AES decryption of the value using the specified mode, GCM hash size in bits and key.
 
 __empty()__ - Specifies if a stream still has remaining content.
 
@@ -190,11 +197,13 @@ __get(k)__ - Returns the value associated with the submitted key, null if there 
 __read(n)__ - Reads n bytes from a stream.
 
 # BLE Binding
+[TBD - There are several things we need to develop here. We need to specify our service ID. This will act as our version number and specify things like format and curve. We then need to specify how to move our discover announcement over BLE. Although it turns out that you can negotiate the MTU from 20 bytes it apparently doesn't get much larger than 200 or so bytes and in most cases we expect our discovery announcement to be between 1k - 2k. So we will need to define an encoding for moving this value using characteristics. There are some issues here I just don't understand yet. For example, is there any concept of a 'session identifier' in BLE? If not then it's possible that someone could start downloading characteristics to build the discovery announcement only to have those characteristics change under them and invalidate their download. We have to be able to detect when that happens. It's not hard, its just necessary. We also need to define a protocol specifically for iOS. The issue there is that apps cannot be peripherals if they are in the background or stopped. But they can be centrals. So if someone in the room is a peripheral (e.g. has a Thali app in the foreground) then we need the apps in the background (who CAN detect a peripheral even though they are in the background) to forward their discovery announcements to the peripheral so it can realy it to all the other centrals in the room that are in the background. We also need to specify how "wake up" commands are sent via the peripheral. In other words device A is "awake" and acting as a peripheral for devices B and C who both have their Thali apps asleep. When device A announces itself (because the App is in the foreground) then devices B and C will connect because they have registered to be notified of available peripherals. In that case B and C will both send A their discovery announcements and A will forward the announcement on. In other words, B will send its announcement to A who will send it to C and C to A who will send it to B. A is acting like a repeater. Now lets say that B receives C's announcement and discovers that C wants to talk to B. Because of restrictions in iOS it isn't possible for B and C to talk unless they both have their Thali apps in the foreground. So B needs to send a notification to C saying "Hey, I got your discovery announcement and I'm ready to talk!". In that case both B and C would notify their users using a device alert to open the phone and turn on the Thali app so they can exchange data using the multi-peer connectivity framework (which only works, more or less, when the app is in the foreground). But the only way to kick this off is through A. In other words B needs to send a message to A telling it to tell C to wake up its user. So we need to define a protocol to handle all of that.] 
 
 # Wi-Fi Direct Discovery Binding
-Service Announcements over Wi-Fi Direct Discovery
+[TBD - The main issue so far with Wi-Fi Direct discovery is how are we going to do it? Android supports at least two options, SSDP from UPnP and mDNS. Both support sending arbitrary strings. In mDNS's case its possible to send a service ID (as discussed in BLE) but it seems like in practice it can't be much more than 100 bytes. One can also send a TXT record with name/value pairs. The total size of the name + the value has to be less than 255 bytes. I tried to run some experiments to see how many name/value pairs I could send and ran into some issues with, I think, caching where Android wouldn't try to re-download a TXT record because it thinks it already has it. I think. Maybe. Right now I don't have time to dig deeper. The other alternative is SSDP which supports sending a bunch of service discovery strings. But I have no idea how big they can be. So right now I just don't know if it's possible to send 1K or 2K of data over the Wi-Fi Direct discovery mechanism. In the worst case we will have to do something nasty like send a service ID and a single text field in a TXT record. That txt field would contain a hash of the ephemeral key of the discovery announcement. That would be small and I'm confident we can get it safely across either SSDP or mDNS (assuming we can deal with the caching issues, who knows there?). A client who sees a hash it doesn't recognize will then have to open a Wi-Fi Direct connection and at that point we can use IP to move whatever data we need. Of course due to wi-fi pairing issues (see Jukka's articles) this might not work so alternatively we would have to use Bluetooth. That's o.k. we have enough space in discovery to send the Bluetooth address. Alternatively we could use a Wi-Fi AP point. There are ways.]
 
 # Transferring from Discovery to TLS
+[TBD - Once we find that we want to talk to somebody, how do we connect to them? In the case of Wi-Fi Direct I already mentioned at least three ways we can connect but we have to specify which ones we will use or how to advertise what choice we want the client to make if we decide to support multiple ways. In the case of BLE we will need a characteristic that someone can access to tell them how to connect. In the case of iOS to iOS communication this would be some kind of ID for the multi-peer connectivity framework. In the case of iOS/Android we would have to have the Android handset switch to being a myfi end point and tell iOS what the name is. There are a lot of issues there btw. But I'll go into those later. But once we have a socket between the phones we still need to be able to authenticate. We can't use the user's public keys with mutual TLS auth because Wi-Fi advertises the keys in the clear and so exposes the users identity. Ideally we would use something like TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256. This would allow us to use HKDF to generate the session key that the two sides would use when opening a socket and establishing a TLS session and then ECDHE would provide forward secrecy. The problem is that if [this doc](https://www.openssl.org/docs/apps/ciphers.html) is up to date then OpenSSL (which we use under Node.js) does not support a TLS_ECDHE_PSK cipher suit. In fact if [this](http://en.wikipedia.org/wiki/Comparison_of_TLS_implementations) is to be believed than only 3 of the TLS libraries tracked there actually support TLS_ECDHE_PSK. So we will need to essentially fake it. To do this we need a way to do an exchange that emulates TLS_ECDHE_PSK. For example, each side of discovery could establish an insecure connection and send to each other an AES-128 encrypted (using the previously negotiated HKxy) ephemeral public key. Once each side confirms receiving the others ephemeral key then the side acting as the server can use the same socket to start listening for a TLS connection advertising its announced ephemeral key and waiting to validate that the other side sends the ephemeral key it advertised. This would provide perfect forward secrecy and never expose anyone's credentials in the clear. But in any case, we need to specify exactly how all of this works.]
 
 # Q&A
 ## Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
@@ -211,8 +220,13 @@ For example, imagine that Alice creates a new discussion group with Bob and they
 
 And, of course, our discovery channel is quite limited. So if there are lots and lots of groups there won't be enough bandwidth to announce them all.
 
+## Code anyone?
+https://github.com/yaronyg/cryptopresencetest
+
+The repro has a reference implementation of the discovery announcement. It is not as well tested as it should be but it gives the idea. It also contains a bunch of hacked together perf tests I used to learn how APIs worked and to test out different approaches. See the readme for details.
+
 ## HMAC-MD5 vs HMAC-SHA256
-I started this work out just using HMAC-MD5 both because of size but more importantly because of performance. CPU is at a premium. I would also (naively) argue that most of the attacks on MD5 wouldn't work properly in our scenario anyway because of the limited data size. But using SHA256 would make it easier for the crypto dieties to be happy with us and it's not really a size issue since we can just truncate the hash. But what about perf? Given that we are using the AES-GCM approach perf really isn't that big a deal to be honest. We just aren't using that many hashes. But for the 'hot list' approach the perf really matters since we have to do a lot of hashing.
+I started this work out just using HMAC-MD5 both because of size but more importantly because of performance. CPU is at a premium. I would also (naively) argue that most of the attacks on MD5 wouldn't work properly in our scenario anyway because of the limited data size. But using SHA256 would make it easier for the crypto deities to be happy with us and it's not really a size issue since we can just truncate the hash. But what about perf? Given that we are using the AES-GCM approach perf really isn't that big a deal to be honest. We just aren't using that many hashes. But for the 'hot list' approach the perf really matters since we have to do a lot of hashing.
 
 So I ran some quick tests. In the first test I checked 20 hashes against an address book with 1000 keys where all comparisons fail. I repeated the test 100 times.
 
@@ -239,7 +253,7 @@ E(AES-GCM)xy = Ke + Timestamp + IV + (AES-GCM(Sey, SHA256(Kx) + HMAC-SHA256(Sxy,
 
 I put the IV into the HMAC's (where there was an IV) on the advice of Tolga Alcar who suggested this would add some additional randomness to the HMAC-SHA256 output. Since it's cheap to do and doesn't increase the size of the output this seemed reasonable.
 
-Tolga also said that using the ECDH values (for Sey and Sxy) directly is a bad idea. That the output secret is effectively a point on the curve and that the is a non-uniform space (e.g. the points are predictably on the curve). He suggested looking up NIST SP800-108 and looking for the simplest possible hash based KDF and setting its counter to 1 and using that. Effectively just hashing the ECDH secret so that we map it into a uniform space from a non-uniform space. Bouncy Castle suports KDFCounterBytesGenerator so I can add that in for testing purposes.
+Tolga also said that using the ECDH values (for Sey and Sxy) directly is a bad idea. That the output secret is effectively a point on the curve and that the is a non-uniform space (e.g. the points are predictably on the curve). He suggested looking up NIST SP800-108 and looking for the simplest possible hash based KDF and setting its counter to 1 and using that. Effectively just hashing the ECDH secret so that we map it into a uniform space from a non-uniform space. Bouncy Castle supports KDFCounterBytesGenerator so I can add that in for testing purposes. Later on I actually switched to HKDF mostly because I could actually read and understand its spec in a way that eluded me with the NIST document. It also claims to be more secure.
 
 In each of the three options the first thing we have to do is use the ephemeral key with the receiver's key to generate an Ellptic Curve Diffie Hellman key. For the performance test we used secp256k1 as our curve. We picked this solely because it was a 256 bit key thus providing roughly AES 128 equivalent strength and it was supported by bouncy castle on Android which was our test environment. The test device is a Nexus 7 phone running Android 4.4.4.
 
@@ -259,13 +273,13 @@ In the size table below we will ignore both Ke and Timestamp since they are the 
 | HMAC-AES-CBC | 16              | 16 + (32 bytes unencrypted -> 48 bytes encrypted) = 64 bytes |
 | AES-GCM  | 16                  | 32 bytes unencrypted -> 48 bytes encrypted |
 
-To compare each approach I generated 20 entries in a single presence announcement. The last entry will match against the receiver. The receiver has an address book with 10,000 entries in it. The only reason for even specifying the number of entries is to give us a meaningful comparison between the cost of the HMAC approach versus everything else. We will intentionally match on the last entry in the address book to provide the worse case scenario. Each test was run 100 times.
+To compare each approach I generated 20 entries in a single presence announcement. The last entry will match against the receiver. The receiver has an address book with 10,000 entries in it. The only reason for even specifying the number of entries is to give us a meaningful comparison between the cost of the HMAC approach versus everything else. We will intentionally match on the last entry in the address book to provide the worse case scenario. Each test was run 100 times except for the HMAC tests which I ran 10 times because I'm impatient.
 
 | Approach | Min | Median | Max |
 |----------|-----|--------|-----|
 | HMAC/HMAC| 1691 ms | 1694 ms | 1741 ms |
 | HMAC/AES-CBC| 22 ms |  36 ms |  73 ms |
-| AEC-GCM | 24 ms   | 52 ms | 59 ms |
+| AES-GCM | 24 ms   | 52 ms | 59 ms |
 
 ## What about ECIES?
 E(ECIES)xh = Ke + Timestamp + IV + (ECIES(Sey, SHA256(Kx) + HMAC-SHA256(Sxy, IV + Timestamp))+
@@ -281,4 +295,10 @@ So my current thinking is basically that ECIES is not a standard, it's not suppo
 ## Hot List
 Exy = Timestamp + (HMAC-SHA256(Sxy, Timestamp))+
 
-The obvious problem being that you have to generate a HMAC for every entry in the address book and see if any match. So with a large address book that is just not going to work. But in most cases Dunbar's number saves us. Most people don't regularly work with more than a tiny number of people and pretty much can't work with more than 150 or so people meaningfully. So this means that most folks can have a "hot list" of frequently used addresses and if someone knows they are on someone else's hot list then they can just use that list. This is an optimization but it's a powerful one.
+Imagine if someone has a relatively small address book. In that case someone could go through one time and generate Sxy for every person in the address book. Then when they receive a discovery announcement that just contains HMAC-SHA256 hashes of the timestamp they could very quickly check all the beacon values to see if they matched. I ran some tests (HashAndHmacTest.java/testCheckHashesAgainstAddressBook) and was able to check 20 hashes against an address book with 1000 entries in 131/187.5/596 (min/median/max). Which doesn't sound great until you remember that most people, most of the time, won't be working with more than say 10 or 20 people. So let's imagine an address book that is based on [Dunbar's number](http://en.wikipedia.org/wiki/Dunbar%27s_number) (150). It's what I call the "Hot List". You would have your 'full address book' which could have an unlimited number of people. But you could also have a "hot list" of just people you frequently interact with. Those people could just send their hashes. We would only need 16 bytes per hash plus 8 bytes for the Timestamp. This would seriously shrink the size of our announcement. With the GCM approach announcing 20 identities requires 88 + 8 + (20 * 48) = 1056 bits. With a pure hash approach you would need 8 + (8 * 20) = 168 bits! That's a massive difference. So running the same test with 150 people in the address book and 20 identities we get 20/28/99. That is essentially the same perf as the AES-GCM approach but with 6 times fewer bytes on the wire!
+
+I did think about using Bloom Filters as well. In other words someone sending out an announcement using hashes could instead of including the hash just enter the hash into a bloom filter and send out the bloom filter. Then the person receiving the announcement could generate all the hashes and match them against the announced bloom filter. If I did the math right then a bloom filter that could hold 20 entries with a 1% false positive rate would need 192 or so bits. Which is longer than just sending out the hashes directly. I even tried a bloom filter that could hold the whole address book, say 150 entries with a 1% false positive rate. That required 1438 bits. Compare that to the hash which would be 8 + (8 * 150) = 1208 bits. So Bloom Filters only save space (at the cost of extra calculations) if we are willing to tolerate a higher error rate (which then wastes space due to unnecessary handshakes due to false positives). I'll revisit this math later to make sure I didn't screw anything up but it doesn't look like bloom filters buy anything here.
+
+As small as hot lists are there is a catch. If device X wants to find device Y and device X thinks it is on device Y's hot list but is not then its hash won't match even though device X might be in device Y's address book. So devices have to know if they are on each other's hot lists. And since hot lists have to have a maximum size there needs to be a way to get folks off the hot list. This means we need extra protocol cruft to let end points negotiate being on each other's hot lists and we need at least some kind of expiration mechanism to automatically remove folks from the hot list after some window of time. None of this is hard but it's just more stuff to do.
+
+So my guess is that hot lists are a v3 optimization.
