@@ -10,6 +10,8 @@ Thali, Node.js & PouchDB
 * [A detailed summary of our investigation into JXCore](http://www.goland.org/jxcore/)
 * [JXCore Performance](http://www.goland.org/jxcoreperf/)
 * [Proposal for ACLS in PouchDB](http://www.goland.org/thaliacls/)
+* [Discovery and Opportunitistic Synching](presenceprotocolforopportunisticsynching)
+
 
 Our P2P Connectivity Investigation on Android
 * [BTConApp - where we keep the p2p code](https://github.com/thaliproject/BTConApp)
