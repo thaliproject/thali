@@ -11,7 +11,7 @@ Lots of the data here is taken from Michael Rogers of the [Briar Project](https:
 This document assumes the reader is reasonably familiar with BLE, Bluetooth, Wi-Fi Infrastructure mode and Wi-Fi Direct. The [mesh mess](http://www.goland.org/thalimesh/) article provides some of the background.
 
 # Code
-We are writing code to try and answer the questions below in conjunction with Michael Rogers. Our fork is available [here](https://github.com/thaliproject/android-peer-discovery/).
+We are writing code to try and answer the questions below in conjunction with Michael Rogers. Our fork is available [here](https://github.com/thaliproject/BTConApp).
 
 # Scenario - Group Chat
 Users A, B and C all want to communicate to each other for a group chat using their Android devices. There is an assumption that the users have authenticated to each other and that their communications are secure. There is also an assumption that communication will work even when there is no Internet connectivity.
