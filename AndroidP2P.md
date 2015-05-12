@@ -99,7 +99,8 @@ In Android 5.0 this limitation was fixed. So in theory an Android 4.x device can
 
 We will eventually need to support BLE both because it has powerful advantages in terms of battery power that make it a great discovery mechanism for Android 5.x but also because it's about the only discovery mechansim that works well with iOS.
 
-But for the moment we are focused on 4.x to 4.x communication and without the peripheral profile BLE just isn't useful.
+Nevertheless everything isn't perfect in Android BLE land. There is a limit on how many advertisers can use the BLE periphal at the same time. So what is Thali supposed to do when all the slots are filled up?!?! I don't see anyway to mux them or something. We'll have to figure this out.
+
 ## Wi-Fi Infrastructure Mode
 Android provides APIs that let one automatically switch Wi-Fi Infrastructure Mode access points. This is potentially a nifty hack as it means we could do discovery of other devices using Wi-Fi Direct (without, apparently, user interaction) but then actually connect to the other device using Wi-Fi Infrastructure mode. This works because all Wi-Fi Direct Groups are also Wi-Fi Infrastructure Mode access points. There is a hitch however. All Wi-Fi Direct Groups have to have passwords and it appears that Android randomly generates those passwords. Without the password the client using Wi-Fi Infrastructure Mode can't access the server's Wi-Fi Direct Group.
 
