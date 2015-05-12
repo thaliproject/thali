@@ -97,6 +97,8 @@ BLE is unfortunately not useful given our requirement that we run on 4.x Android
 
 In Android 5.0 this limitation was fixed. So in theory an Android 4.x device can detect an Android 5.x device but not vice versa.
 
+Also note that even if an app only wants to run on 5.0 and higher it still may not be possible to use BLE peripheral capabilities. This is because not all Android devices have the right hardware to be a BLE periphals. So just because a phone is running 5.0 or higher doesn't mean it necessarily can be a peripheral. Hence we'll probably need to support Wi-Fi direct for a while.
+
 We will eventually need to support BLE both because it has powerful advantages in terms of battery power that make it a great discovery mechanism for Android 5.x but also because it's about the only discovery mechansim that works well with iOS.
 
 Nevertheless everything isn't perfect in Android BLE land. There is a limit on how many advertisers can use the BLE periphal at the same time. So what is Thali supposed to do when all the slots are filled up?!?! I don't see anyway to mux them or something. We'll have to figure this out.
