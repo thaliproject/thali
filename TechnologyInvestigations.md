@@ -25,8 +25,8 @@ Our P2P Connectivity Investigation on Android
 * [Announcing the first release of the P2P library](http://www.drjukka.com/blog/wordpress/?p=75)
 
 Our P2P Connectivity Investigation on iOS
+* [iOS P2P - An overview](iosp2p)
 * [Thali Bubbles - where we keep the P2P code](https://github.com/thaliproject/ThaliBubbles)
-* There should be articles coming on this soon!
 
 Other relevant articles
 * [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
