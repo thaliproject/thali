@@ -1,0 +1,1 @@
+We have put together a set of [stories](http://thaliproject.org/stories) (in the agile sense) to help us chart out the path ahead. Obviously everything there will be changed in unforseable ways as we execute but at least it gives us a target to shoot at.
