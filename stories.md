@@ -40,6 +40,7 @@ Stories
         3.0 - Thali performance
             3.0.0 - Load Testing
     4 - Fuzzing
+    5 - Life Cycle
 ```
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
@@ -379,3 +380,7 @@ We need to create a framework to test how we behave under load. This includes ma
 # 4 - Fuzzing
 
 We need to fuzz all of our network front ends which means we need to set up a fuzzing framework and configure it to produce useful content. This won't be easy. Really. Not easy.
+
+# 5 - Life Cycle
+
+We need the native platforms to tell us when the app has started, is about to go into the background, stop, etc. We also need to connect this functionality to PouchDB so we can force LevelDown to flush memory anytime we are in danger of being shut down.
