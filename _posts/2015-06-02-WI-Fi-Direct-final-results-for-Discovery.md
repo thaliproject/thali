@@ -2,6 +2,6 @@
 layout: post
 title: WI-Fi Direct final results for Discovery
 ---
-Did finally notice that there was one bad assumption in my thoughts about the power consumption of the WiFi direct discovery. Basically I though that it does not matter whether I have peers around or not.
+WiFi direct discovery has different battery consumption patterns based on if there are peers are around or not. The lack of peers actually increases battery consumption.
 
-Anyway, happy to be set strait on the issue, and the results are now in, for more see my [blog article](http://www.drjukka.com/blog/wordpress/?p=124)
+For the details please see my [blog article](http://www.drjukka.com/blog/wordpress/?p=124)
