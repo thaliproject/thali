@@ -39,6 +39,17 @@ Friday - On Friday we walk through all the items "in progress" and see how we di
 # Our backlog/stories
 Strictly speaking the backlog and current work is all tracked using GitHub issues that are aggregated with Waffle as specified above. But we do have a set of higher level stories we maintain to help us see the path ahead. Those stories are defined [here](stories).
 
+# Naming branches in our depots
+In all of our depots master should only be used for the latest known "good". That is, nobody should ever be doing development in master. Only "finished" code should be in master. Typically code is finished when it is part of a completed story (e.g. see [stories](stories)).
+
+All development work therefore occurs on branches. Because we have multiple depots with multiple developers we want to add a little consistency to how we handle naming branches so its easier to find and understand what people are working on. Branch names should always be of the form "storyX" where X is the number assigned to the story. Note that there is no space. Dealing with spaces can be annoying so we will just skip them.
+
+In theory all work on story X should be in branch storyX. But in reality there are times where people are working in the same depot and don't want to deal with running into each other until their code is a bit more mature. In that case you can create your own dev branch called storyX-alias.
+
+So if I was working on story 0.1.0 I would create a branch called story0.1.0.
+
+If I wanted to work on my own dev version of that branch that only I should ever be checking into then I would create a branch called story0.1.0-yarong.
+
 # Dev Machine Set Up 
 We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
 
