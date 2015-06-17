@@ -34,6 +34,7 @@ Stories
         0.3 - Using Wi-Fi Infrastructure
         0.4 - Using MyFi on Android or Wi-Fi Direct Pairing?
         0.5 - Testing Framework
+        0.6 - LevelDB Support
     1 - Securing WebView to local Node.js Communication
     2 - Supporting Internet based communication
     3 - Native performance measurements
@@ -311,6 +312,10 @@ There is a third possibility which is rather than using a Wi-Fi Direct endpoint 
 # 0.5 - Testing framework
 
 How do we test local P2P? We need to set up a bunch of phones and figure out a lot of details such as how to deploy images. How to run tests. How to collect results. Etc.
+
+# 0.6  - LevelDB Support
+
+JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!
 
 # 1 - Securing WebView to local Node.js communication
 
