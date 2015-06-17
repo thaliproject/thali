@@ -3,6 +3,10 @@ title: Developer Handbook
 layout: default
 ---
 
+# Warning
+
+This doc has gotten really long and could really benefit from having a TOC but near as I can tell there is no way to have GitHub Pages automatically generate a TOC for you. So use search or scroll. Sorry. :(
+
 # Introduction 
 
 Welcome to Thali! So you want to learn more? Great!
@@ -76,6 +80,18 @@ NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](
 The [Thali Guide to Git](ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there.
 
 But please, DO NOT SUBMIT COMMITS DIRECTLY TO THE DEPOT! Fork and then submit PRs from a branch on your fork. The *only* exception to this rule is update to gh-pages for the website. Those (and those alone) may be pushed directly to the depot.
+
+# Fun with Macs
+When I had to set up IntelliJ to run on OS/X and support our Cordova work I ran into two issues immediately. Both have similar solutions. The problems were that JAVA_HOME wasn't set in a way that made IntelliJ happy so Gradle wouldn't run. And IntelliJ couldn't find the Android SDK and so wouldn't load Android projects.
+
+Go download the latest Java JDK and install.
+Then go and install the latest Android SDK.
+
+To solve both problems go load some random file just to get an IntelliJ project open. Then go to file->Project Structure and under Project Settings/Project hit New, select Java and navigate to your JDK. You can find its location by running java_home. However java_home isn't necessarily set up by default. You can run it by using /usr/libexec/java_home. If you want it always available at the command line see the link command given [here](http://stackoverflow.com/questions/1348842/what-should-i-set-java-home-to-on-osx).
+
+And before someone asks, yes I did set JAVA_HOME and no it didn't work with Intellij 14.
+
+Now go back to Project Settings/Project, hit New again and select the Android SDK and navigate to where it lives. If you installed the Android SDK manually then it lives in ~/Library/Android/sdk. The problem is that you cannot, by default, select the Library folder from the Home folder in an OS/X dialog. To fix this you have to switch to the finder, go to the go menu and hit home. Then go to view->Show View Options and select the check box by "Show Library Folder". Now you should be able to navigate to the library folder from the chooser that Intellij will display.
 
 # Notes on adventures in node.js land
 ## Building our Javascript Projects 
