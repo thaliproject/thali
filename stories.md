@@ -42,6 +42,7 @@ Stories
             3.0.0 - Load Testing
     4 - Fuzzing
     5 - Life Cycle
+    6 - Shrink NPM Modules!
 ```
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
@@ -389,3 +390,7 @@ We need to fuzz all of our network front ends which means we need to set up a fu
 # 5 - Life Cycle
 
 We need the native platforms to tell us when the app has started, is about to go into the background, stop, etc. We also need to connect this functionality to PouchDB so we can force LevelDown to flush memory anytime we are in danger of being shut down.
+
+# 6 - Shrink NPM Modules
+
+Right now we take all of our NPM modules and package them up and ship them with our app. Just putting in a few basic modules like PouchDB easily eats up 50 megs of space uncompressed. That is just nuts. This story is about figuring out how to shrink that space. We already know that NPM tends to do fun things like downloading test suites, downloading binaries used for development, leaving build files around, leaving compressed archives that were uncompressed and aren't need around, etc. This is reasonable because NPM and Node.js were really built originally for server environments where space (within reason) is not at a premium. But in app land space is a big deal and we need to get things down to size. Browserify has already had to deal with problems like this so they would be a good place to look for inspiration.
