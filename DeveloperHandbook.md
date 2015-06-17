@@ -7,13 +7,24 @@ layout: default
 
 Welcome to Thali! So you want to learn more? Great!
 
+# Checklist for adding a new team member
+1. Tell them that they need to read this doc and make sure they do what it says in terms of things to sign up for.
+2. Go [here](https://github.com/orgs/thaliproject/people) and add them as an owner.
+3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/index.md) and add them to the "Who?" section.
+4. If they are a Microsoft employee then add them to the internal OWA Thali group
+
 # Read!
 The first thing to do is read. Please start [here](ThaliAndCouch). You can probably skip most of the links except for [this one](nodeondevices) and [this one](ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
 
 # Sign up to follow us
-Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, bookmark our backlog webpage, etc. Also make sure you go to our main projects and hit 'watch' on them in GitHub.
+Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you go to our [main projects](https://github.com/thaliproject/) and hit 'watch' on them in GitHub. Right now our "main" projects are a moving target but basically any project that has been modified in the last two months is probably worth watching.
 
 If you don't 'watch' the projects then you won't get notified when we have updates, new issues, etc. So please hit 'watch'.
+
+# Wiki
+Our main website is www.thaliproject.org and it is a [Github pages](https://pages.github.com/) site that is run out of the gh-pages branch of https://github.com/thaliproject/thali. Please go read up on Github pages and understand what the header matter is, how MD files work, etc. The good news is that you can edit the pages directly in the Github web UX in our depot. You don't have to download the site and then submit PRs.
+
+HOWEVER!!!! If you make a signifigant changes to the website then please submit the change as a PR (you can do that from the Gihub depo web UX, just choose the second option by commit) and then accept your own PR. This will send a notification out to everyone about the change. Otherwise you can just use automatic commit.
 
 # Blogging
 We like to blog but most of us blog on our own blogs. But we would like to republish here interesting articles. So here are the instructions on how to use our blog.
