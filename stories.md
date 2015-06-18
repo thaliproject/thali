@@ -124,6 +124,13 @@ __PostCard App__ - Most of these changes for this release are actually in the po
 * When receiving a connection via PouchDB the connection must be validated to ensure that a proper public key and signature was used.
 * Whenever the user creates a new postcard they have to specify who the postcard is to. The possible values will be retrieved by a search on "addressbook-*" excluding the users own identity. Any time the app synchs with another app it will get that apps addressbook entry. So now when a postcard entry is saved its format includes "from" and "text" as in the previous milestone but also adds "to" with an array of public key hashes.
 
+Note:
+There are several interfaces we need to do custom TLS validation (as well as support elliptic curve keys) that are not in node v0.10. We were considering various possible work arounds. But all the APIs we need are in node v0.12. JxCore 0.4 will have full support for Node v0.12 so we should be good at that point.
+
+So the plan is to complete all the crypto work right up until the point where we need to actually establish the SSL/TLS connection. We will not however create the connection (since we can’t do the validation anyway in Node v0.10). Instead we will program PouchDB to pass in a static header on all HTTP requests containing the hash of the public key of the requestor. The server receiving the request will just “believe” the key.
+
+Obviously this is totally insecure but it lets us get the crypto pathways set up and prepares us for JxCore 0.4. A new story 0.6 has been created which will be to activate TLS and TLS validation once JxCore 0.4 is released.
+
 # 0.0.0 - ACLs
 
 In this release we will introduce ACLs.
@@ -314,7 +321,11 @@ There is a third possibility which is rather than using a Wi-Fi Direct endpoint 
 
 How do we test local P2P? We need to set up a bunch of phones and figure out a lot of details such as how to deploy images. How to run tests. How to collect results. Etc.
 
-# 0.6  - LevelDB Support
+# 0.6  - Activate TLS
+
+Activate TLS and TLS validation once JxCore 0.4 is released. This was initially part of story 0.0 but has been pushed back. Please refer to the note in story 0.0 for more details.
+
+# 0.7  - LevelDB Support
 
 JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!
 
