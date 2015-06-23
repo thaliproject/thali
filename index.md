@@ -5,12 +5,12 @@ layout: default
 
 **Thali** is an open-source software platform for creating apps that exploit the power of personal devices and put people in control of their data.
 
-You build Thali apps for Android, Windows, Linux, and Mac using HTML5 or native technologies. Thali apps are:
+You build Thali apps for Android, iOS, Windows, Linux, and Mac using HTML5 or native technologies. Thali apps are:
 
 - **Secure.** Always communicate on encrypted channels.
 - **Synchronized.** Use and replicate JSON data and binary attachments. 
-- **Server-optional.** Communicate with peers that may, but need not, live in the cloud.
-
+- **Local Peer to Peer.** Communicate with other local devices without any Internet support using BLE, Bluetooth and Wi-Fi Direct
+- **Server-optional.** Communicate directly with peers over the Internet, including cloud peers.
 
 # Why Thali? 
 
@@ -32,11 +32,11 @@ On the wire we create our peer to peer web using:
 * Our soon to be invented HTTP based protocol for high latency mesh formation
 
 Our software is based on:
-* Cordova,
-* a Cordova plugin to provide local Node.js support,
-* PouchDB,
-* OpenSSL, and
-* the Tor Onion Proxy
+* [Cordova](https://cordova.apache.org/),
+* a Cordova plugin to provide local Node.js support using [JXCore](https://github.com/jxcore/jxcore),
+* [PouchDB](http://pouchdb.com/),
+* [OpenSSL](https://www.openssl.org/), and
+* the [Tor Onion Proxy](https://www.torproject.org/)
 
 # Who?
 
