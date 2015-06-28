@@ -69,6 +69,24 @@ So if I was working on story 0.1.0 I would create a branch called story0.1.0.
 
 If I wanted to work on my own dev version of that branch that only I should ever be checking into then I would create a branch called story0.1.0-yarong.
 
+# Shadowing
+Every full time dev on the project must have a shadow. A shadow's job is to make sure that the project can keep making progress even if someone is on vacation or leaves the team. A shadow has two specific jobs:
+
+1. They must review all the code the person they are shadowing owns and must review all PRs from that person. Note that this does not mean that the shadow has to approve all the PRs. Someone else can beat them to the +1, that's fine. It's just that they must actually review all the PRs.
+2. They will be assigned occassional work items in the code base they are shadowing. This work won't take more than a few hours a week maximum (and usually less). But we need to make sure that shadows have their hands "dirty" in the code base they are watching. Assignments will typically be small features or tests.
+
+# Code Reviews
+All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review. The +1 doesn't have to come from the shadow, any qualified person will do.
+
+A code reviewer upon reviewing a PR is certifying two things:
+
+1. The code under review is readable and understandable. Or perhaps put a different way, the reviewer is saying that if the code under review has a bug or needs a new feature the reviewer is confident that they could fix that bug or add that feature. The point is to make sure that the code we are submitting is understandable by someone other than the person who wrote it.
+2. The code under review meets our style guidelines and is properly tested. Proper testing means there are unit tests, functional tests and end to end tests as appropriate.
+
++1'ing a PR is a big deal. You, as the reviewer, are taking personal responsibility for that code. If it later turns out that the code is not understandable, wasn't properly tested, etc. then you personally have failed.
+
+In general PRs should be done "silently". A PR gets submitted and someone grabs it and reviews it. Comments should be transmitted via GitHub using in-line commenting. Please DO NOT engage in long discussions. That defeats the purpose since those discussions won't be in the code. Instead the best response to a comment is for the submitter to submit an update to the PR. Good comments aren't offensive and are focused. Unfortunately submitters do need to be able to handle comments like "I really don't understand what this code is doing." However a good reviewer will then follow up that comment with details. Such as "I expected that the code would do X, but I don't see any variables related to X and I don't understand how this function relates to X. For X you would to do A, B and C. I don't see A, B and C." In other words be clear as to what you thought would happen and were your expectations were confounded.
+
 # Dev Machine Set Up 
 We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
 
