@@ -42,7 +42,7 @@ Stories
         3.0 - Thali performance
             3.0.0 - Load Testing
     4 - Fuzzing
-    5 - Life Cycle
+    5 - Life Cycle and Battery
     6 - Shrink NPM Modules!
 ```
 
@@ -412,9 +412,11 @@ We need to create a framework to test how we behave under load. This includes ma
 
 We need to fuzz all of our network front ends which means we need to set up a fuzzing framework and configure it to produce useful content. This won't be easy. Really. Not easy.
 
-# 5 - Life Cycle
+# 5 - Life Cycle and Battery
 
 We need the native platforms to tell us when the app has started, is about to go into the background, stop, etc. We also need to connect this functionality to PouchDB so we can force LevelDown to flush memory anytime we are in danger of being shut down.
+
+We also need to have events updating us on the state of the device's battery. Apps will need this data so they can determine things like - should they still be trying to replicate? Should they prioritize who to replicate and cut off trying to announce/replicate lower priority items? Etc.
 
 # 6 - Shrink NPM Modules
 
