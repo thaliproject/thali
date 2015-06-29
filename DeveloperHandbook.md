@@ -75,6 +75,17 @@ Every full time dev on the project must have a shadow. A shadow's job is to make
 1. They must review all the code the person they are shadowing owns and must review all PRs from that person. Note that this does not mean that the shadow has to approve all the PRs. Someone else can beat them to the +1, that's fine. It's just that they must actually review all the PRs.
 2. They will be assigned occassional work items in the code base they are shadowing. This work won't take more than a few hours a week maximum (and usually less). But we need to make sure that shadows have their hands "dirty" in the code base they are watching. Assignments will typically be small features or tests.
 
+## Our shadow list
+
+| Developer | Area of Ownership | Shadow |
+|-----------|-------------------|--------|
+| David Douglas | iOS | Jukka Silvennoinen|
+| Jukka Silvennoinen | Android | David Douglas |
+| Matthew Podwysocki | ACL/Quota/Notification Infrastructure | Sreejumon Purayil |
+| Sreejumon Purayil | BLE Hub and postcard app | Srikanth Challa |
+| Srikanth Challa | Crypto and Security | Yaron Y. Goland |
+| Yaron Y. Goland | PouchJS Synchronization Improvements | Matthew Podwysocki |
+
 # Code Reviews
 All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review. The +1 doesn't have to come from the shadow, any qualified person will do.
 
