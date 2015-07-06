@@ -44,6 +44,9 @@ We like to blog but most of us blog on our own blogs. But we would like to repub
 
 That's it. The article will automatically be picked up by our blog feed.
 
+## Twitter
+Just a note that we forward our blog articles to Twitter using [TwitterFeed](http://twitterfeed.com/).
+
 # Process!!!!
 We have 1 week sprints.
 
