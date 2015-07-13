@@ -2,6 +2,4 @@
 layout: post
 title: Starting my BLE investigation
 ---
-I got myself new Nexus 6 device and got my BLE work started. Did manage to get some example codes done and answers for the first questions of the API usage
-
-Read the details from my [blog article](http://www.drjukka.com/blog/wordpress/?p=134)
+I've started my BLE periphal (think: advertising) investigations on Android including figuring out which hardware will actually work (just because its Lollipop doesn't mean it will support BLE advertising), creating a decent sample code project (since we couldn't find one) and figuring out things like can multiple apps advertise over BLE in the background on Android? (Yes) For more details see my [blog article](http://www.drjukka.com/blog/wordpress/?p=134)
