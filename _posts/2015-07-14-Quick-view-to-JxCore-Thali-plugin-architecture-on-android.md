@@ -1,4 +1,3 @@
-
 ---
 layout: post
 title: Quick view to JxCore Thali plugin architecture (android part)
