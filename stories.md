@@ -35,7 +35,8 @@ Stories
         0.3 - Using Wi-Fi Infrastructure
         0.4 - Using MyFi on Android or Wi-Fi Direct Pairing?
         0.5 - Testing Framework
-        0.6 - LevelDB Support
+        0.6 - Activate TLS
+        0.7 - LevelDB Support - COMPLETE
     1 - Securing WebView to local Node.js Communication
     2 - Supporting Internet based communication
     3 - Native performance measurements
@@ -44,11 +45,16 @@ Stories
     4 - Fuzzing
     5 - Life Cycle and Battery
     6 - Shrink NPM Modules!
+    7 - Logging
+    8 - Refactoring for stand along shipping
 ```
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
 
 # -1 - Integrate Native and JXCore
+
+__Status Update:__ - We have completed story -1 for Android but not yet for iOS.
+
 So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(
 
 IN this story our goal is to get the native discovery and P2P high bandwidth communication capabilities to work with JXCore and Node.js. The model is that we will write Node code that will use the discovery APIs to discover when a device is around. At the same time we will run a TCP socket server in Node.js.
@@ -62,6 +68,9 @@ We will just use the local log to log the results of the discovery and message e
 The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.
 
 # 0 - Turn on the lights
+
+__Status Update:__ - We are feature complete for story 0 for Android and are now working on being test complete. We expect to ship Story 0 for Android by 7/24.
+
 In this milestone we just want to get the pieces sorta working together. We are explicitly not worried about security or performance.
 
 The deliverable for Milestone 0 is a Cordova based application running on Android and iOS that can synch content in a single shared database using local P2P. Our app will be a postcard application. Users can create a postcard and share it with those around them. Our focus is on asynchronous sharing. The idea is that when someone creates a postcard the people they want to share it with might not be immediately available so we will want to synch when we can.
@@ -111,6 +120,8 @@ __Postcard App__ - The postcard app consists of a single PouchDB database that r
 
 # 0.0 - Bring in the public keys!
 
+__Status Update:__ - Work is already underway on the UX and api changes needed for story 0.0. We have refactored the database and put in hooks for the crypto.
+
 In this release we will switch to using public keys for identity.
 
 __Crypto__ - We need the following APIs:
@@ -146,6 +157,8 @@ So the plan is to complete all the crypto work right up until the point where we
 Obviously this is totally insecure but it lets us get the crypto pathways set up and prepares us for JxCore 0.4. A new story 0.6 has been created which will be to activate TLS and TLS validation once JxCore 0.4 is released.
 
 # 0.0.0 - ACLs
+
+__Status Update:__ - We have started work on the core ACL engine but right now it's blocked while we finish up Story 0 for Android.
 
 In this release we will introduce ACLs.
 
@@ -333,15 +346,15 @@ There is a third possibility which is rather than using a Wi-Fi Direct endpoint 
 
 # 0.5 - Testing framework
 
-How do we test local P2P? We need to set up a bunch of phones and figure out a lot of details such as how to deploy images. How to run tests. How to collect results. Etc.
+How do we test local P2P in an automated fashion? We need to set up a bunch of phones and figure out a lot of details such as how to deploy images. How to run tests. How to collect results. Etc.
 
 # 0.6  - Activate TLS
 
 Activate TLS and TLS validation once JxCore 0.4 is released. This was initially part of story 0.0 but has been pushed back. Please refer to the note in story 0.0 for more details.
 
-# 0.7  - LevelDB Support
+# 0.7  - ~~LevelDB Support~~ - COMPLETE
 
-JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!
+~~JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!~~
 
 # 1 - Securing WebView to local Node.js communication
 
@@ -421,3 +434,23 @@ We also need to have events updating us on the state of the device's battery. Ap
 # 6 - Shrink NPM Modules
 
 Right now we take all of our NPM modules and package them up and ship them with our app. Just putting in a few basic modules like PouchDB easily eats up 50 megs of space uncompressed. That is just nuts. This story is about figuring out how to shrink that space. We already know that NPM tends to do fun things like downloading test suites, downloading binaries used for development, leaving build files around, leaving compressed archives that were uncompressed and aren't need around, etc. This is reasonable because NPM and Node.js were really built originally for server environments where space (within reason) is not at a premium. But in app land space is a big deal and we need to get things down to size. Browserify has already had to deal with problems like this so they would be a good place to look for inspiration.
+
+# 7 - Logging
+
+When a user has a problem with a Thali app the only thing they (or the app developer) can share with us is their log. So we have to make sure that we have in a place an infrastructure that:
+* Records logs onto the device persistently
+* Logs that are in a location that makes it easy for the user to retrieve them and send them to us
+* A logging infrastructure that won't fill up the device with logs
+* Remove console.log and spurious logging in general in our existing code
+* Do a complete audit of the code to put in logging that will be useful in debugging issues
+* Doing a security audit on our logging statements to make sure we aren't leaking sensitive data into the logs
+
+# 8 - Refactoring for stand along shipping
+
+Right now we have lots of useful bits of functionality that are all shoved into our Cordova plugin. That isn't good because it robs the community of functionality that they can use without Cordova. So we need to do refactoring. As we move on the list of needed refactors will change but at this moment the list includes:
+
+* Extracting all the node and native functionality from the Cordova plugin and putting it into its own stand alone JX core module so that it can be used stand alone as just a pure Node drop in without Cordova. Making this work will require help from JX Core. Right now there isn't a good way to create a JX Core module that contains native code for multiple platforms.
+* Cleaning up the bt connector class that handles Thali discovery and connectivity for Android into an APK that is easily re-usable by any Android program without node.
+* Separating out our discovery and connectivity Node.js code (with native dependencies) into their own JX module. This is different from the first item in that the first item includes all of Thali's functionalty and so would include this work item. But this item is for people who want to write mobile node.js apps that use discovery and P2P connectivity but don't want all of Thali.
+* Separating out our pure Node.js TCP/IP mux layer into a stand alone NPM
+* etc.
