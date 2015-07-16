@@ -101,10 +101,29 @@ A code reviewer upon reviewing a PR is certifying two things:
 
 In general PRs should be done "silently". A PR gets submitted and someone grabs it and reviews it. Comments should be transmitted via GitHub using in-line commenting. Please DO NOT engage in long discussions. That defeats the purpose since those discussions won't be in the code. Instead the best response to a comment is for the submitter to submit an update to the PR. Good comments aren't offensive and are focused. Unfortunately submitters do need to be able to handle comments like "I really don't understand what this code is doing." However a good reviewer will then follow up that comment with details. Such as "I expected that the code would do X, but I don't see any variables related to X and I don't understand how this function relates to X. For X you would to do A, B and C. I don't see A, B and C." In other words be clear as to what you thought would happen and were your expectations were confounded.
 
-# Node.js coding guidelines
+# Coding guidelines
+## Javascript (both Node.js and in our demo apps)
 We follow PouchDB on this one, please read their "Guide to Contributions" [here](https://github.com/pouchdb/pouchdb/blob/master/CONTRIBUTING.md#guide-to-contributions)
 
 In our case we will also be using lint, specifically jshint using [.jshintrc](https://github.com/pouchdb/pouchdb/blob/master/.jshintrc)
+
+Note that Intellij/WebStorm has built in support for jshint.
+
+Also note that there is a jquery option for JSHint to include JQuery's globals.
+
+## Java
+We will follow the [Google Java Style Guide](http://google.github.io/styleguide/javaguide.html).
+
+[Check Style](https://github.com/checkstyle/checkstyle) provides for automatic enforcement and note that there is a [plugin](https://plugins.jetbrains.com/plugin/1065) for Intellij.
+
+## Objective-C
+We will follow the [Google Objective-C Style Guide](http://google.github.io/styleguide/objcguide.xml).
+
+We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handle formatting with the [ClangFormat-Xcode](https://github.com/travisjeffery/ClangFormat-Xcode/) plugin.
+
+## HTML
+
+We don't really have coding guidelines per se in HTML (we don't write enough for it to really be worth it) but all HTML should be validated with [HTML TIDY](http://www.w3.org/People/Raggett/tidy/)
 
 # Dev Machine Set Up 
 We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
