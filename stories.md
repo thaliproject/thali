@@ -144,15 +144,12 @@ __PostCard App__ - Most of these changes for this release are actually in the po
 * Remove the code that looks for a user's name in _local.
 * When the app boots up it must search for a local file that records a PKCS#12 file and if the file isn't present than the app has to create a public/private key pair and record it in the PKCS#12 format in the defined location.
 * When the app boots up it must check its local Postcard App DB to see if it has an entry with the key "addressbook-[the device's public key hash]" and a record that contains "name" with a value that is the user's name. If such a record does not exist then the app must prompt the user for their name and create the record.
-* When the app starts advertising itself it must advertise its public key hash, not its name.
-* When connecting to a discovered endpoint via PouchDB the connection must validate that the proper public key was presented by the server and the client must present its public key.
-* When receiving a connection via PouchDB the connection must be validated to ensure that a proper public key and signature was used.
-* Whenever the user creates a new postcard they have to specify who the postcard is to. The possible values will be retrieved by a search on "addressbook-*" excluding the users own identity. Any time the app synchs with another app it will get that apps addressbook entry. So now when a postcard entry is saved its format includes "from" and "text" as in the previous milestone but also adds "to" with an array of public key hashes.
+* Whenever the user creates a new postcard they have to specify who the postcard is to. The possible values will be retrieved by a search on "addressbook-*" excluding the users own identity. In the UI, the user can select an "all" option or pick one particular destination from a drop-down list. Any time the app synchs with another app it will get that apps addressbook entry. So now when a postcard entry is saved its format includes "from" and "text" as in the previous milestone but also adds "to" with an array of public key hashes.
 
 Note:
 There are several interfaces we need to do custom TLS validation (as well as support elliptic curve keys) that are not in node v0.10. We were considering various possible work arounds. But all the APIs we need are in node v0.12. JxCore 0.4 will have full support for Node v0.12 so we should be good at that point.
 
-So the plan is to complete all the crypto work right up until the point where we need to actually establish the SSL/TLS connection. We will not however create the connection (since we can’t do the validation anyway in Node v0.10). Instead we will program PouchDB to pass in a static header on all HTTP requests containing the hash of the public key of the requestor. The server receiving the request will just “believe” the key.
+So the plan is to complete all the crypto work right up until the point where we need to actually establish the SSL/TLS connection. We will not however create the connection (since we can’t do the validation anyway in Node v0.10).
 
 Obviously this is totally insecure but it lets us get the crypto pathways set up and prepares us for JxCore 0.4. A new story 0.6 has been created which will be to activate TLS and TLS validation once JxCore 0.4 is released.
 
