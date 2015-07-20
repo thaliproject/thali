@@ -25,7 +25,7 @@ Stories
             0.0.2 - Notifications
                 0.0.2.0 - Secure Notifications
                 0.0.2.1 - Improving Notification Performance
-                0.0.2.2 - Toasts
+                0.0.2.2 - iOS background and Toasts
             0.0.3 - Attachments and Quotas
                 0.0.3.0 - Fix Attachment Perf
         0.1 - Android BLE Central
@@ -231,11 +231,18 @@ Now we will implement the full secure notifications protocol. This includes encr
 
 Imagine that user A created a postcard intended for users B and C. It turns out that user A and B's devices were within range of each other and user A gave the postcard to user B. Later on user A's device see's user C's device and synchs the postcard. At this point user C's device would start advertising for user B's device because it has content (the postcard) to share. But of course user B already has that particular postcard! So what we want is to implement a protocol that lets A tell C what it has given to other folks.
 
-# 0.0.2.2 - Toasts
+# 0.0.2.2 - iOS Background and Toasts
 
 iOS by default uses BLE for discovery. But this brings up a problem. Imagine that user A has their Thali app in the foreground and user B has their Thali app in the background. In this case both A and B are using iOS devices. In that case B can "see" A and can connect over BLE. But B can't do much more since iOS doesn't support establishing new multi-peer connectivity framework connections with background apps. So if A decides it has data for B or B decides it has data for A then B's phone needs to raise a toast to get user B's attention, get them to take the phone out of their pocket and hit the toast which will bring the Thali app to the foreground and let the multi-peer connectivity framework take over.
 
 Because Android runs in the background we don't need the same notification->toast relationship but hey, it's as good a time as any to support toasts for Android.
+
+__iOS functionality__ -
+
+* Enable our Cordova generated app to run in the background by supporting the right background modes.
+* Create a Cordova based config file where users can specify their app's reason for needing to run in the background and then copy that data into the plist generated in the Cordova app. If we don't provide this reason then the Apple App store will reject the user's Cordova app!
+* Make sure we are calling JXCore correctly so we can receive a background notification and service it from JXCore
+* Actually test that our background code (which we already have in Thali Bubbles) will work!
 
 __Node.js functionality__ -
 
