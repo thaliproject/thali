@@ -20,6 +20,7 @@ Welcome to Thali! So you want to learn more? Great!
   5. add them to the internal OWA Thali group
   6. add them to our weekly standup and other random meetings
   7. send out a mail to the internal mailing list about them joining
+  8. Harass the new member to go get connected via [https://opensourcehub2.microsoft.com/](https://opensourcehub2.microsoft.com/)
 
 # Read!
 The first thing to do is read. Please start [here](ThaliAndCouch). You can probably skip most of the links except for [this one](nodeondevices) and [this one](ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
