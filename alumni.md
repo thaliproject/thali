@@ -19,3 +19,5 @@ We had what I jokingly called a "summer of code" like event back in 2014 and the
 [Tim Park](https://twitter.com/timpark) - He wrote the demo that convinced our upper management that someone other than me could actually use Thali! His deliver was a big part of getting us funded!
 
 For just over a month we had the awesome help of [Wenhui Lu](https://twitter.com/ui_lu) who had a really hard job to do that we can't really talk about yet, but he did it well and without complaint. We are greatful!
+
+[Brian Lambert](http://www.softwarenerd.org/) - Brian created the foundation of our iOS code including figuring out how the heck to make BLE centrals work in the background, how to get an iPhone to be both a central and a peripheral at the same time and how to integrate the multipeer connectivity framework. He also was the original designer of the native API we use to communicate from JXCore/Node.js to native code and debugged through a lot of tricky issues in the early days of JXCore's native plugin api on iOS. He still helps out from time to time but now has moved on to lead his own project.
