@@ -7,11 +7,17 @@ layout: default
 
 Git is absurdly powerful. The unfortunate consequence of this power is that easy things are, in my opinion, hard. So, for example, it's pretty much impossible to write a short guide to how to handle basic Git commands for Thali because Git's power means that all sorts of things can go wrong. So please treat this guide as more along the lines of hints and pointers.
 
-# Software (for Windows) 
+# Software
+
+## Windows
 
 For Windows I use the [Git Client](http://git-scm.com/download/win). Just download and run the installer. I use the default options when installing.
 
 In most cases it's easiest (with a few exceptions I'll mention later) to use the Git Bash shell. You can run this shell from start. But this shell really wants to think it's in UNIX land, not Windows. So, for example, let's say you want to navigate to c:\temp. To do that you have to use 'cd /c/temp'. Also dir won't work, you need to use ls. 'del' won't work, you need to use 'rm', etc. Honestly I would just focus on 'cd' and 'ls'. If you need to mess around with files directly you can just use the explorer.
+
+## OS/X
+
+I use the same Git Client as for Windows. However a problem is that `git gui` won't "just work" after install for some reason. You have to follow the instructions [here](http://stackoverflow.com/questions/11722830/git-gui-not-working-after-installing-mountain-lion) to get it to work again.
 
 # Fork! 
 
@@ -123,6 +129,8 @@ This will upload your changes to your forked repository. You will need your name
 
 Merging is one of the hazards of doing development and good tools are essential. Git uses a three way merge paradigm where it looks at the newest common ancestor of the local branch and the remote branch and then compares both files against that. Doing this without a GUI is possible but really no fun. The best GUI I've found so far to do this is free (as in beer) and available [here](http://www.perforce.com/product/components/perforce-visual-merge-and-diff-tools) is called P4Merge. 
 
+## Installing on Windows
+
 You have to tell Git to use P4merge as your merge tool. To do that issue these commands taken from [here](http://stackoverflow.com/questions/426026/git-on-windows-how-do-you-set-up-a-mergetool):
 
 <pre>
@@ -138,6 +146,12 @@ WARNING: I used the above without incident on Windows 7 but when I moved over to
 </pre>
 
 Note however that the person who put up the stack overflow answer said they needed to remote the quotes on Windows 7. So your mileage may vary.
+
+## Installing on OS/X
+
+Please see [here](http://naleid.com/blog/2013/10/29/how-to-use-p4merge-as-a-3-way-merge-tool-with-git-and-tower-dot-app), specifically the section entitled "Setting up p4merge with git".
+
+The only thing I found odd about using P4 with Git on OS/X is that it's not enough to close the diff window once you have finished fixing the conflicts. You have to actually exit P4. The exit is what signals Git you are done and will continue the merge process with the next file which will then open P4 again.
 
 # Keeping in Synch with the Upstream Repository 
 
