@@ -46,5 +46,5 @@ Thali is being actively developed by David Douglas, Doug Seven, Jukka Silvennoin
 <a href="https://twitter.com/thaliproject" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @thaliproject</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
 
-<a href="http://www.thaliproject.org/atom"><img src="http://www.theblogicon.com/page3/page8/files/blog-icon-box-orange-24.png"/></a>
+<a href="http://www.thaliproject.org/atom"><img src="images/feed-icon-28x28.png"/></a>
 </p>
