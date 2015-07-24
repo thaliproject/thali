@@ -16,7 +16,7 @@ The following displays all the stories listed below in dependency order:
 
 ```
 Stories
--1 - Integrate native and JXCore
+-1 - Integrate native and JXCore - COMPLETE
     0 - Turn on the lights
         0.0 - Bring in the public keys
             0.0.0 - ACLs
@@ -51,11 +51,9 @@ Stories
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
 
-# -1 - Integrate Native and JXCore
+# ~~-1 - Integrate Native and JXCore~~ - COMPLETE
 
-__Status Update:__ - We have completed story -1 for Android but not yet for iOS.
-
-So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(
+<del>So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(
 
 IN this story our goal is to get the native discovery and P2P high bandwidth communication capabilities to work with JXCore and Node.js. The model is that we will write Node code that will use the discovery APIs to discover when a device is around. At the same time we will run a TCP socket server in Node.js.
 
@@ -65,7 +63,7 @@ In theory anytime two devices discover each other they should both connect to th
 
 We will just use the local log to log the results of the discovery and message exchange.
 
-The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.
+The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.</del>
 
 # 0 - Turn on the lights
 
