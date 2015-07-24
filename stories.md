@@ -53,17 +53,17 @@ In theory any items listed in parallel can be done in parallel. So this is NOT a
 
 # ~~-1 - Integrate Native and JXCore~~ - COMPLETE
 
-<del>So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(
+~~So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(~~
 
-IN this story our goal is to get the native discovery and P2P high bandwidth communication capabilities to work with JXCore and Node.js. The model is that we will write Node code that will use the discovery APIs to discover when a device is around. At the same time we will run a TCP socket server in Node.js.
+~~IN this story our goal is to get the native discovery and P2P high bandwidth communication capabilities to work with JXCore and Node.js. The model is that we will write Node code that will use the discovery APIs to discover when a device is around. At the same time we will run a TCP socket server in Node.js.~~
 
-When device A discovers device B then device A will use the discovery API to request a connection to device B. This will cause the native framework to stand up a local TCP/IP port on localhost and return the port to Node.js. Node.js will then open a TCP/IP socket to the localhost:port. The native framework will simultaneously set up the local P2P connection (using Bluetooth on Android and the multi-peer connectivity framework on iOS) and will create a bridge between TCP/IP and the local P2P connection. The socket client will then send a test message across the wire to the server and the server will echo it back. This will prove that the two can connection from Node.js over TCP/IP and over the local P2P connection.
+~~When device A discovers device B then device A will use the discovery API to request a connection to device B. This will cause the native framework to stand up a local TCP/IP port on localhost and return the port to Node.js. Node.js will then open a TCP/IP socket to the localhost:port. The native framework will simultaneously set up the local P2P connection (using Bluetooth on Android and the multi-peer connectivity framework on iOS) and will create a bridge between TCP/IP and the local P2P connection. The socket client will then send a test message across the wire to the server and the server will echo it back. This will prove that the two can connection from Node.js over TCP/IP and over the local P2P connection.~~
 
-In theory anytime two devices discover each other they should both connect to the other and send the test message.
+~~In theory anytime two devices discover each other they should both connect to the other and send the test message.~~
 
-We will just use the local log to log the results of the discovery and message exchange.
+~~We will just use the local log to log the results of the discovery and message exchange.~~
 
-The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.</del>
+~~The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.~~
 
 # 0 - Turn on the lights
 
