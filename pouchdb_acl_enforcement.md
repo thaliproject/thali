@@ -75,5 +75,9 @@ This installs pouchdb-rewrite which is intended to emulate the CouchDB rewrite f
 ### routes/documents
 ### validation
 ### routes/404
+
 ## couchConfig
 There is now a couchConfig file where much of the functionality of PouchDB can be configured. We need to review it to see if there are things in there that could be a security issue.
+
+## Pull Replication
+Our immediate thinking is that we will block all APIs from non-admin users that are not immediately needed by PouchDB's pull replication functionality. So we need to walk through the replicator and understand what REST endpoints it is using.
