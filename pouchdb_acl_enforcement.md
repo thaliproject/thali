@@ -1,3 +1,8 @@
+---
+title: Defining an Express-PouchDB middleware for enforcing ACLs
+layout: default
+---
+
 # Defining an Express-PouchDB middleware for enforcing ACLs
 
 This document defines a set of behaviors for an Express middleware designed to enforce ACLs in PouchDB. This middleware tries to make relatively few assumptions about how the underlying ACL layer it is asked to enforce actually works. Instead the middleware is intended to take callbacks from the programmer using it and it is in those callbacks that actual ACL decisions will be made. The middleware's job then is to make it as easy as possible to enforce those decisions in a secure manner for Express-PouchDB.
