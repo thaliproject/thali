@@ -26,6 +26,11 @@ There are a number of things we explicitly do not care about, these include:
 3. Checking the network based CRL mechanism, we distribute revoked keys (not certs) through our own mechanisms
 
 # Changing the OpenSSL default validator
+Actually I think this is as simple as just setting ctx->untrusted to null. Just create a flag that does that and call it a day.
+
+STOPPED HERE
+
+
 Ideally what we would do is add an extra flag to the OpenSSL default validator. There already is a X509_V_FLAG_CRL_CHECK that if it isn't set will disable CRL checking. We can also not set X509_V_FLAG_TRUSTED_FIRST which if turned off disables a tiny bit of the trust store logic. So really we just need to disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L259). And either mark all the certs as trusted or also disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L288) and [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L415).
 
 I wonder what's the probability of us getting the OpenSSL folks to accept a new flag with these changes and then getting JXcore to take the new release of OpenSSL and then extending _tls_wrap.js and tls_wrap.cc to be able to pass the new flag in?
@@ -41,7 +46,6 @@ Another option is to try and drive things from the Node.js layer. But it's a bit
 2. Write our own JXcore extension that performs our own stand alone validation (outside the context of the handshake) and pass it the PEM values.
 3. Write an event listener that will sit on the secure/secureEvent events and make two native calls, one to get the PEM encoded cert chain 
 4. 
-STOPPED HERE
 
 # Getting OpenSSL to do what we want
 Thali is implemented on top of JXcore which is a variant of node.js. This means that we are using the node.js TLS libraries built on top of OpenSSL. Right off we have a problem because Node's TLS library either wants us to specify a CA (both on client and server) or we have to set rejectedUnauthorized = true. The problem is rejectedUnauthorized when it makes its way down to TLS it hits [here](https://github.com/joyent/node/blob/8e539dc26dd811c960a8943b28c4a351aa5d89ad/src/tls_wrap.cc#L700) which then hits [here](https://www.openssl.org/docs/ssl/SSL_CTX_set_verify.html) with the flag SSL_VERIFY_NONE which attempts to stop servers from soliciting client certs (bad) and on the client side allows any cert presented by the server to be accepted no matter how broken (very bad).
