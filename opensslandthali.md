@@ -97,3 +97,6 @@ But the other way, the one Node uses itself, is that it tends to accept a lot an
 The good news is that all of the above should actually work. The bad news is that it's nightmarish for our perf! Those two native calls? They are synchronous! This means that JXCore is shut down while those calls are off doing expensive crypto operations! And near as I can tell those functions MUST be synchronous because our only chance to kill the connection if it is bad is in the listener to the secure/secureConnect event. Once we exit, that's it, our chance to stop bad things is lost.
 
 An obvious alternative is to create a variant of the secure/secureConnection event that is willing to block a connection until it gets an explicit callback. In other words the event itself will come with a context object that will have a method that specifies if the connection should be allowed. This would at least allow us to do all the expensive crypto work on its own thread and not block node while we wait for validation to complete.
+
+# CRL and OCSP
+We really need to figure out how to either make sure certs are rejected if they contain points to these or to make sure we don't actually resolve them since these can be used to leak identities. Although I'm not 100% sure I'm right about this. I can come up with some weird use cases where CRL and OCSP could be useful but I'm dubious.
