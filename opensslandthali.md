@@ -8,7 +8,7 @@ In the Thali security model each principal has its own public key that it is ide
 
 Note that in our use of TLS there are no CAs or trust stores. In fact, there are no certs at all. In Thali we move around the raw public keys, not certs. So what we validate at runtime is that the root cert matches a key we recognize and chains properly to the leaf cert. 
 
-We do have potentially revoked public keys, but not certs. This can happen in the case that a particular device and its intermediate and leaf keys are compromised but the root is not. In that case the intermediate/leaf keys would be revoked and we do need to be able to check for any certs that try to use them.
+We do revoke public keys, but not certs. This can happen in the case that a particular device and its intermediate and leaf keys are compromised but the root is not. In that case the intermediate/leaf keys would be revoked and we do need to be able to check for any certs that try to use them.
 
 But in general when we receive a chain all we really care about is:
 
@@ -24,6 +24,24 @@ There are a number of things we explicitly do not care about, these include:
 1. Having any kind of trust store, that is, we don't ever look to find the root or intermediate certs in any trust store
 2. Making any checks related to IP address or DNS addresses, the connection validates the identity of the principal, not any binding to any particular network endpoint
 3. Checking the network based CRL mechanism, we distribute revoked keys (not certs) through our own mechanisms
+
+# Changing the OpenSSL default validator
+Ideally what we would do is add an extra flag to the OpenSSL default validator. There already is a X509_V_FLAG_CRL_CHECK that if it isn't set will disable CRL checking. We can also not set X509_V_FLAG_TRUSTED_FIRST which if turned off disables a tiny bit of the trust store logic. So really we just need to disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L259). And either mark all the certs as trusted or also disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L288) and [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L415).
+
+I wonder what's the probability of us getting the OpenSSL folks to accept a new flag with these changes and then getting JXcore to take the new release of OpenSSL and then extending _tls_wrap.js and tls_wrap.cc to be able to pass the new flag in?
+
+# Using SSL_CTX_set_cert_verify_callback
+Another option would be to use the SSL_CTX_set_cert_verify_callback function to submit our own custom validator. This works fine on the OpenSSL side but it's a challenge on the JXcore side. The problem is that we have to somehow submit a native C validator as part of a JXcore extension and then somehow reference that validator from inside of Node.js and have some kind of pointer to it passed via the Node.js TLS library down through _tls_wrap.js to tls_wrap.cc. The changes to Node.js would be really minor. Essentially adding a new native function in tls_wrap.cc to expose the SSL_CTX_set_verify_callback interface.
+
+The hard part is - how do we provide our native C validator? I could imagine us doing something like providing a JXcore extension that exposes some standard C layer factor interface that we could then point to in Node.js and JXcore would then be able to call the factory down in the C code and provide the instance (which would return a verify callback) to OpenSSL.
+
+# Driving validation from Node.js
+Another option is to try and drive things from the Node.js layer. But it's a bit tricky. What we would have to do is the following:
+1. Add a method to tls_wrap.cc that exposes the cert chain as an array of PEM (base 64 strings) values. Alternatively we could enhance the existing getPeerCertificate call to include the PEM values in the existing JSON.
+2. Write our own JXcore extension that performs our own stand alone validation (outside the context of the handshake) and pass it the PEM values.
+3. Write an event listener that will sit on the secure/secureEvent events and make two native calls, one to get the PEM encoded cert chain 
+4. 
+STOPPED HERE
 
 # Getting OpenSSL to do what we want
 Thali is implemented on top of JXcore which is a variant of node.js. This means that we are using the node.js TLS libraries built on top of OpenSSL. Right off we have a problem because Node's TLS library either wants us to specify a CA (both on client and server) or we have to set rejectedUnauthorized = true. The problem is rejectedUnauthorized when it makes its way down to TLS it hits [here](https://github.com/joyent/node/blob/8e539dc26dd811c960a8943b28c4a351aa5d89ad/src/tls_wrap.cc#L700) which then hits [here](https://www.openssl.org/docs/ssl/SSL_CTX_set_verify.html) with the flag SSL_VERIFY_NONE which attempts to stop servers from soliciting client certs (bad) and on the client side allows any cert presented by the server to be accepted no matter how broken (very bad).
@@ -45,7 +63,7 @@ So it's tempting them to just jump to the internal_verify() function which seems
     * check_id() - We actually need the inverse of this function. Our certs should not contain a host name, email or address. But since it's hard to create certs without them we should just ignore them and hence don't need this function.
     * check_revocation() - We don't use the X.509 CRL mechanism so this is useless to us. In fact, we should ideally reject any certs that even contain the CRL declaration.
     * v3_asid_validate_path() - This is an implementation of RFC 3779 that lets one bind identities to certs. We don't work that way. At most we should check if this extension is used and if so reject the cert.
-  
+
 # Making this work in JXCore
 Now in theory the solution is fairly straight forward, at least if we were only using OpenSSL. We could call SSL_CTX_set_cert_verify_callback and specify our own custom validator. This would replace X509_verify_cert completely and instead we could use some hacked up logic of our own that works as I describe above. Heck, for now, we could just call internal_verify() and call it a day and add the rest later.
 
