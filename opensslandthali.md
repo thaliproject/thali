@@ -6,11 +6,11 @@ layout: default
 # Requirements
 In the Thali security model each principal has its own public key that it is identified with. We then use TLS mutual auth when connecting two principals in order to mutually authenticate to each other. Each principal is expected to send a cert chain that roots up to a self signed cert.
 
-Note that in our use of TLS there are no CAs or trust stores. In fact, there are no certs at all. In Thali we move around the raw public keys, not certs. So what we validate at runtime is that the root cert matches a key we recognize and chains properly to the leaf cert. 
+In Thali we explicitly do not use the CA security model. In our world an identity is a public key. So when we validate a cert chain in Thali all we really want to know is if the leaf node has a path to the root cert. The public key in the root cert is then the "identity" of the principal at the other end of the line. We then know the identity of the called (their public key) and we can then use that public key with our ACL mechanism to decide what (if anything) the caller should be allowed to do. In other words TLS is for authentication, not authorization.
 
-We do revoke public keys, but not certs. This can happen in the case that a particular device and its intermediate and leaf keys are compromised but the root is not. In that case the intermediate/leaf keys would be revoked and we do need to be able to check for any certs that try to use them.
+There is an exception to this however. If a particular identity (read: public key) is known to be compromised, then we do want to reject any connections from it. Technically we don't need to do this. The requester's identity won't be in any ACLs and all of their requests will be automatically rejected. But the earlier one can reject a bad caller the better so potentially we do want to use a revocation store. But keep in mind that what we want to revoke is not a particular cert necessarily, but a public key and any keys that chain off that public key.
 
-But in general when we receive a chain all we really care about is:
+When we receive a cert chain over TLS all we really care about is:
 
 1. Each cert in the chain is "internally valid", that is, each cert:
  * Is not expired
@@ -23,36 +23,43 @@ There are a number of things we explicitly do not care about, these include:
 
 1. Having any kind of trust store, that is, we don't ever look to find the root or intermediate certs in any trust store
 2. Making any checks related to IP address or DNS addresses, the connection validates the identity of the principal, not any binding to any particular network endpoint
-3. Checking the network based CRL mechanism, we distribute revoked keys (not certs) through our own mechanisms
+3. Checking the network based CRL mechanism, until we support having root keys off device we can't use this mechanism and its presence is most likely a form of de-anonimization attack.
 
-# Changing the OpenSSL default validator
-Actually I think this is as simple as just setting ctx->untrusted to null. Just create a flag that does that and call it a day.
+Thali is implemented using Node.js which uses OpenSSL. So the question we are faced with is - how do we meet the above requirements in OpenSSL?
 
-STOPPED HERE
+The main issue is that OpenSSL's default validator uses a trust store and for the reasons described above we don't want to use a trust store. So how do we make things work for us?
 
+# Can't we just use the trust store anyway?
+In theory we could make the trust store work. For example, imagine that we do have certs for everyone we want to talk to. In that case a TLS client could just specify the cert of the server it wanted to connect to as being the one and only CA for that connection and then let OpenSSL (and Node.js, which supports this kind of configuration) do its thing. Similarly on the server side we could specify the certs for all the principals the server knows about as the CAs for that server. This would properly validate connections using the existing Node.js/OpenSSL infrastructure. A tiny problem is that the list of principals changes over time and the way Node.js handles specifying CAs is one time at server start up. However this is an issue with Node.js, not with OpenSSL. OpenSSL supports dynamically adding new CAs to the SSL_CTX. So in theory we could extend Node.js to have a new addCACert function that could be called on a server object to allow for new principals to be added.
 
-Ideally what we would do is add an extra flag to the OpenSSL default validator. There already is a X509_V_FLAG_CRL_CHECK that if it isn't set will disable CRL checking. We can also not set X509_V_FLAG_TRUSTED_FIRST which if turned off disables a tiny bit of the trust store logic. So really we just need to disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L259). And either mark all the certs as trusted or also disable [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L288) and [this section](https://github.com/openssl/openssl/blob/e23a3fc8e38a889035bf0964c70c7699f4a38e5c/crypto/x509/x509_vfy.c#L415).
+So with a tiny bit of work we can make Node.js and OpenSSL do what we need, more or less, as is. Sorta. There are still problems.
 
-I wonder what's the probability of us getting the OpenSSL folks to accept a new flag with these changes and then getting JXcore to take the new release of OpenSSL and then extending _tls_wrap.js and tls_wrap.cc to be able to pass the new flag in?
+The problem with all of this is - how did a principal get another principal's cert? In Thali we pass around principal's identities (which is their public key) as URLs, see our [Httpkey URL Scheme](/HttpkeyURLScheme). But how do we make that work with a full cert? We would have to start base 64 encoding root certs. And what, btw, does it mean if the root cert expires? This is actually a very tricky issue. In a CA model a cert actual validates the relationship between a public key and something else, usually some kind of identity or DNS name or IP address or whatever. That isn't the model in Thali. In Thali the public key is the identity. It does not 'relate' to anything else. So when the public key is no longer usable (it was compromised, it is too short for modern attacks, etc.) then that identity no longer exists. It's gone. So the only reason we would use certs isn't because they really make sense for Thali but because it makes it easier to use OpenSSL and Node.js. So we really want to stick with public keys, not certs.
 
-# Using SSL_CTX_set_cert_verify_callback
-Another option would be to use the SSL_CTX_set_cert_verify_callback function to submit our own custom validator. This works fine on the OpenSSL side but it's a challenge on the JXcore side. The problem is that we have to somehow submit a native C validator as part of a JXcore extension and then somehow reference that validator from inside of Node.js and have some kind of pointer to it passed via the Node.js TLS library down through _tls_wrap.js to tls_wrap.cc. The changes to Node.js would be really minor. Essentially adding a new native function in tls_wrap.cc to expose the SSL_CTX_set_verify_callback interface.
+The other problem is that servers want to be able to accept authenticated connections from principals they do not know. Think of this as the equivalent of going to a website and create an account. If you come back with the same account you will get a known context. Thali wants to do the same thing. Someone could connect to my server who I don't know (and I don't need to know). If they come back again with the same identity I will return the same context for them. How do we handle that scenario if we are required to submit a list of all the CAs we know ahead of time? We don't know the principal ahead of time.
 
-The hard part is - how do we provide our native C validator? I could imagine us doing something like providing a JXcore extension that exposes some standard C layer factor interface that we could then point to in Node.js and JXcore would then be able to call the factory down in the C code and provide the instance (which would return a verify callback) to OpenSSL.
+Of course we could work around the last problem with a custom validator but that is work we already describe below to give us a solution that divorces us from the Trust Store concept all together.
 
-# Driving validation from Node.js
-Another option is to try and drive things from the Node.js layer. But it's a bit tricky. What we would have to do is the following:
-1. Add a method to tls_wrap.cc that exposes the cert chain as an array of PEM (base 64 strings) values. Alternatively we could enhance the existing getPeerCertificate call to include the PEM values in the existing JSON.
-2. Write our own JXcore extension that performs our own stand alone validation (outside the context of the handshake) and pass it the PEM values.
-3. Write an event listener that will sit on the secure/secureEvent events and make two native calls, one to get the PEM encoded cert chain 
-4. 
+So for Thali the bottom line is that the trust store concept is an artifact of the CA model and Thali doesn't use the CA model so we don't need the trust store.
 
-# Getting OpenSSL to do what we want
-Thali is implemented on top of JXcore which is a variant of node.js. This means that we are using the node.js TLS libraries built on top of OpenSSL. Right off we have a problem because Node's TLS library either wants us to specify a CA (both on client and server) or we have to set rejectedUnauthorized = true. The problem is rejectedUnauthorized when it makes its way down to TLS it hits [here](https://github.com/joyent/node/blob/8e539dc26dd811c960a8943b28c4a351aa5d89ad/src/tls_wrap.cc#L700) which then hits [here](https://www.openssl.org/docs/ssl/SSL_CTX_set_verify.html) with the flag SSL_VERIFY_NONE which attempts to stop servers from soliciting client certs (bad) and on the client side allows any cert presented by the server to be accepted no matter how broken (very bad).
+# A new OpenSSL flag - trust_all_certs
 
-In trying to figure out how to fix this I took a look at OpenSSL. If I'm reading the code right then the interesting function is X509_verify_cert in the x509_vfy.c file. The problem is that this function is really focused on a bunch of things, like trust store validation, that we explicitly don't want to do.
+Our ideal solution to our problem would be a new trust_all_certs flag that says that any cert that is received in a chain is automatically trusted. The term 'trust' here has a very specific and limited definition, it means we treat all certs as being in the trust store. We don't necessarily even care if a particular public key has been revoked. The reason is that we use our own ACL layer to enforce access so if someone tries to connect with a revoked key they won't have the right ACL to do anything. It would be nice to check for revoked keys at this point but it's not a must have.
 
-So it's tempting them to just jump to the internal_verify() function which seems to do exactly what we want. The problem is that there are a few checks in X509_verify_cert that are not in internal_verify that I am concerned we will need. Below I try to list the functionality I think we do and do not want from X509_verify_cert:
+There are several potential approaches for making this new flag work.
+
+## Override get_issuer
+In looking at the OpenSSL code there seems like a fairly straight forward way to make this work. In x509_vfy.c there is a function called X509_verify_cert which is where the default validator (I believe) lives. This takes as an argument a X509_STORE_CTX. x509_STORE_CTX is actually a typedef in ossl_typ.h for the X509_store_ctx_st structure. This structure contains a pointer to a function called get_issuer which is used by the validator to see if a specific cert is in the trust store. So in theory if we can replace that function with our own, our version of the function could (in essence) always return 'true' to any request to validate a cert.
+
+Near as I can tell X509_STORE_CTX is actually taken from the root SSL_CTX object which has a member cert_store which is a X509_STORE which is an alias for x509_store_st. It is this object that is used to create a X509_STORE_CTX object using the x509_STORE_CTX_init function. So in theory the trick is to grab cert_store from SSL_CTX and set it the way we want. Then any connections created from that SSL_CTX will use our "trust all" get_issuer function.
+
+### Making this work in Node.js
+node_crypto.cc has a method SecureContext::Init which calls SSL_CTX_new which sets sc->ctx_ which is the SSL_CTX object. Just below that sc->ca_store is set to NULL. That ca_store argument is the X509_STORE object we are looking for. So in theory if we can wrap that with an IF that looks for a special flag we specify then we could set the ca_store to X509_STORE_new() (which just initializes everything) and then override the get_issuer function to point to our 'accept all' function.
+
+The only problem is that if no CA is specified in the tls.createServer or equivalent command then crypto.js will call addrootCerts which will override our X509_STORE setting. That logic seems to live in crypto.js in the createCredentials method. This is called in tls.js by SecurePair. So we need to make sure we pass in an argument in options to SecurePair so that if we are using 'trust all' we don't call crypto.createCredentials(). In general the real work here is making sure we validate the options that are submitted to the TLS object (and secure context in general) to make sure we don't have contradictory options. Someone, for example, shouldn't be specifying a custom list of CAs and using our flag. If they do we should return an error.
+
+## Using a custom validator
+The other option for making this all work is to replace the default validator all together with our own custom validator. This will, by definition, do whatever we want it to do. Most likely we would start with the default validator and just excise the trust store checks. Below I look at the various components of the default validator and identify what we do and don't want to keep.
 
 * X509_verify_cert functionality
   * Things I think we do want
@@ -68,35 +75,32 @@ So it's tempting them to just jump to the internal_verify() function which seems
     * check_revocation() - We don't use the X.509 CRL mechanism so this is useless to us. In fact, we should ideally reject any certs that even contain the CRL declaration.
     * v3_asid_validate_path() - This is an implementation of RFC 3779 that lets one bind identities to certs. We don't work that way. At most we should check if this extension is used and if so reject the cert.
 
-# Making this work in JXCore
-Now in theory the solution is fairly straight forward, at least if we were only using OpenSSL. We could call SSL_CTX_set_cert_verify_callback and specify our own custom validator. This would replace X509_verify_cert completely and instead we could use some hacked up logic of our own that works as I describe above. Heck, for now, we could just call internal_verify() and call it a day and add the rest later.
+To make this work we have to call a function called SSL_CTX_set_cert_verify_callback which takes our old friend SSL_CTX and lets us set our custom validator.
 
-But, alas, it's really not that simple.
+### What about SSL_CTX_set_verify/SSL_set_verify?
+There is a similar sounding function called SSL_CTX_set_verify/SSL_set_verfy that would seem like a potential candidate. But in practice it is not. The verify function isn't called until after the validator is run and if we are using the default validator then it will fail due to trust store issues.
 
-The problem is that we aren't talking to OpenSSL directly. We are talking to Node.js who is talking to its HTTPS library who is talking to its TLS library who is talking to OpenSSL. So how are we supposed to build our custom validator and how do we get it to OpenSSL?
+### Making this work in Node.js
+This should be as easy as slipping an argument down into SecureContext::Init which would then call SSL_CTX_set_cert_cerify_callback. Node.js doesn't (and shouldn't) ever mess with the validator so once we set it on the parent context it should show up everywhere we need it automatically.
 
-## Get JXcore to let us use our own validator directly with OpenSSL (or not)
+## Trade offs between the approaches
+I suspect the most robust solution is the custom validator. The reason being that regardless of what methods node.js calls on the SSL_CTX the custom validator always gets the final say. So we don't have to worry about some obscure function somewhere over writing the cert_store object and making a mess of things.
 
-Keep in mind that we need to re-use code already in OpenSSL (I'm too much of a wimp to trust things like [pkijs](https://www.npmjs.com/package/pkijs) quite yet) so somewhere there is C code. Now the good news is that JXCore supports calling out to the native platform. The bad news is that this isn't good enough. We don't just need the custom validator available in C, we have to get it into a physical position so that when Node calls TLS who calls OpenSSL we can pass in that validator. This means solving two different problems.
+The reason why I don't like the custom validator is because TLS validation code is easy to screw up. Writing one's own validator seems like a recipe for disaster. When various bugs are found in the default validator are we going to find out about them and fix them in our custom version? It's just a mess.
 
-The first problem is how to make our C code visable to the instance of OpenSSL being used by Node.js? That is a linking problem. Although presumably with a little function passing at the C level using a function declaration provided in JXcore we could solve that one.
+A potential solution is a hybrid approach where we create our own custom validator but all it does is make sure that the X509_STORE_ctx has the right trust store validator before then calling the default validator. This gives us the benefit of not worrying about anything messing with our settings at the Node.js layer while also allowing us to rely on the default validator.
 
-The second problem is how do we change Node's TLS library to allow us to use our customer C validator for OpenSSL? There are two approaches here. One approach is we somehow figure out how to get our custom validator submitted to SSL_CTX_set_cert_verify_callback when Node.js sets up the SSL connection in tls_wrap.cc and call it a day. That would be ideal.
+My guess is that we should use a custom validator whose only purpose is to validate the store is set correctly before calling the default validate and we simultaneously should check the options to make sure that no one submitted any options that could cause "odd" behavior. Think of it as defense in depth.
 
-But I'm not sure if the JXcore folks would be willing to go for all the magic implied here. In other words we would need some way to create a native extension that has a validator and tell JXcore about it via the native interface and then have JXcore marshal an instance of it and pass it to the OpenSSL context and call SSL_CTX_set_cert_verify_callback with it. This is all doable, I just don't know if they will be willing to do it.
+## Could we get OpenSSL to just implement our flag?
 
-## Get JXcore to expose a few OpenSSL APIs
+The CA model is known to have serious issues and so Thali doesn't use it. We can't be the only ones! But anyone who wants to use TLS with OpenSSL outside of the CA model really needs an easy way to disable trust store checking. So one wonders if we might not be able to convince the OpenSSL folks to add a 'disable trust store checks' flag?
 
-But the other way, the one Node uses itself, is that it tends to accept a lot and then depend on the user, in Node (e.g. in Javascript) listening to the 'secure' and/or 'secureConnect' event. This is a choke point where in theory the Javascript code can look around the SSL context and decide if it likes it or not. This leads to a possible solution to our validation problem but it's performance implications and complexity don't make me happy. The solution would be:
+# Disabling CRL/OCSP Checks
+Because we don't use cert revocation (we revoke public keys instead) both CRL and OCSP really aren't useful for us. Especially since our default scenarios work completely offline and with devices that don't have stable IP addresses or even DNS addresses. So any cert that comes our way with a CRL or OCSP extension is most likely some kind of attack to cause us to leak location or accept a badly formatted file. So we really need to figure out how to turn both of these off.
 
-1. Extend the _tls_wrap.js and tls_wrap.cc libraries to expose a variant of getPeerCertificate that returns an array of PEM encoded certs representing the X.509 certs that were presented by the other principal.
-  * Implementing this will require calling OpenSSL's SSL_get_peer_certificate function followed by a call to one of the PEM_write_* methods to write the X509 in memory cert out to PEM (which is base 64 string) and then returning that back to Javascript as an array
-2. Write native C code that does all the validation described above and give it an interface that expects to receive an array of PEM encoded certs representing the cert chain which will then be translated to X509 objects which will be shoved into a STACK_OF(X509) and then used to create a X509_STORE_CTX which can then be used to call the functions above. The final result being a boolean, passed back to Javascript, that specifies if it all worked or not.
-3. Listen to the secure and/or secureConnect event and when it happens call out to "enhanced" getPeerCertificate function to get the list of PEM values for the chain and then make a second native call to call our custom validator.
+Turning off CRL checking is pretty easy in OpenSSL, we just need to not pass in the X509_V_FLAG_CRL_CHECK. Node.js will only set this flag if the AddCRL function is called. So um... don't do that.
 
-The good news is that all of the above should actually work. The bad news is that it's nightmarish for our perf! Those two native calls? They are synchronous! This means that JXCore is shut down while those calls are off doing expensive crypto operations! And near as I can tell those functions MUST be synchronous because our only chance to kill the connection if it is bad is in the listener to the secure/secureConnect event. Once we exit, that's it, our chance to stop bad things is lost.
+As for OCSP. I need to do more homework. I looked around and I can see the OCSP code but I can't find anywhere in x509_vfy.c where it is called. So I'm not completely sure how to make sure it doesn't get used. But we'll figure it out.
 
-An obvious alternative is to create a variant of the secure/secureConnection event that is willing to block a connection until it gets an explicit callback. In other words the event itself will come with a context object that will have a method that specifies if the connection should be allowed. This would at least allow us to do all the expensive crypto work on its own thread and not block node while we wait for validation to complete.
-
-# CRL and OCSP
-We really need to figure out how to either make sure certs are rejected if they contain points to these or to make sure we don't actually resolve them since these can be used to leak identities. Although I'm not 100% sure I'm right about this. I can come up with some weird use cases where CRL and OCSP could be useful but I'm dubious.
+OCSP stapling is also useless since there is no CA.
