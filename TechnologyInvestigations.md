@@ -27,6 +27,7 @@ Our P2P Connectivity Investigation on Android
 Our P2P Connectivity Investigation on iOS
 * [iOS P2P - An overview](iosp2p)
 * [Thali Bubbles - where we keep the P2P code](https://github.com/thaliproject/ThaliBubbles)
+* [Android/iOS Local Radio Interop - Oy](http://www.goland.org/thaliiosandroidinterop/)
 
 Other relevant articles
 * [Thali and Tor Onion Proxy](ThaliAndTorOnionProxy)
