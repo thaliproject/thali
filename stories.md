@@ -37,6 +37,7 @@ Stories
         0.5 - Testing Framework
         0.6 - Activate TLS
         0.7 - LevelDB Support - COMPLETE
+        0.8 - 3 or more is a party
     1 - Securing WebView to local Node.js Communication
     2 - Supporting Internet based communication
     3 - Native performance measurements
@@ -357,6 +358,10 @@ Activate TLS and TLS validation once JxCore 0.4 is released. This was initially 
 # 0.7  - ~~LevelDB Support~~ - COMPLETE
 
 ~~JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!~~
+
+# 0.8 - 3 or more is a party
+
+Right now our native discovery and connection layer isn't very smart about what happens if a device tries to connect to too many other devices. For example, with iOS's multi-peer connectivity framework one can only connect to up to 9 devices. As such we need to add a new error response if a connect request is made and all available channels are used up. We also need to make the replication manager smart enough to handle this error and queue up the request until more connections are available.
 
 # 1 - Securing WebView to local Node.js communication
 
