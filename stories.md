@@ -450,6 +450,7 @@ When a user has a problem with a Thali app the only thing they (or the app devel
 * Records logs onto the device persistently
 * Logs that are in a location that makes it easy for the user to retrieve them and send them to us
 * A logging infrastructure that won't fill up the device with logs
+* Figuring out how to get PouchDB to send their logs to us
 * Remove console.log and spurious logging in general in our existing code
 * Do a complete audit of the code to put in logging that will be useful in debugging issues
 * Doing a security audit on our logging statements to make sure we aren't leaking sensitive data into the logs
