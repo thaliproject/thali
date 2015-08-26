@@ -63,17 +63,17 @@ The other option for making this all work is to replace the default validator al
 
 * X509_verify_cert functionality
   * Things I think we do want
-    * check_chain_extensions() - We really want a negative check here. Our certs shouldn't be using any extensions but if they are then there is probably a problem and we should reject the cert chain. The point is to prevent people from abusing certs by using them in an unintended context.
-    * check_name_constraints() - Ideally we should honor name constraints like path length. I don't really see us using them much but if they are there we need to do the right thing.
-    * X509_chain_check_suiteb() - Truthfully this is a nice to have. It validates that the chain follows best practices as specified by the NSA in Suite B. I haven't dug all the way to the bottom of this one to figure out if there is anything in here we might not like.
-    * internal_verify() - This actually does the bulk of what we want. In an ideal world we would use it and nothing else but I'm concerned about some of the other functions I mention in this section. I think we need them.
-    * X509_policy_check() - We mostly want to make sure no policies are actually used
+     * check_chain_extensions() - We really want a negative check here. Our certs shouldn't be using any extensions but if they are then there is probably a problem and we should reject the cert chain. The point is to prevent people from abusing certs by using them in an unintended context.
+     * check_name_constraints() - Ideally we should honor name constraints like path length. I don't really see us using them much but if they are there we need to do the right thing.
+     * X509_chain_check_suiteb() - Truthfully this is a nice to have. It validates that the chain follows best practices as specified by the NSA in Suite B. I haven't dug all the way to the bottom of this one to figure out if there is anything in here we might not like.
+     * internal_verify() - This actually does the bulk of what we want. In an ideal world we would use it and nothing else but I'm concerned about some of the other functions I mention in this section. I think we need them.
+     * X509_policy_check() - We mostly want to make sure no policies are actually used
   * Things I don't think we want
-    * The entire first part of the function which is focused on figuring out if the chain is in the trust store, we don't have or want a trust store
-    * check_trust() - I believe this uses the logic from the first part of the function to figure out if the chain is 'trusted' vis a vie the trust store which, as previously mentioned, we don't have.
-    * check_id() - We actually need the inverse of this function. Our certs should not contain a host name, email or address. But since it's hard to create certs without them we should just ignore them and hence don't need this function.
-    * check_revocation() - We don't use the X.509 CRL mechanism so this is useless to us. In fact, we should ideally reject any certs that even contain the CRL declaration.
-    * v3_asid_validate_path() - This is an implementation of RFC 3779 that lets one bind identities to certs. We don't work that way. At most we should check if this extension is used and if so reject the cert.
+     * The entire first part of the function which is focused on figuring out if the chain is in the trust store, we don't have or want a trust store
+     * check_trust() - I believe this uses the logic from the first part of the function to figure out if the chain is 'trusted' vis a vie the trust store which, as previously mentioned, we don't have.
+     * check_id() - We actually need the inverse of this function. Our certs should not contain a host name, email or address. But since it's hard to create certs without them we should just ignore them and hence don't need this function.
+     * check_revocation() - We don't use the X.509 CRL mechanism so this is useless to us. In fact, we should ideally reject any certs that even contain the CRL declaration.
+     * v3_asid_validate_path() - This is an implementation of RFC 3779 that lets one bind identities to certs. We don't work that way. At most we should check if this extension is used and if so reject the cert.
 
 To make this work we have to call a function called SSL_CTX_set_cert_verify_callback which takes our old friend SSL_CTX and lets us set our custom validator.
 
