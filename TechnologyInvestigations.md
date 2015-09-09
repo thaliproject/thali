@@ -27,6 +27,7 @@ Our P2P Connectivity Investigation on Android
 Our P2P Connectivity Investigation on iOS
 * [iOS P2P - An overview](iosp2p)
 * [Thali Bubbles - where we keep the P2P code](https://github.com/thaliproject/ThaliBubbles)
+* [BLE issues on iOS](http://www.softwarenerd.org/code/2015/4/16/bubble-chat-and-tsnpeerbluetooth-cocoapod)
 * [Android/iOS Local Radio Interop - Oy](http://www.goland.org/thaliiosandroidinterop/)
 
 Other relevant articles
