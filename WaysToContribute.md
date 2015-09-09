@@ -9,11 +9,11 @@ If you would like to contribute, consider these options:
 
 * Subscribe to our [blog](atom.xml)
 * Join the [discussion](https://pairlist10.pair.net/mailman/listinfo/thali-talk)!
-* Follow us on [Twitter](https://twitter.com/intent/follow?original_referer=http%3A%2F%2Fthaliproject.org%2F&region=follow_link&screen_name=thaliproject&tw_p=followbutton)
-* Submit an [issue](https://github.com/thaliproject/thali/issues) (please include which version you were running against, your environment (e.g. OS, compiler, etc.), what results you were expecting, what results you got and repro steps)
+* Follow us on [Twitter](https://twitter.com/thaliproject)
+* Submit an [issue](https://github.com/thaliproject/Thali_CordovaPlugin/issues) (please include which version you were running against, your environment (e.g. OS, compiler, etc.), what results you were expecting, what results you got and repro steps)
 * Verify fixes for bugs.
 * Submit a code fix for a bug.
-* Submit a [feature request](https://github.com/thaliproject/thali/issues).
+* Submit a [feature request](https://github.com/thaliproject/Thali_CordovaPlugin/issues).
 * Submit a unit test.
 * Tell others about the project.
 * Tell the developers how much you appreciate the product!
