@@ -17,7 +17,7 @@ The following displays all the stories listed below in dependency order:
 ```
 Stories
 -1 - Integrate native and JXCore - COMPLETE
-    0 - Turn on the lights
+    0 - Turn on the lights - COMPLETE
         0.0 - Bring in the public keys
             0.0.0 - ACLs
                 0.0.0.1 - ACL Role Membership Changes
@@ -66,56 +66,54 @@ In theory any items listed in parallel can be done in parallel. So this is NOT a
 
 ~~The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.~~
 
-# 0 - Turn on the lights
+# ~~0 - Turn on the lights~~ - COMPLETE
 
-__Status Update:__ - We are feature complete for story 0 for Android and are now working on being test complete. We expect to ship Story 0 for Android by 7/24.
+~~In this milestone we just want to get the pieces sorta working together. We are explicitly not worried about security or performance.~~
 
-In this milestone we just want to get the pieces sorta working together. We are explicitly not worried about security or performance.
+~~The deliverable for Milestone 0 is a Cordova based application running on Android and iOS that can synch content in a single shared database using local P2P. Our app will be a postcard application. Users can create a postcard and share it with those around them. Our focus is on asynchronous sharing. The idea is that when someone creates a postcard the people they want to share it with might not be immediately available so we will want to synch when we can.~~
 
-The deliverable for Milestone 0 is a Cordova based application running on Android and iOS that can synch content in a single shared database using local P2P. Our app will be a postcard application. Users can create a postcard and share it with those around them. Our focus is on asynchronous sharing. The idea is that when someone creates a postcard the people they want to share it with might not be immediately available so we will want to synch when we can.
+~~The specific functionality is:~~
 
-The specific functionality is:
+~~__JXCore Cordova Plugin__ - We have the JXCore Cordova plugin working on both Android and iOS. There is no security however between the Webview and the node.js plugin.~~
 
-__JXCore Cordova Plugin__ - We have the JXCore Cordova plugin working on both Android and iOS. There is no security however between the Webview and the node.js plugin.
+~~__JXCore LevelDown Plugin__ - We have the ability to run PouchDB on top of LevelDown in Node.js on both Android and iOS using JXCore.~~
 
-__JXCore LevelDown Plugin__ - We have the ability to run PouchDB on top of LevelDown in Node.js on both Android and iOS using JXCore.
+~~__JXCore Api__ - We need the following APIs from JXCore:~~
 
-__JXCore Api__ - We need the following APIs from JXCore:
+* ~~An API to tell us if we are on Android or iOS.~~
+* ~~An API to tell us where to store persistent data related to the application~~
 
-* An API to tell us if we are on Android or iOS.
-* An API to tell us where to store persistent data related to the application
+~~__Native Discovery__ - On Android and iOS we need native code that will:~~
 
-__Native Discovery__ - On Android and iOS we need native code that will:
+* ~~advertise a service ID, a human readable string and a connection string that the receiver can use to connect to the advertising device. To keep things simple for milestone 0 we don't need to support large strings. Advertising should be on Wi-Fi direct on Android and BLE on iOS.~~
+* ~~stop advertising~~
+* ~~provide a callback that can provide notifications whenever a user is discovered. The callback should provide the user name and the connection data.~~
+* ~~provide a callback API that can specify when a user has gone out of range.~~
+* ~~A binding of the previous APIs to node.js via JXCore~~
+* ~~For this release on iOS we can disable discovery when the app is in the background.~~
 
-* advertise a service ID, a human readable string and a connection string that the receiver can use to connect to the advertising device. To keep things simple for milestone 0 we don't need to support large strings. Advertising should be on Wi-Fi direct on Android and BLE on iOS.
-* stop advertising
-* provide a callback that can provide notifications whenever a user is discovered. The callback should provide the user name and the connection data.
-* provide a callback API that can specify when a user has gone out of range.
-* A binding of the previous APIs to node.js via JXCore
-* For this release on iOS we can disable discovery when the app is in the background.
+~~__High bandwidth JXCore Binding__ - On Android and iOS we need the ability to switch from discovery to a higher bandwidth transport. We have to:~~
 
-__High bandwidth JXCore Binding__ - On Android and iOS we need the ability to switch from discovery to a higher bandwidth transport. We have to:
+* ~~Support talking to the native platform's high bandwidth transport from node.js's HTTP layer, this would be unpaired bluetooth on Android and multi-peer connectivity framework on iOS.~~
+* ~~We need a way for someone wanting to advertise a service to open a HTTP port in node.js to listen in on, have that listener properly connected from node.js to the underlying native transport and to get an identifier for the listening port that can be advertised via discovery.~~
+* ~~We need a way for a client that discovers someone to pass in the connection data they got from the discovery announcement and use it in Node.js's HTTP client to connect to the remote party.~~
 
-* Support talking to the native platform's high bandwidth transport from node.js's HTTP layer, this would be unpaired bluetooth on Android and multi-peer connectivity framework on iOS.
-* We need a way for someone wanting to advertise a service to open a HTTP port in node.js to listen in on, have that listener properly connected from node.js to the underlying native transport and to get an identifier for the listening port that can be advertised via discovery.
-* We need a way for a client that discovers someone to pass in the connection data they got from the discovery announcement and use it in Node.js's HTTP client to connect to the remote party.
+~~__Node.js Native Discovery__ - We need bindings in Node.js that expose the discovery and high bandwidth capabilities of the platform. So we need APIs that:~~
 
-__Node.js Native Discovery__ - We need bindings in Node.js that expose the discovery and high bandwidth capabilities of the platform. So we need APIs that:
+* ~~start advertising including a service ID, a user name and a connection point that the node.js programmer can subscribe to in order to receive discovery and disconnect events.~~
+* ~~Discovery events should call back with a user name and a connection point.~~
+* ~~Disconnect events should call back with a user name.~~
+* ~~stop advertising~~
 
-* start advertising including a service ID, a user name and a connection point that the node.js programmer can subscribe to in order to receive discovery and disconnect events.
-* Discovery events should call back with a user name and a connection point.
-* Disconnect events should call back with a user name.
-* stop advertising
+~~__Replication Manager__ - The replication manager will hook into the discovery events. Any time a new person is discovered the manager will automatically connect to them and do a pull synch into PouchDB. The replication manager will also connect to the changes feed on the local pouchDB instance and anytime there is a change caused by the local user then the replication manager will do a push synch to anyone it knows about via discovery.~~
 
-__Replication Manager__ - The replication manager will hook into the discovery events. Any time a new person is discovered the manager will automatically connect to them and do a pull synch into PouchDB. The replication manager will also connect to the changes feed on the local pouchDB instance and anytime there is a change caused by the local user then the replication manager will do a push synch to anyone it knows about via discovery.
+~~__Postcard App__ - The postcard app consists of a single PouchDB database that records all postcard. In this milestone each postcard is a single JSON document (no attachments, yet) whose key is a GUID and that contains a "from" field with the human readable name of the sender and a "text" field with free form text. The functionality is:~~
 
-__Postcard App__ - The postcard app consists of a single PouchDB database that records all postcard. In this milestone each postcard is a single JSON document (no attachments, yet) whose key is a GUID and that contains a "from" field with the human readable name of the sender and a "text" field with free form text. The functionality is:
-
-* When the app boots it has to look into the location for persistent data specified by JXCore and see if there is a postcard DB. If there isn't then it must be created.
-* When the app boots up it must search its _local DB for a record with the id "Me" and the value contains a field "name" with the user's name. If the value is not present then the app must prompt the user to enter a name.
-* Once the app starts it will create a listening endpoint and then call the start discovery function with an agreed upon service ID, its users name, its connection endpoint info and a callback to handle discovery events.
-* Whenever someone is discovered the app must immediately connect to them and do a push and pull synch.
-* The app must also hook into the changes stream of the local postcard DB and anytime there is a change created by the local user the app must do a push synch with all the folks it has discovered who it hasn't been notified have gone away.
+* ~~When the app boots it has to look into the location for persistent data specified by JXCore and see if there is a postcard DB. If there isn't then it must be created.~~
+* ~~When the app boots up it must search its _local DB for a record with the id "Me" and the value contains a field "name" with the user's name. If the value is not present then the app must prompt the user to enter a name.~~
+* ~~Once the app starts it will create a listening endpoint and then call the start discovery function with an agreed upon service ID, its users name, its connection endpoint info and a callback to handle discovery events.~~
+* ~~Whenever someone is discovered the app must immediately connect to them and do a push and pull synch.~~
+* ~~The app must also hook into the changes stream of the local postcard DB and anytime there is a change created by the local user the app must do a push synch with all the folks it has discovered who it hasn't been notified have gone away.~~
 
 # 0.0 - Bring in the public keys!
 
