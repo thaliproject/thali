@@ -43,7 +43,7 @@ Stories
     3 - Native performance measurements
         3.0 - Thali performance
             3.0.0 - Load Testing
-    4 - Fuzzing
+    4 - Fuzzing and Hardening
     5 - Life Cycle and Battery
     6 - Shrink NPM Modules!
     7 - Logging
@@ -426,9 +426,11 @@ We need the equivalent of the above measurements but this time taken from inside
 
 We need to create a framework to test how we behave under load. This includes making sure things like the quota mechanisms for discovery and data transfer will trip appropriately. In theory this should all be tested as part of developing our DOS defenses but realistically this kind of work always ends up needing a dedicated framework.
 
-# 4 - Fuzzing
+# 4 - Fuzzing and Hardening
 
 We need to fuzz all of our network front ends which means we need to set up a fuzzing framework and configure it to produce useful content. This won't be easy. Really. Not easy.
+
+But we also need to harden our external interfaces. We need to make sure that if we are under attack we can at least safely shut down so we don't run out the batteries on the device. We also need to check for suspicious requests. If a request is taking too long to process or eating too much CPU (something that should be tracked as part of quotas) then we need to kill it. This is tricky because some requests should take a long time, such as streaming a large file. But time != cpu. In general we need to walk through all of our front ends and convince ourselves that they can't be abused.
 
 # 5 - Life Cycle and Battery
 
