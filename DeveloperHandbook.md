@@ -83,12 +83,11 @@ Every full time dev on the project must have a shadow. A shadow's job is to make
 
 | Developer | Area of Ownership | Shadow |
 |-----------|-------------------|--------|
-| David Douglas | iOS | Jukka Silvennoinen|
-| Jukka Silvennoinen | Android | David Douglas |
-| Matthew Podwysocki | ACL/Quota/Notification Infrastructure | Sreejumon Purayil |
-| Sreejumon Purayil | BLE Hub and postcard app | Srikanth Challa |
-| Srikanth Challa | Crypto and Security | Yaron Y. Goland |
-| Yaron Y. Goland | PouchJS Synchronization Improvements | Matthew Podwysocki |
+| David Douglas | UX | Matthew Podwysocki|
+| Jukka Silvennoinen | Android | Toby Bradshaw |
+| Matthew Podwysocki | Node Code | Yaron Y. Goland |
+| Toby Bradshaw | iOS | Jukka Silvennoinen |
+| Yaron Y. Goland | Node Code | Matthew Podwysocki |
 
 # Code Reviews
 All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review. The +1 doesn't have to come from the shadow, any qualified person will do.
@@ -152,6 +151,11 @@ To solve both problems go load some random file just to get an IntelliJ project 
 And before someone asks, yes I did set JAVA_HOME and no it didn't work with Intellij 14.
 
 Now go back to Project Settings/Project, hit New again and select the Android SDK and navigate to where it lives. If you installed the Android SDK manually then it lives in ~/Library/Android/sdk. The problem is that you cannot, by default, select the Library folder from the Home folder in an OS/X dialog. To fix this you have to switch to the finder, go to the go menu and hit home. Then go to view->Show View Options and select the check box by "Show Library Folder". Now you should be able to navigate to the library folder from the chooser that Intellij will display.
+
+# Hints with IntelliJ
+Go [here](http://stackoverflow.com/questions/13578062/how-to-increase-ide-memory-limit-in-intellij-idea-on-mac/13581526#13581526) to get general instructions on how to set custom configurations for IntelliJ.
+
+Then you want to look [here](http://stackoverflow.com/questions/7836313/how-to-stop-intellij-truncating-output-when-i-run-a-build) for the option that will let you increase the size of Intellij's buffer for logcat. Right now it's so small that after a minute or two of output it flips. So, for example, I'll miss the point where tests declare themselves done!
 
 # Notes on adventures in node.js land
 ## Building our Javascript Projects 
