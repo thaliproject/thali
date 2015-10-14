@@ -18,7 +18,7 @@ The following displays all the stories listed below in dependency order:
 Stories
 -1 - Integrate native and JXCore - COMPLETE
     0 - Turn on the lights - COMPLETE
-        0.0 - Bring in the public keys
+        0.0 - Bring in the public keys - COMPLETE
             0.0.0 - ACLs
                 0.0.0.1 - ACL Role Membership Changes
             0.0.1 - Identity Exchange
@@ -115,40 +115,40 @@ In theory any items listed in parallel can be done in parallel. So this is NOT a
 * ~~Whenever someone is discovered the app must immediately connect to them and do a push and pull synch.~~
 * ~~The app must also hook into the changes stream of the local postcard DB and anytime there is a change created by the local user the app must do a push synch with all the folks it has discovered who it hasn't been notified have gone away.~~
 
-# 0.0 - Bring in the public keys!
+# ~~ 0.0 - Bring in the public keys! ~~ - COMPLETE
 
-__Status Update:__ - Work is already underway on the UX and api changes needed for story 0.0. We have refactored the database and put in hooks for the crypto.
+~~__Status Update:__ - Work is already underway on the UX and api changes needed for story 0.0. We have refactored the database and put in hooks for the crypto.~~
 
-In this release we will switch to using public keys for identity.
+~~In this release we will switch to using public keys for identity.~~
 
-__Crypto__ - We need the following APIs:
+~~__Crypto__ - We need the following APIs:~~
 
-* Generate a public/private key pair and return a PKCS#12 encoded file containing them
-* Take a PKCS#12 encoded file and return a public key object
-* Take a public key object and return a X.509 SubjectKeyInfo encoded binary string
-* Take a binary string and return a SHA 256 hash that just returns the top 16 bytes
-* Take a binary string and return a base 64 encoded version
-* Take a PKCS#12 encoded file and return a self signed X.509 cert
-* Show how to submit the PKCS#12 file to create a TLS listening endpoint
-* Show how to submit the PKCS#12 file as a client to create a mutual TLS auth connection
-* Show how to validate that a server presented the expected self-signed cert
-* Surface in the environment of a connection the validated client public key (if any)
+* ~~Generate a public/private key pair and return a PKCS#12 encoded file containing them~~
+* ~~Take a PKCS#12 encoded file and return a public key object~~
+* ~~Take a public key object and return a X.509 SubjectKeyInfo encoded binary string~~
+* ~~Take a binary string and return a SHA 256 hash that just returns the top 16 bytes~~
+* ~~Take a binary string and return a base 64 encoded version~~
+* ~~Take a PKCS#12 encoded file and return a self signed X.509 cert~~
+* ~~Show how to submit the PKCS#12 file to create a TLS listening endpoint~~
+* ~~Show how to submit the PKCS#12 file as a client to create a mutual TLS auth connection~~
+* ~~Show how to validate that a server presented the expected self-signed cert~~
+* ~~Surface in the environment of a connection the validated client public key (if any)~~
 
-__Public Key Hash__ - This refers to taking the X.509 SubjectKeyInfo serialization of a public key, calculating its SHA 256 hash and then taking the top 16 bytes of that hash. This value is used to uniquely identify devices.
+~~__Public Key Hash__ - This refers to taking the X.509 SubjectKeyInfo serialization of a public key, calculating its SHA 256 hash and then taking the top 16 bytes of that hash. This value is used to uniquely identify devices.~~
 
-__PostCard App__ - Most of these changes for this release are actually in the postcard app more than in the underlying code. But debugging everything will be the real challenge. The changes are:
+~~__PostCard App__ - Most of these changes for this release are actually in the postcard app more than in the underlying code. But debugging everything will be the real challenge. The changes are:~~
 
-* Remove the code that looks for a user's name in _local.
-* When the app boots up it must search for a local file that records a PKCS#12 file and if the file isn't present than the app has to create a public/private key pair and record it in the PKCS#12 format in the defined location.
-* When the app boots up it must check its local Postcard App DB to see if it has an entry with the key "addressbook-[the device's public key hash]" and a record that contains "name" with a value that is the user's name. If such a record does not exist then the app must prompt the user for their name and create the record.
-* Whenever the user creates a new postcard they have to specify who the postcard is to. The possible values will be retrieved by a search on "addressbook-*" excluding the users own identity. In the UI, the user can select an "all" option or pick one particular destination from a drop-down list. Any time the app synchs with another app it will get that apps addressbook entry. So now when a postcard entry is saved its format includes "from" and "text" as in the previous milestone but also adds "to" with an array of public key hashes.
+* ~~Remove the code that looks for a user's name in _local.~~
+* ~~When the app boots up it must search for a local file that records a PKCS#12 file and if the file isn't present than the app has to create a public/private key pair and record it in the PKCS#12 format in the defined location.~~
+* ~~When the app boots up it must check its local Postcard App DB to see if it has an entry with the key "addressbook-[the device's public key hash]" and a record that contains "name" with a value that is the user's name. If such a record does not exist then the app must prompt the user for their name and create the record.~~
+* ~~Whenever the user creates a new postcard they have to specify who the postcard is to. The possible values will be retrieved by a search on "addressbook-*" excluding the users own identity. In the UI, the user can select an "all" option or pick one particular destination from a drop-down list. Any time the app synchs with another app it will get that apps addressbook entry. So now when a postcard entry is saved its format includes "from" and "text" as in the previous milestone but also adds "to" with an array of public key hashes.~~
 
-Note:
-There are several interfaces we need to do custom TLS validation (as well as support elliptic curve keys) that are not in node v0.10. We were considering various possible work arounds. But all the APIs we need are in node v0.12. JxCore 0.4 will have full support for Node v0.12 so we should be good at that point.
+~~Note:~~
+~~There are several interfaces we need to do custom TLS validation (as well as support elliptic curve keys) that are not in node v0.10. We were considering various possible work arounds. But all the APIs we need are in node v0.12. JxCore 0.4 will have full support for Node v0.12 so we should be good at that point.~~
 
-So the plan is to complete all the crypto work right up until the point where we need to actually establish the SSL/TLS connection. We will not however create the connection (since we can’t do the validation anyway in Node v0.10).
+~~So the plan is to complete all the crypto work right up until the point where we need to actually establish the SSL/TLS connection. We will not however create the connection (since we can’t do the validation anyway in Node v0.10).~~
 
-Obviously this is totally insecure but it lets us get the crypto pathways set up and prepares us for JxCore 0.4. A new story 0.6 has been created which will be to activate TLS and TLS validation once JxCore 0.4 is released.
+~~Obviously this is totally insecure but it lets us get the crypto pathways set up and prepares us for JxCore 0.4. A new story 0.6 has been created which will be to activate TLS and TLS validation once JxCore 0.4 is released.~~
 
 # 0.0.0 - ACLs
 
