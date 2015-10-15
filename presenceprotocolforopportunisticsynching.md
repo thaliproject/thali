@@ -47,7 +47,6 @@ A discovery announcement consists of three parts. A version Id, a pre-amble and 
 
 The pre-amble and beacon are defined using Augmented BNF as specified in RFC 4234 with the exception that I changed the section 3.7 requirement on nRule to be n-Rule because 88OCTET look like 880 instead of 88:
 
-
 ```
 DiscoveryAnnouncementWithoutVersionId = PreAmble 1*Beacon
 PreAmble = PubKe Expiration
@@ -135,7 +134,7 @@ __+__ - When applied to two arrays it concatenates them together.
 # Processing the pre-amble and beacons
 When a device receives a discovery announcement it has to validate several things.
 
-If the device has seen the PubKe value previous then it MUST ignore the discovery announcement it has just received as a duplicate of a discovery announcement it has seen before. Therefore devices MUST have a cache to store PubKe values (or a secure hash therefore) they have seen before and SHOULD keep entries in the cache until the associated expiration time of the discovery announcement they were received on has passed. A should is specified versus a must in recognition of the fact that the cache MAY have to be purged due to space issues.
+If the device has seen the PubKe value previously then it MUST ignore the discovery announcement it has just received as a duplicate of a discovery announcement it has seen before. Therefore devices MUST have a cache to store PubKe values (or a secure hash therefore) they have seen before and SHOULD keep entries in the cache until the associated expiration time of the discovery announcement they were received on has passed. A should is specified versus a must in recognition of the fact that the cache may have to be purged due to space issues.
 
 If a device hasn't previously seen the PubKe then it MUST validate that the PubKe is from the appropriate curve or it MUST be ignored.
 
@@ -151,7 +150,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
     KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
     IV = KeyingMaterial.slice(0,16)
     HKey = KeyingMaterial.slice(16, 32)
-	UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
+    UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
     
     if (UnencryptedKeyId == null) { // GCM mac check failed
        next;
@@ -160,7 +159,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
     PubKx = addressBook.get(UnencryptedKeyId)
     
     if (PubKx == null) { // Device that claims to have sent the announcement is not recognized
-      next;
+      return null; // Once we find a matching beacon we stop, even if the sender is unrecognized
     }
     
     BeaconHmac = encryptedBeacon.slice(32, 48)
@@ -195,6 +194,35 @@ __empty()__ - Specifies if a stream still has remaining content.
 __get(k)__ - Returns the value associated with the submitted key, null if there is no associated value.
 
 __read(n)__ - Reads n bytes from a stream.
+
+# Android BLE Binding
+## The Problem
+In theory we want to have a single definition for how to perform discovery over BLE since BLE is a common protocol regardless
+of what platform it is running on. Unfortunately we have run into serious implementation issues on Android that prevent this.
+
+On Android we use the `startLeScan()` method to search for Thali devices using the Thali BLE UUID. When a device is discovered
+a callback is called and amongst other things we are passed the scanRecord which is the advertisement record that the other
+device sent out.
+
+The next step in the API would then be to call `connectGatt()` in order to connect to the peripheral and read its characteristics. It would be in those characteristics that we would encode the premable and beacons.
+
+Unfortunately we have found that `connectGatt()` is not reliable across all Android devices we have tested on. We have
+found in many cases that calling `connectGatt()` will cause BLE on the device to fail and stay in a failed state for some
+minutes before coming back. So for normal Android operation we want to avoid using `connectGatt()`.
+
+## Our Solution
+To avoid having to use connect we instead will only use BLE to advertise that we support Thali and then communicate our
+Bluetooth (not BLE) address. The Android central that finds us can then use the Bluetooth address to create an insecure
+RFCOMM connection 
+
+UUID
+
+# iOS Multi-peer Connectivity Binding
+
+# Local Wi-Fi Binding
+
+# Common BLE Binding (for future implementation)
+
 
 # BLE Binding
 [TBD - There are several things we need to develop here. We need to specify our service ID. This will act as our version number and specify things like format and curve. We then need to specify how to move our discover announcement over BLE. Although it turns out that you can negotiate the MTU from 20 bytes it apparently doesn't get much larger than 200 or so bytes and in most cases we expect our discovery announcement to be between 1k - 2k. So we will need to define an encoding for moving this value using characteristics. There are some issues here I just don't understand yet. For example, is there any concept of a 'session identifier' in BLE? If not then it's possible that someone could start downloading characteristics to build the discovery announcement only to have those characteristics change under them and invalidate their download. We have to be able to detect when that happens. It's not hard, its just necessary. We also need to define a protocol specifically for iOS. The issue there is that apps cannot be peripherals if they are in the background or stopped. But they can be centrals. So if someone in the room is a peripheral (e.g. has a Thali app in the foreground) then we need the apps in the background (who CAN detect a peripheral even though they are in the background) to forward their discovery announcements to the peripheral so it can realy it to all the other centrals in the room that are in the background. We also need to specify how "wake up" commands are sent via the peripheral. In other words device A is "awake" and acting as a peripheral for devices B and C who both have their Thali apps asleep. When device A announces itself (because the App is in the foreground) then devices B and C will connect because they have registered to be notified of available peripherals. In that case B and C will both send A their discovery announcements and A will forward the announcement on. In other words, B will send its announcement to A who will send it to C and C to A who will send it to B. A is acting like a repeater. Now lets say that B receives C's announcement and discovers that C wants to talk to B. Because of restrictions in iOS it isn't possible for B and C to talk unless they both have their Thali apps in the foreground. So B needs to send a notification to C saying "Hey, I got your discovery announcement and I'm ready to talk!". In that case both B and C would notify their users using a device alert to open the phone and turn on the Thali app so they can exchange data using the multi-peer connectivity framework (which only works, more or less, when the app is in the foreground). But the only way to kick this off is through A. In other words B needs to send a message to A telling it to tell C to wake up its user. So we need to define a protocol to handle all of that.] 
