@@ -195,40 +195,106 @@ __get(k)__ - Returns the value associated with the submitted key, null if there 
 
 __read(n)__ - Reads n bytes from a stream.
 
-# Android BLE Binding
-## The Problem
-In theory we want to have a single definition for how to perform discovery over BLE since BLE is a common protocol regardless
-of what platform it is running on. Unfortunately we have run into serious implementation issues on Android that prevent this.
+# BLE Binding
+For our current functionality the ideal mode would be `ADV_NONCONN_IND` and we would use the AdvData to transmit the information we need to send. However Android doesn't appear to support this mode and anyway we eventually have to switch to `ADV_IND` in order to support using BLE as a discovery transport for iOS background operations (more on that later).
 
-On Android we use the `startLeScan()` method to search for Thali devices using the Thali BLE UUID. When a device is discovered
-a callback is called and amongst other things we are passed the scanRecord which is the advertisement record that the other
-device sent out.
+So we will use `ADV_IND`. We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs. We also do not currently define any characteristics. We will define characteristics later for reasons explained below.
 
-The next step in the API would then be to call `connectGatt()` in order to connect to the peripheral and read its characteristics. It would be in those characteristics that we would encode the premable and beacons.
+Our BLE service UUID is: `b6a44ad1-d319-4b3a-815d-8b805a47fb51`
 
-Unfortunately we have found that `connectGatt()` is not reliable across all Android devices we have tested on. We have
-found in many cases that calling `connectGatt()` will cause BLE on the device to fail and stay in a failed state for some
-minutes before coming back. So for normal Android operation we want to avoid using `connectGatt()`.
+The format of our `ADV_IND` PDU is:
+AdvA - The random device address
+AdvData - We define this field using RFC 4234 Augmented BNF as previously defined above:
 
-## Our Solution
-To avoid having to use connect we instead will only use BLE to advertise that we support Thali and then communicate our
-Bluetooth (not BLE) address. The Android central that finds us can then use the Bluetooth address to create an insecure
-RFCOMM connection 
+```
+AdvData = Flags ServiceUUID ServiceData
 
-UUID
+Flags = FlagSize FlagGapType FlagValue
+FlagSize = OCTET
+FlagGapType = %x01
+FlagValue = OCTET ; This value is set by BLE stack, not us
 
-# iOS Multi-peer Connectivity Binding
+ServiceUUID = ServiceUUIDSize ServiceUUIDType ServiceUUIDValue
+ServiceUUIDSize = OCTET
+ServiceUUIDType = %x06
+ServiceUUIDValue = b6a44ad1d3194b3a815d8b805a47fb51
+
+ServiceData = ServiceDataSize ServiceDataType ServiceDataValue
+ServiceDataSize = OCTET
+ServiceDataType = %x16
+ServiceDataValue = BluetoothAddress / iOSDevice
+
+BluetoothAddress = BluetoothFlag BluetoothValue
+BluetoothFlag = 0x00
+BluetoothValue = 6-OCTET
+
+iOSDevice = 0x01
+```
+
+The payload of an advertising packet is 31 octets. This field is made up of AD structures which consist of three parts, a 1 octet length field, an AD type and AD Data. Generally advertisements consist of at least two AD structures. The first is for flags and the second is to advertise our service UUID. The flag field takes up a total of 3 bytes, 1 for length, 1 for type and 1 for the actual flag values. ServiceUUID takes up 18 bytes, 1 for length, 1 for type and 16 for the 128 bit UUID. So this leaves us with only 10 bytes that we control. We will advertise service data which means our overhead for length and type is 2 bytes leaving us with 8 bytes of actual data.
+
+## BluetoothAddress
+In theory once someone has discovered a Thali peripheral the next step would be to issue a connect and start to use characteristics to move the beacon values. In practice however we have found this to be problematic because we have had serious reliability issues with connecting over BLE on Android. It is quite common for connects to randomly fail and for the BLE stack to then become unresponsive for a minute or two afterwards. We have had no problems receiving BLE advertisements, just connecting.
+
+Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
+
+Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address and will then use the [multiplex](https://github.com/maxogden/multiplex) library to multiplex multiple TCP/IP connections over the Bluetooth connection. We would like to eventually switch to a standardized multiplex friendly protocol like HTTP/2.0 but we have to wait for the software around it to become a bit more mature. Until then we will use multiplex's solution.
+
+The central, once connected over Bluetooth should issue a HTTP GET request to the path /NotificationBeacons and will get back an application/octet-stream response which contains the preamble and beacons as defined above in network byte order.
+
+### Notifying when beacons change
+Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
+
+Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. We therefore mandate that any time an Android Thali client changes the value of its beacons it must stop and re-start its BLE peripheral. This will give the peripheral a new random address. This will cause all the centrals to reconnect to /NotificationBeacons to get the new value.
+
+## iOSDevice
+Normally we do not use BLE for discovery with iOS. Instead we use the multi-peer connectivity framework whose binding will be described later in this document. However in order to enable iOS devices to be discovered in the background we also want to support BLE. However when an iOS device is in the background it can only communicate over BLE and so any further communication will have to occur using BLE characteristics. We will define the characteristics used to communicate beacon data in the future when we get closer to implementing this functionality.
+
+# Multi-Peer Connectivity Framework (MPCF)
+Apple's proprietary multi-peer connectivity framework has its own discovery mechanism that appears to run over both Bluetooth and Wi-Fi. Note however that iOS's implementation of Bluetooth uses a proprietary extension that requires having a public key cert pair signed by Apple. And multi-peer connectivity's use of Wi-Fi appears to use a proprietary variant of Wi-Fi Direct. In any case, Multi-Peer Connectivity only works with Apple devices (either iOS or OS/X).
+
+MPCF starts off by advertising via `MCNearbyServiceAdvertiser` the types of sessions that the device is willing to join. The advertisement consists of a peer ID, an info object made up of key/value pairs and a serviceType which can be between 1-15 characters long. Each key/value pair in the info object cannot be longer than 255 bytes. The total size of the info object cannot be more than 400 bytes (so it will fit into a single Bluetooth packet).
+
+It's hard to be sure what the exact maximum size of a MPCF announcement is. But given that info tops out at 400 bytes one would be reasonable to assume that peerID and service type are both less. The point then being that the announcement mechanism is not the best way to discover the full beacon string which can easily be 1K or more.
+
+Another factor to consider is that MPCF is only available (mostly) when the Thali app is in the foreground. This is a limited period so battery consumption is not that big a deal. As such we will use the same approach as BLE on Android.
+
+Peer ID - A GUID that MUST be randomly generated whenever the app is activated or comes out of sleep.
+serviceType - org.thaliproject.mpcf.announcement
+Info - None
+
+Upon discovering a Thali resource the searcher will then establish our fantastically complex stream based network connection that eventually tops out into TCP/IP links and make a request to the /NotificationBeacons endpoint as described in the previous section.
+
+I'm not going to even bother to fully describe how we used paired streams with default names to create MPCF connections. It would take a long time and one sincerely doubts that many people will ever successfully reproduce it (sometimes we aren't sure we can reproduce it). But such as the joys of MPCF. For details feel free to dig through the Objective-C code.
+
+The searcher is free to use a polling mechanism to detect any changes. Polling every 500 ms should be fine. This will provide an experience for the user of 'immediate' response if someone they are in the room with should happen to update something. Again, battery is not the primary concern given the limitations on MPCF usage.
+
+For now we won't worry about etags as a way to shortcut requests if the beacon string hasn't changed. It's a nice optimization we can add in later.
 
 # Local Wi-Fi Binding
+The current plan is to use SSDP for local Wi-Fi discovery. This assumes that the local Wi-Fi access point allows both multicast as well as unicast between nodes on the network. That is not a safe assumption. But where it works we'll try to use SSDP. The main reason for picking SSDP over mDNS is simplicity. SSDP is a dirt simple text based protocol so it's very easy to deal with. If anyone has a super good reason why we should use mDNS instead we can switch.
 
-# Common BLE Binding (for future implementation)
+When a Thali peer comes onto a Wi-Fi network it must send a ssdp:alive message and repeat it every 500 ms while the application is being actively used and every minute when the application is in the background if using a power constrained device.
 
+The ssdp:alive message will use the following header values:
+NT: http://www.thaliproject.org/ssdp
+USN: A UUID URL whose value MUST be changed every time the beacon string is changed
+Location: A HTTP URL pointing to the device's IP address and port over which a HTTP GET request for /NotificationBeacons can be accepted
+Cache-Control: max-age = 60
 
-# BLE Binding
-[TBD - There are several things we need to develop here. We need to specify our service ID. This will act as our version number and specify things like format and curve. We then need to specify how to move our discover announcement over BLE. Although it turns out that you can negotiate the MTU from 20 bytes it apparently doesn't get much larger than 200 or so bytes and in most cases we expect our discovery announcement to be between 1k - 2k. So we will need to define an encoding for moving this value using characteristics. There are some issues here I just don't understand yet. For example, is there any concept of a 'session identifier' in BLE? If not then it's possible that someone could start downloading characteristics to build the discovery announcement only to have those characteristics change under them and invalidate their download. We have to be able to detect when that happens. It's not hard, its just necessary. We also need to define a protocol specifically for iOS. The issue there is that apps cannot be peripherals if they are in the background or stopped. But they can be centrals. So if someone in the room is a peripheral (e.g. has a Thali app in the foreground) then we need the apps in the background (who CAN detect a peripheral even though they are in the background) to forward their discovery announcements to the peripheral so it can realy it to all the other centrals in the room that are in the background. We also need to specify how "wake up" commands are sent via the peripheral. In other words device A is "awake" and acting as a peripheral for devices B and C who both have their Thali apps asleep. When device A announces itself (because the App is in the foreground) then devices B and C will connect because they have registered to be notified of available peripherals. In that case B and C will both send A their discovery announcements and A will forward the announcement on. In other words, B will send its announcement to A who will send it to C and C to A who will send it to B. A is acting like a repeater. Now lets say that B receives C's announcement and discovers that C wants to talk to B. Because of restrictions in iOS it isn't possible for B and C to talk unless they both have their Thali apps in the foreground. So B needs to send a notification to C saying "Hey, I got your discovery announcement and I'm ready to talk!". In that case both B and C would notify their users using a device alert to open the phone and turn on the Thali app so they can exchange data using the multi-peer connectivity framework (which only works, more or less, when the app is in the foreground). But the only way to kick this off is through A. In other words B needs to send a message to A telling it to tell C to wake up its user. So we need to define a protocol to handle all of that.] 
+If the server goes offline in a clean way then it must send a SSDP:byebye message using the same header value as given above. specifically NT and USN.
 
-# Wi-Fi Direct Discovery Binding
-[TBD - The main issue so far with Wi-Fi Direct discovery is how are we going to do it? Android supports at least two options, SSDP from UPnP and mDNS. Both support sending arbitrary strings. In mDNS's case its possible to send a service ID (as discussed in BLE) but it seems like in practice it can't be much more than 100 bytes. One can also send a TXT record with name/value pairs. The total size of the name + the value has to be less than 255 bytes. I tried to run some experiments to see how many name/value pairs I could send and ran into some issues with, I think, caching where Android wouldn't try to re-download a TXT record because it thinks it already has it. I think. Maybe. Right now I don't have time to dig deeper. The other alternative is SSDP which supports sending a bunch of service discovery strings. But I have no idea how big they can be. So right now I just don't know if it's possible to send 1K or 2K of data over the Wi-Fi Direct discovery mechanism. In the worst case we will have to do something nasty like send a service ID and a single text field in a TXT record. That txt field would contain a hash of the ephemeral key of the discovery announcement. That would be small and I'm confident we can get it safely across either SSDP or mDNS (assuming we can deal with the caching issues, who knows there?). A client who sees a hash it doesn't recognize will then have to open a Wi-Fi Direct connection and at that point we can use IP to move whatever data we need. Of course due to wi-fi pairing issues (see Jukka's articles) this might not work so alternatively we would have to use Bluetooth. That's o.k. we have enough space in discovery to send the Bluetooth address. Alternatively we could use a Wi-Fi AP point. There are ways.]
+In general SEARCH requests should be used sparingly. Given that services are regularly announcing themselves anyway the only real purpose of SEARCH is to find devices that have gone into a sleep mode and aren't announcing themselves regularly. So in general a SEARCH request should only be issued when the Thali peer joins the network and then very infrequently there after, say no more than once every 5 minutes or so. The S header is to be set to the USN value as defined above. The ST header is set to the NT value above. The SEARCH response must contain a location header with a HTTP URL set as decribed above for the responding Thali peer. The SEARCH response must also use the same Cache-Control: max-age as defined above.
+
+After getting the location header, either via ssdp:alive message or SEARCH response the Thali peer must then issue a GET request to /NotificationsBeacons as described in previous sections.
+
+Any time the value of the NotificationBeacons endpoint changes a new USN must be generated and a new ssdp:alive message sent out. This will automatically cause all the Thali endpoints in range to get the new value.
+
+The relatively short max-age used on requests means that caches will not overflow due to all the 'new' devices constantly showing up on the network.
+
+The SSDP client must be smart enough to realize if it is in a situation where multi-cast is allowed but unicast between peers on the network is not. If every unicast request to addresses discovered via SSDP are being rejected then the SSDP client must stop making announcements for some reasonable period of time.
+
+The obvious problem with SSDP (or mDNS for that matter) is that if the local multicast domain is large enough then all the traffic generated by a large enough number of Thali clients could get quite ugly. Imagine a conference hall with a single multi-cast domain with 10,000 people in it. Now, to be fair, this is unlikely. Most Wi-Fi APs used outside the home are not configured to allow multicast much less point to point communication. At a minimum each Thali peer will need to initially make 10,000 /NotificationBeacons requests. And process them! In general battery based devices have absolutely no business trying to operate in such a scenario. Therefore Thali peers need to be configured with some maximum number of devices they are willing to discover. When that maximum is exceeded the device needs to shut down SSDP for some period of time. The cost here btw is not just the messages traffic (10,000 devices all issuing GETs against each other translates to roughly 10000^2 = 100,000,000 requests) but also the cost of trying to validate all the beacons!
 
 # Transferring from Discovery to TLS
 [TBD - Once we find that we want to talk to somebody, how do we connect to them? In the case of Wi-Fi Direct I already mentioned at least three ways we can connect but we have to specify which ones we will use or how to advertise what choice we want the client to make if we decide to support multiple ways. In the case of BLE we will need a characteristic that someone can access to tell them how to connect. In the case of iOS to iOS communication this would be some kind of ID for the multi-peer connectivity framework. In the case of iOS/Android we would have to have the Android handset switch to being a myfi end point and tell iOS what the name is. There are a lot of issues there btw. But I'll go into those later. But once we have a socket between the phones we still need to be able to authenticate. We can't use the user's public keys with mutual TLS auth because Wi-Fi advertises the keys in the clear and so exposes the users identity. Ideally we would use something like TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256. This would allow us to use HKDF to generate the session key that the two sides would use when opening a socket and establishing a TLS session and then ECDHE would provide forward secrecy. The problem is that if [this doc](https://www.openssl.org/docs/apps/ciphers.html) is up to date then OpenSSL (which we use under Node.js) does not support a TLS_ECDHE_PSK cipher suit. In fact if [this](http://en.wikipedia.org/wiki/Comparison_of_TLS_implementations) is to be believed than only 3 of the TLS libraries tracked there actually support TLS_ECDHE_PSK. So we will need to essentially fake it. To do this we need a way to do an exchange that emulates TLS_ECDHE_PSK. For example, each side of discovery could establish an insecure connection and send to each other an AES-128 encrypted (using the previously negotiated HKxy) ephemeral public key. Once each side confirms receiving the others ephemeral key then the side acting as the server can use the same socket to start listening for a TLS connection advertising its announced ephemeral key and waiting to validate that the other side sends the ephemeral key it advertised. This would provide perfect forward secrecy and never expose anyone's credentials in the clear. But in any case, we need to specify exactly how all of this works.]
