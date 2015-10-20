@@ -195,6 +195,40 @@ __get(k)__ - Returns the value associated with the submitted key, null if there 
 
 __read(n)__ - Reads n bytes from a stream.
 
+# Bindings
+This section covers issues related to binding the notification pre-amble and beacon to particular transports such as BLE, multi-peer connectivity framework and BlueTooth.
+
+## Transfering from notification beacon to TLS
+In the bindings in this section we will show how to discover a notification pre-amble and a set of beacons and then how to establish a connection with the peer that sent the beacons. In each and every case the connection to the peer will, at the very least, appear to be a TCP/IP connection to the local peer. This is even the case when we are using transports that do not natively support TCP/IP.
+
+This then leads to a security issue known as the channel binding problem. Put simply, when someone connects to a particular IP, how does one know that the entity at the other end of the TCP/IP connection is who we think it is? Thali generally uses TLS to solve this particular problem.
+
+The most straight forward way to use TLS in this scenario is TLS mutual auth. The peer that received the notification presents its public key as a client cert, the peer that sent the notification presents its public key on the listening socket as a server cert, we do a handshake and it's good. Everyone is authenticated.
+
+The problem is that TLS mutual auth exposes the public keys of the participants in the clear. So if we use TLS mutual auth then we force users to expose their identities to anyone in the area any time they connect.
+
+To work around this problem we plan on using a TLS feature known as "Pre-Shared Key" or PSK. PSK assumes that somehow the TLS client and TLS server have a pre-existing key that they have negotiated out of band. TLS then provides a mechanism by which the TLS client and TLS server can securely negotiate a connection using that pre-shared key.
+
+Thali clients that establish connections based on discovery via notification beacons SHOULD establish TCP/IP connections to the discovered peer using TLS with the `DHE_PSK_WITH_AES_256_GCM_SHA384` and MUST NOT use a weaker cipher suite.
+
+The previous cipher suite is selected because:
+
+* It uses a Diffie Hellman key exchange in order to provide for perfect forward secrecy
+* AES 256 is considered secure against even theoretical quantum computing attacks (how's that for famous last words?)
+* GCM provides protection against various types of data insertion and manipulation attacks
+
+If a Thali peer receives a pre-amble and a set of beacons and determines that one of the beacons is intended to itself and if the Thali peer wishes to communicate with the peer who sent the beacon then the Thali peer MUST set aside the pre-amble and the specific beacon from the set of discovered beacons that was targetted at it. The Thali peer MUST then establish a TCP/IP connection using the binding specific mechansim to the Thali peer that sent the beacon. The Thali peer MUST then establish a TLS connection on top of the TCP/IP connection using the previously defined PSK cipher suite.
+
+When creating a TLS PSK connection the Thali TLS client MUST include the following value in the PSK identity field of the ClientKeyExchange message: base64(pre-amble + beacon). That is, the pre-amble and the beacon put aside in the previous requirement are combined together and then `base64` encoded as defined in RFC 4648 section 4.
+
+__Note:__ In theory it would probably be a good thing if the PSK identity field was obscured. That is, rather than advertising in the clear which beacon is being responded to the Thali TLS client could encrypt the pre-amble and beacon using the Thali TLS server's (known) public key. However it's unclear in practice how useful this really this. Obviously any eavesdropping party can see who is talking to whom. Which beacon was used to establish that communication so far only seems useful in one particular attack. This attack depends on a feature we have not yet implemented in Thali that we call the personal mesh. With the personal mesh one can have many devices that all recognize a set of keys as belonging to themselves. So let's say that at Time A peer Alpha sends out a beacon B that is received by peer Beta. Peer Beta records beacon B and will never respond to it again. But the key used in beacon B is also recognized by peer Gamma who is part of peer Beta's personal mesh. But at Time A peer Beta and Gamma are not in communication so peer Gamma doesn't know that peer Beta has responded to the beacon B. An attacker could therefore observe that peer Beta has responded to beacon B and thus could start to replay that beacon in different places that the attacker thinks peer Gamma is. Peer Gamma would also recognize the beacon and respond, thus revealing its identity. Encrypting the beacon in the PSK identity field makes this attack harder but not all that much harder. Presumably the set of beacons that peer Alpha originally sent out isn't that large. So an attacker could just repeat all the beacons and known that anyone who responds is at least a friend of Alpha's and quite likely the owner of peer Beta. So it just doesn't seem worth the effort to encrypt the value given that it doesn't really stop the attack.
+
+When terminating a PSK TLS connection a Thali TLS server MUST NOT send a PSK identity hint in the ServerKeyExchange message. The hint is not necessary because the client's hint provides all the necessary binding.
+
+__Note:__ In theory it would probably be a good thing if the Thali TLS server who receives an unrecognized or otherwise unacceptable PSK identity field from a client responded with a `decrypt_error` rather than an `unknown_psk_identity`. The benefit of such an approach is that if the attacker does not have radio triangulation capability or radio fingerprinting capabilities then it would make it harder to bind a particular device's discovery channel with its high bandwidth communication channel (when those things are actually separate). But in practice at least the high bandwidth channel tends use a fixed address (think Bluetooth) and we pretty much must assume that attackers at least have triangulation capabilities. That is why, for example, we transmit the Bluetooth address in the clear during BLE advertising for Android. However if it should turn out that it is useful to hide the relationship of the discovery and high bandwidth channels then we can always change our BLE design to use characteristics and communicate the Bluetooth channel address securely. Note that none of this will help a wit with Wi-Fi based discovery where the discovery and high bandwidth channels are identical.
+
+
+
 # BLE Binding
 For our current functionality the ideal mode would be `ADV_NONCONN_IND` and we would use the AdvData to transmit the information we need to send. However Android doesn't appear to support this mode and anyway we eventually have to switch to `ADV_IND` in order to support using BLE as a discovery transport for iOS background operations (more on that later).
 
