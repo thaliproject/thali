@@ -298,6 +298,149 @@ Otherwise the Thali peer MUST respond with the content-type application/octet-st
 
 __Note:__ We currently don't bother with etag support as we generally try to avoid polling and the returned values are small anyway. But we can obviously add this in later if it proves useful.
 
+# Muxing TCP/IP connections over non-TCP/IP transports
+## The problem
+When we use a transport that doesn't natively support TCP/IP we will, using the mechanisms defined in the binding section below, create a TCP/IP connection over the transport. But in each case we support exactly one TCP/IP connection at a time over the non-TCP/IP transport. In practice this is a problem because we use HTTP and HTTP really wants to open multiple simultaneous TCP/IP connections at a time. This is necessary due to the fact that most HTTP clients and servers don't properly implement pipelining and even if they did non-idempotent requests can't be pipelined. Also without multiple simultaneous TCP/IP connections it is possible to end up with 'head of line' blocker situations where a bunch of requests that could have been run in parallel can't because some expensive request is being processed and HTTP doesn't support out of order responses.
+## Our solution
+In an ideal world we would run something like HTTP/2.0 over the Singleton TCP/IP connection. Unlike HTTP/1.1, HTTP/2.0 natively supports parallel requests and responses over a single TCP/IP connection. But the HTTP/2.0 server and client code bases are still a bit early and we don't feel comfortable adopting them yet.
+
+So instead we have come up with a solution so incredibly complex that I still haven't figured out how to explain it without making my own nose bleed.
+
+The core of the idea is multi-plexing. We take a bunch of independent TCP/IP connections, we multiplex them onto a single TCP/IP connection and we send that data across the Singleton TCP/IP connection supported by the non-TCP/IP transport. When the multiplexed data pops out the other end we de-multiplex it into a bunch of independent TCP/IP connections that then connect to whatever port we were told to connect to during configuration.
+
+So multiplex in, multiplex out and we're done.
+
+In practice however the details are much more complex. The reason is that we use a library called [multiplex](https://github.com/maxogden/multiplex) to implement our multiplexing and that library knows nothing about TCP/IP. What it knows about are node.js streams. Here is an example of how mind numbingly complex this gets in practice. Imagine we have a HTTP client that wants to make a GET request from Thali Device A to Thali Device B.
+
+The HTTP client opens a TCP/IP Client connection we'll call "Device A HTTP TCP/IP Client". This client has two streams, an input and an output stream.
+
+This Client will then connect to Device A TCP/IP Mux Listener who will spawn a port which has its own input and output streams. We'll call those Device A TCP/IP Mux Listener Port X Input Stream and Device A TCP/IP Mux Listener Port B Output Stream.
+
+Because multiplex doesn't understand TCP/IP natively we now have to add our own translation layer. This is the Device A Node.js Mux Listener Port X Input and Output Streams. The multiplex library will then mux all the different Node.js streams for all values of X onto a single input and output stream called the Device A Node.js Mux Listener Singleton Input and Output Streams.
+
+Now we have to bridge from the singleton mux streams back to TCP/IP. So we bridge from the Device A Node.js Mux Listener Singleton Input and Output Streams to the Device A TCP/IP Singleton Listener Input and Output Stream. I don't have to specify the port in this case because, by definition, at any instant there is exactly one active port to talk to the TCP/IP Singleton connection. How the TCP/IP Singleton Listener Input and Output streams then map to the non-TCP/IP transport is specified in the binding section for that transport.
+
+So putting this all together we have:
+
+```
+Device A HTTP TCP/IP Client Output Stream --> 
+Device A TCP/IP Mux Listener Port X Input Stream --> 
+[TCP/IP to Node.js Stream Bridge] --> 
+Device A Node.js Mux Listener Port X Input Stream --> 
+[Mux Layer] --> 
+Device A Node.js Mux Listener Singleton Input Stream --> 
+[TCP/IP to Node.js Stream Bridge] --> 
+Device A TCP/IP Singleton Listener Input Stream --> 
+[TCP/IP to Non-TCP/IP Transport Bridge] -->
+Input Stream for non-TCP/IP Transport
+```
+
+and
+
+```
+Device A HTTP TCP/IP Client Input Stream <-- 
+Device A TCP/IP Mux Listener Port X Output Stream <-- 
+[TCP/IP to Node.js Stream Bridge] <--
+Device A Node.js Mux Listener Port X Output Stream <-- 
+[Mux Layer] <-- 
+Device A Node.js Mux Listener Singleton Output Stream <-- 
+[TCP/IP to Node.js Stream Bridge] <--
+Device A TCP/IP Singleton Listener Output Stream <-- 
+[TCP/IP to Non-TCP/IP Transport Bridge] <--
+Output Stream for non-TCP/IP Tranport
+```
+
+And of course we have the inverse of all this on Device B. In the case of Device B we have a local HTTP server that is running on some well known local port. So when a TCP/IP client request comes in it will terminate onto the Device B HTTP TCP/IP Listener Port X Input and Output Streams. In this case Port X isn't literally meant to be the same port X as will be used in the other names. But rather is just a binding to specify who this stream gets its input/output from.
+
+Talking to Device B HTTP TCP/IP Listener Port X Input and Output streams is Device B TCP/IP Mux Client Port X Input and Output Streams. This is a TCP/IP client created by the Mux layer to relay request to the server.
+
+But of course multiplex doesn't actually speak TCP/IP so we feed data to the Device B TCP/IP Mux Client Port X Input and Output Streams from the Device B Node.js Muxh Client Port X Input and Output streams. This is actually created by the multiplex layer when it unpacks a muxed data stream.
+
+That muxed data stream comes from the Device B Node.js Mux Client Singleton Input and Output stream. This is the node.js stream that contains all the TCP/IP connections muxed together.
+
+The data for Device B Node.js Mux Client Singleton Input and Output streams comes from TCP/IP via the Device B TCP/IP Singleton Client Input and Output streams. This is TCP/IP client that relays data from the non-TCP/IP transport onto a singleton TCP/IP connection. How this works is defined by the binding for the non-TCP/IP transport.
+
+So if we put this all together we get (besides a serious headache):
+
+```
+Device B HTTP TCP/IP Listener Port X Input Stream <-- 
+Device B TCP/IP Mux Client Port X Output Stream <-- 
+[TCP/IP to Node.js Stream Bridge] <--
+Device B Node.js Mux Client Port X Output Stream <-- 
+[Mux Layer] <-- 
+Device B Node.js Mux Client Singleton Output Stream <-- 
+[TCP/IP to Node.js Stream Bridge] <--
+Device B TCP/IP Singleton Client Output Stream <-- 
+[TCP/IP to Non-TCP/IP Transport Bridge] <--
+Output stream for non-TCP/IP Transport
+```
+
+as well as
+
+```
+Device B HTTP TCP/IP Listener Port X Output Stream --> 
+Device B TCP/IP Mux Client Port X Input Stream --> 
+[TCP/IP to Node.js Stream Bridge] -->
+Device B Node.js Mux Client Port X Input Stream --> 
+[Mux Layer] --> 
+Device B Node.js Mux Client Singleton Input Stream --> 
+[TCP/IP to Node.js Stream Bridge] -->
+Device B TCP/IP Singleton Client Input Stream --> 
+[TCP/IP to Non-TCP/IP Transport Bridge] -->
+Input stream for non-TCP/IP Transport
+```
+
+
+
+
+Therefore our solution is to implement a multiplex layer on top of the singleton TCP/IP connection using .
+
+The terminology here gets ugly and confusing so please pay attention. We do this for a living and it's confusing.
+
+Singleton TCP/IP Connection - This is a TCP/IP connection created over the non-TCP/IP transport using the binding specified below for the transport in question.
+
+Thali Client - This is the Thali peer that initiated the Singleton TCP/IP connection.
+
+Thali Server - This is the Thali peer that received the Singleton TCP/IP connection.
+
+When a Thali Client wants to connect to the Thali Server over the Singleton TCP/IP connection this works as follows:
+1. The Thali Client will create a TCP/IP listener on localhost on some random port
+2. The Thali Client will then connect to the localhost TCP/IP listener using a TCP/IP client. At any time there can be exactly one connection to the TCP/IP listener since we only support a single TCP/IP connection at a time over the underlying non-TCP/IP transport.
+
+Thali Client TCP/IP Client Output Stream - This is the output stream owned by the TCP/IP client used by the Thali Client to talk to the TCP/IP listener that controls the Singleton TCP/IP connection. (Say that three times fast)
+
+Thali Client TCP/IP Client Input Stream - This is the input stream owned by the TCP/IP client used by the Thali Client to talk to the TCP/IP listener that controls the Singleton TCP/IP connection.
+
+Thali Client TCP/IP Listener Output Stream - This is the output stream owned by the TCP/IP listener used by the Thali Client to send messages over the Singleton TCP/IP Connection.
+
+Thali Client TCP/IP Listener Input Stream - This is the input stream owned by the TCP/IP listener used by the Thali Client to receive messages over the Singleton TCP/IP Connection.
+
+So the data flow for the Thali Client is:
+
+```
+Non-TCP/IP transport ---> Thali Client TCP/IP Listener Output Stream --> Thali Client TCP/IP Client Input Stream
+                     <--- Thali Client TCP/IP Listener Input Stream <-- Thali Client TCP/IP Client Output Stream
+```
+
+The exact same process happens in reverse for the Thali Server. That is, when a non-TCP/IP transport has a connection initiated to the Thali Server the non-TCP/IP transport will bridge to a Thali Server TCP/IP Client who will then connect the Singleton TCP/IP Connection to the TCP/IP Client who will then talk to the local server.
+
+```
+Non-TCP/IP transport ---> Thali Server TCP/IP Client Input Stream --> Some local server's TCP/IP Listener Input Stream
+                     <--- Thali Server TCP/IP Client Output Stream <-- Some local server's TCP/IP Listener Output Stream
+```
+
+The trick then is that we need to create a situation where we can send many independent TCP/IP connections over the Singleton TCP/IP Connection. As mentioned above we do this using the multiplex library. This library takes independent Node.js input/output streams and muxes them into a single Node.js input/output stream which we then bridge onto the Singleton TCP/IP connection.
+
+The resulting architecture is confusing enough to make my nose bleed.
+
+```
+Non-TCP/IP transport ---> Thali Client TCP/IP Listener Output Stream --> Thali Client TCP/IP Client Input Stream --> Thali Client Mux TCP/IP Listener Input Stream --> Thali Client M
+                     <--- Thali Client TCP/IP Listener Input Stream <-- Thali Client TCP/IP Client Output Stream
+```
+
+
+
+
 # BLE Binding
 For our current functionality the ideal mode would be `ADV_NONCONN_IND` and we would use the AdvData to transmit the information we need to send. However Android doesn't appear to support this mode and anyway we eventually have to switch to `ADV_IND` in order to support using BLE as a discovery transport for iOS background operations (more on that later).
 
