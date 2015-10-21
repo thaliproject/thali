@@ -289,6 +289,15 @@ Any `decrypt_error` or `unknown_psk_identity` TLS errors MUST be returned to the
 
 From a node.js perspective the fun starts [here](https://github.com/jxcore/jxcore/blob/master/lib/https.js) since that is the actual interface we need to support for PouchDB but very quickly the venue will change to [here](https://github.com/jxcore/jxcore/blob/master/lib/tls.js). From there I believe you end up [here](https://github.com/jxcore/jxcore/blob/master/src/wrappers/node_crypto.cc). From there you can finally just pull out your favorite C IDE and start to navigate around.
 
+# Transfering discovery beacon values over HTTP
+Many of our bindings need to move the pre-amble and beacon values over a TCP/IP connection. When required we use HTTP (not HTTPS) as the transport. Specifically, the IP address and port will be discovered using whatever mechanisms are specified by the binding. But at the other end of that IP address and port is a HTTP server which supports unauthenticated/unencrypted GET requests to the endpoint /NotificationBeacons.
+
+If the Thali peer is not currently advertising any notification beacons (this should only occur during a race condition as normally a request to /NotificationBeacons results from an advertisement that such values exist) then a GET request MUST be responded to with a 204 No Content.
+
+Otherwise the Thali peer MUST respond with the content-type application/octet-stream, cache-control: no-cache and a value that contains the pre-amble and beacons as previously defined encoded in network byte order.
+
+__Note:__ We currently don't bother with etag support as we generally try to avoid polling and the returned values are small anyway. But we can obviously add this in later if it proves useful.
+
 # BLE Binding
 For our current functionality the ideal mode would be `ADV_NONCONN_IND` and we would use the AdvData to transmit the information we need to send. However Android doesn't appear to support this mode and anyway we eventually have to switch to `ADV_IND` in order to support using BLE as a discovery transport for iOS background operations (more on that later).
 
@@ -298,7 +307,7 @@ Our BLE service UUID is: `b6a44ad1-d319-4b3a-815d-8b805a47fb51`
 
 The format of our `ADV_IND` PDU is:
 AdvA - The random device address
-AdvData - We define this field using RFC 4234 Augmented BNF as previously defined above:
+AdvData - We define this field using [RFC 4234](https://www.ietf.org/rfc/rfc4234.txt) Augmented BNF as previously defined above:
 
 ```
 AdvData = Flags ServiceUUID ServiceData
@@ -332,7 +341,9 @@ In theory once someone has discovered a Thali peripheral the next step would be 
 
 Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
 
-Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address and will then use the [multiplex](https://github.com/maxogden/multiplex) library to multiplex multiple TCP/IP connections over the Bluetooth connection. We would like to eventually switch to a standardized multiplex friendly protocol like HTTP/2.0 but we have to wait for the software around it to become a bit more mature. Until then we will use multiplex's solution.
+## Binding TCP/IP to Bluetooth
+
+Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address. This creates a situation in which the central device becomes a Bluetooth client and the peripheral device becomes a Bluetooth server. Bluetooth connections a full duplex. The contents of the output stream from the Bluetooth client to the Bluetooth server will be a binary stream encoded using [multiplex](https://github.com/maxogden/multiplex). Each of those streams represents the contents of the output stream of a single TCP/IP connection. In other words the Bluetooth client can open multiple simultaneous TCP/IP connections to the Bluetooth server by taking the output streams for each TCP/IP client connection and sending them individually through multiplex which will then mux them into a single stream which will then be transmitted over the Bluetooth output stream. Each of the multiplex streams 
 
 The central, once connected over Bluetooth should issue a HTTP GET request to the path /NotificationBeacons and will get back an application/octet-stream response which contains the preamble and beacons as defined above in network byte order.
 
