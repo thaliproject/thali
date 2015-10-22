@@ -258,6 +258,8 @@ If a PSK cipher suite other than those defined below in the supportedPskCiphers 
 ### tls.connect
 
 We propose adding a new option to the tls.connect options object, pskConfig.
+
+```Javascript
 /**
   * @readonly
   * @enum {string}
@@ -274,6 +276,7 @@ var supportedPskCiphers = {
   * @property {buffer} psk
   * @property {string} pskIdentity
 */
+```
 
 If pskConfig is set to null, if any of the required properties are missing, if any of the required properties do not have the specified type (including the enum binding for cipher), if the psk buffer is empty or if the pskIdentity string is null then the pskConfig value MUST be ignored.
 
@@ -569,14 +572,14 @@ I started this work out just using HMAC-MD5 both because of size but more import
 
 So I ran some quick tests. In the first test I checked 20 hashes against an address book with 1000 keys where all comparisons fail. I repeated the test 100 times.
 
-|Algorithm | Min | Median | Max|
+| Algorithm | Min | Median | Max |
 |----------|-----|--------|----|
 |HMAC-MD5  |131 ms | 136 ms   |230 ms |
 |HMAC-SHA256 | 152 ms | 179.5 ms | 454 ms |
 
 For the next test I generated 20 HMACs using 20 different keys. This simulates creating beacons in an announcement.
 
-|Algorithm | Min | Median | Max|
+| Algorithm | Min | Median | Max |
 |----------|-----|--------|----|
 |HMAC-MD5  |1 ms | 2 ms   |26 ms|
 |HMAC-SHA256 | 2 ms | 3 ms | 26 ms|
@@ -667,5 +670,3 @@ What's interesting is that while this approach would protect the notifier's root
 Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user's behalf) or at the very least not on a process that is anywhere near a network connection.
 
 My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it's even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user's devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B's devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
-
-
