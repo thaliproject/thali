@@ -315,9 +315,9 @@ In the case of network systems that effectively support push discovery (this par
 Systems MUST also detect when they are receiving an excessive number of incoming connections over the high bandwidth transport (e.g. Bluetooth, Wi-Fi, etc.) and either filter out abusers if possible or shut down the notification discovery system all together for a time before trying again.
 
 # BLE Binding
-For our current functionality the ideal mode would be `ADV_NONCONN_IND` and we would use the AdvData to transmit the information we need to send. However Android doesn't appear to support this mode and anyway we eventually have to switch to `ADV_IND` in order to support using BLE as a discovery transport for iOS background operations (more on that later).
+For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send. 
 
-So we will use `ADV_IND`. We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs. We also do not currently define any characteristics. We will define characteristics later for reasons explained below.
+We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs.
 
 Our BLE service UUID is: `b6a44ad1-d319-4b3a-815d-8b805a47fb51`
 
@@ -352,10 +352,33 @@ iOSDevice = 0x01
 
 The payload of an advertising packet is 31 octets. This field is made up of AD structures which consist of three parts, a 1 octet length field, an AD type and AD Data. Generally advertisements consist of at least two AD structures. The first is for flags and the second is to advertise our service UUID. The flag field takes up a total of 3 bytes, 1 for length, 1 for type and 1 for the actual flag values. ServiceUUID takes up 18 bytes, 1 for length, 1 for type and 16 for the 128 bit UUID. So this leaves us with only 10 bytes that we control. We will advertise service data which means our overhead for length and type is 2 bytes leaving us with 8 bytes of actual data.
 
+## Android Settings
+Before turning an Android device into a peripheral we MUST determine if the local hardware actually supports being a peripheral. As explained [here](http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode) this can be determined by querying three different APIs, the listed APIs MUST be queried and BLE advertising only activated if they all return true.
+
+Android advertises over BLE by configuring itself using the [AdvertiseSettings.Builder](https://developer.android.com/reference/android/bluetooth/le/AdvertiseSettings.Builder.html). 
+
+Android implementations of Thali MUST use the following advertising settings:
+* `setAdvertiseMode()`
+* `setTimeout(0)` - We advertise as long as we are around
+* `setAdvertiseMode()` - This MUST be set to `ADVERTISE_MODE_LOW_LATENCY` when the application is in the foreground and `ADVERTISE_MODE_LOW_POWER` when the application is in the background.
+* `setTxPowerLevel()` - This MUST be set to `ADVERTISE_TX_POWER_LOW` when in the background and `ADVERTISE_TX_POWER_HIGH` when in the foreground.
+
+__Open Issue:__ - We need to perform practical experiments to determine what the actual battery drain is of having BLE advertising on all the time. If we primarily use low power then it really shouldn't be bad since BLE was designed to allow beacons to advertise themselves for years on a single battery.
+
+When scanning for Thali BLE peripherals Android devices MUST 
+
 ## BluetoothAddress
 In theory once someone has discovered a Thali peripheral the next step would be to issue a connect and start to use characteristics to move the beacon values. In practice however we have found this to be problematic because we have had serious reliability issues with connecting over BLE on Android. It is quite common for connects to randomly fail and for the BLE stack to then become unresponsive for a minute or two afterwards. We have had no problems receiving BLE advertisements, just connecting.
 
 Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
+
+##Notifying when beacons change
+Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
+
+Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. Therefore whenever the value in /NotificationBeacons change the BLE service MUST be stopped and restarted in order to obtain a new address. The result being that the peripheral will now look like a brand new device to everyone in the vicinity and they will automatically connect to get the new /NotificationBeacons value.
+
+## When to decide a peer has left
+In general BLE peripherals will advertise their presence on a regular interval thus allowing those around them to know of their presence. But 
 
 ## Binding TCP/IP to Bluetooth
 
@@ -379,11 +402,6 @@ The relay logic is identical to that described in the Bluetooth Client text abov
 
 As mentioned above this only creates a single TCP/IP connection over each Bluetooth connection. The previously mentioned TCP/IP Multiplexer will be used to enable multiple simultaneous TCP/IP connections to be multiplexed over the single TCP/IP connection.
 
-##Notifying when beacons change
-Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
-
-Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. Therefore whenever the value in /NotificationBeacons change the BLE service MUST be stopped and restarted in order to obtain a new address. The result being that the peripheral will now look like a brand new device to everyone in the vicinity and they will automatically connect to get the new /NotificationBeacons value.
-
 ## iOSDevice
 Normally we do not use BLE for discovery with iOS. Instead we use the multi-peer connectivity framework whose binding will be described later in this document. However in order to enable iOS devices to be discovered in the background we also want to support BLE. However when an iOS device is in the background it can only communicate over BLE and so any further communication will have to occur using BLE characteristics. We will define the characteristics used to communicate beacon data in the future when we get closer to implementing this functionality.
 
@@ -393,6 +411,10 @@ Apple's proprietary multi-peer connectivity framework has its own discovery mech
 MPCF starts off by advertising via `MCNearbyServiceAdvertiser` the types of sessions that the device is willing to join. The advertisement consists of a peer ID, an info object made up of key/value pairs and a serviceType which can be between 1-15 characters long. Each key/value pair in the info object cannot be longer than 255 bytes. The total size of the info object cannot be more than 400 bytes (so it will fit into a single Bluetooth packet).
 
 It's hard to be sure what the exact maximum size of a MPCF announcement is. But given that info tops out at 400 bytes one would be reasonable to assume that peerID and service type are both less. The point then being that the announcement mechanism is not the best way to discover the full beacon string which can easily be 1K or more.
+
+Another complication is that it does not appear to be possible to change the information being advertised via MCNearbyServiceAdvertiser without starting and stopping advertising. And we have seen experimentally that when one starts and stops advertising there isn't a proper (or at least reliable) "byebye" signal so that other devices think the session is still around when it is not. Which means we get fun race conditions if we happen to stop advertising in order to change what we are advertising and someone else happens to be trying to connect to us.
+
+All of the above means that when we perform discov
 
 Another factor to consider is that MPCF is only available (mostly) when the Thali app is in the foreground. This is a limited period so battery consumption is not that big a deal. As such we will use the same approach as BLE on Android.
 
@@ -549,13 +571,13 @@ And of course this is all without discussing the various IDs that Bob's phone is
 ## Are we guilty of bad public key hygiene?
 The notification protocol and TLS binding require the use of a public key to identify both parties and then that public key is used directly for Diffie-Hellman key exchanges. In and of itself this isn't bad. What's bad is that currently those public keys are the root identity keys and so long lived. Typically good practice argues for having some kind of infrequently used root key which is then used to sign an intermediary key which is then used to sign a leaf key which is then used to sign an ephemeral key. Each key then rotates based on how low in the tree it is, the lower in the tree the more frequently it is changed. So we range from the root key at the top which is essentially invariant to the ephemeral key at the bottom which is changed on each use.
 
-The notification protocol and TLS binding require the use of a public key to identify both parties and then that public key is used directly for Diffie-Hellman key exchanges. In and of itself this isn?t bad. What?s bad is that currently those public keys are the root identity keys and so long lived. Typically good practice argues for having some kind of infrequently used root key which is then used to sign an intermediary key which is then used to sign a leaf key which is then used to sign an ephemeral key. Each key then rotates based on how low in the tree it is, the lower in the tree the more frequently it is changed. So we range from the root key at the top which is essentially invariant to the ephemeral key at the bottom which is changed on each use.
+The notification protocol and TLS binding require the use of a public key to identify both parties and then that public key is used directly for Diffie-Hellman key exchanges. In and of itself this isn’t bad. What’s bad is that currently those public keys are the root identity keys and so long lived. Typically good practice argues for having some kind of infrequently used root key which is then used to sign an intermediary key which is then used to sign a leaf key which is then used to sign an ephemeral key. Each key then rotates based on how low in the tree it is, the lower in the tree the more frequently it is changed. So we range from the root key at the top which is essentially invariant to the ephemeral key at the bottom which is changed on each use.
 
-The problem with this approach is that we are both space and processor constrained. In an ideal world the beacon?s encrypted value would actually be encrypted using a key derived not from the sender?s root public key but instead from the ephemeral key and inside the encrypted statement would be a key chain where the ephemeral key would be signed by the leaf key which would be signed by the intermediate key which would then be signed by the root key. Unfortunately this approach would vastly (by orders of magnitude) increase the size of the beacon. So it?s not workable over the types of battery/bandwidth/process constrained environments we need to run in.
+The problem with this approach is that we are both space and processor constrained. In an ideal world the beacon’s encrypted value would actually be encrypted using a key derived not from the sender’s root public key but instead from the ephemeral key and inside the encrypted statement would be a key chain where the ephemeral key would be signed by the leaf key which would be signed by the intermediate key which would then be signed by the root key. Unfortunately this approach would vastly (by orders of magnitude) increase the size of the beacon. So it’s not workable over the types of battery/bandwidth/process constrained environments we need to run in.
 
-What?s interesting is that while this approach would protect the notifier?s root key from being over used, it would not protect the peer being notified. After all the root of the discovery mechanism is a Diffie-Hellman key exchange with the public key of the peer to be notified. There is no way for the notifier to know ahead of time what keys below the root the peer to be notified is currently using. So the notifier can?t use those keys in the Diffie-Hellman key exchange.
+What’s interesting is that while this approach would protect the notifier’s root key from being over used, it would not protect the peer being notified. After all the root of the discovery mechanism is a Diffie-Hellman key exchange with the public key of the peer to be notified. There is no way for the notifier to know ahead of time what keys below the root the peer to be notified is currently using. So the notifier can’t use those keys in the Diffie-Hellman key exchange.
 
-Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user?s behalf) or at the very least not on a process that is anywhere near a network connection.
+Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user’s behalf) or at the very least not on a process that is anywhere near a network connection.
 
-My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it?s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user?s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B?s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
+My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it’s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user’s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B’s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
 
