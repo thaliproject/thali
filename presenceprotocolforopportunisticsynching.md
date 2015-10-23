@@ -357,21 +357,51 @@ In theory once someone has discovered a Thali peripheral the next step would be 
 
 Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. We need one byte to flag that this is a Bluetooth address and then 6 bytes for the actual address. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
 
-## Binding TCP/IP to Bluetooth
+## The Bluetooth Handshake and Binding TCP/IP to Bluetooth
 
 Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address. This creates a situation in which the central device becomes a Bluetooth client and the peripheral device becomes a Bluetooth server. Bluetooth connections are full duplex. We will only support a single TCP/IP connection at a time over the Bluetooth transport. But we will then use our [TCP Multiplexer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/tcpmultiplex.js) to enable multiple simultaneous TCP/IP connections to be opened from the Bluetooth Client to the Bluetooth Server. Note that if both devices want to open connections to each other then each has to simultaneously take on the role of Bluetooth Client and Bluetooth Server.
 
+## The Bluetooth handshake and surprise connections
+Imagine a situation where Thali Peer B is advertising over BLE and suddenly receives a Bluetooth connection from Thali Peer A. Thali Peer B had not previously discovered Thali Peer A over BLE.
+
+There are two possible reasons for why Thali Peer B hadn't previously discovered Thali Peer A. 
+
+One possibility is that Thali Peer A hadn't been advertising itself over BLE because it didn't have any notification beacons to advertise. In other words, Thali Peer B hadn't found Thali Peer A over BLE because Thali Peer A wasn't advertising itself over BLE.
+
+The other possibility is that Thali Peer A was advertising itself over BLE but for some reason Thali Peer B didn't get the advertisement. For example, we turn the BLE power down when the Thali app is in the background. So it's possible that Thali Peer A could hear Thali Peer B's BLE announcements but not vice versa.
+
+So what would be nice is if Thali Peer A, when establishing a Bluetooth connection to Thali Peer B, could indicate if it is advertising any notification beacons. Of course Peer A already knows if any of the beacons it has are for Peer B and could decide to indicate if it is advertising beacons specifically for B. But we should not depend on that because it makes a few edge case attacks a little easier for the attacker. Therefore when a Thali Bluetooth client establishes a Bluetooth connection it MUST indicate as defined below if it has any notification beacon values available even if none of those value are for the Bluetooth Server the Bluetooth Client has connected to.
+
+There is an ulterior motive behind all of this. We have run into issues with Bluetooth on Android where we think a Bluetooth connection has been established but  in fact something went wrong and it hasn't. We typically only find out there is a problem once some data gets sent. So we tend to always start all connections by sending a bit of data just to make sure everything is working. So our little notification exchange is really just an excuse to shake out the Bluetooth connections.
+
+Therefore when a Thali Bluetooth client establishes a connection to a Thali Bluetooth server the client MUST send the following binary data first:
+
+```
+BluetoothHandshake = HasNotification / DoesNotHaveNotification
+HasNotification = 0
+DoesNotHaveNotification = 1
+```
+
+The Bluetooth server MUST respond to a properly formatted Bluetooth Handshake by sending the octet 0. If a Bluetooth server receives an initial byte value on a Bluetooth connection other than those allowed by the Bluetooth Handshake then the Bluetooth server MUST terminate the Bluetooth connection. Similarly if a Bluetooth Client receives an initial byte from the Bluetooth Server with a value other than 0 then it MUST terminate the Bluetooth connection. Our assumption in both cases is that the other side of the connection is buggy.
+
+If a Bluetooth server receives a Bluetooth Handshake set to `HasNotification`  then the Bluetooth server MUST treat the handshake as being the equivalent of having a received a BLE announcement with the Bluetooth client's Bluetooth address and an unrecognized BLE address.
+
+In the worst case the Bluetooth server might have already seen the Bluetooth client's BLE advertisement and will now retrieve it again. Ideally we would include the BLE address that the Bluetooth client is using (if any) so as to avoid duplicate notifications but there doesn't seem to be an API available in Android to ask what BLE address the local device's peripheral is using so the Thali peer doesn't know what BLE address it is advertising with.
+
+### Binding TCP/IP to Bluetooth
+After the Bluetooth Handshake has been sent then we had the streams over for sending and receiving TCP/IP data.
+
 The actual logic for relaying TCP/IP over the Bluetooth connection works as follows:
 1. The Thali software tells the local Thali Bluetooth layer to open a Bluetooth client connection to the remote peer
-2. The Bluetooth Client layer will establish the connection and will then open a localhost TCP/IP listener and return the port for the listener to the Thali software.
+2. The Bluetooth Client layer will establish the connection (and send the handshake) and will then open a localhost TCP/IP listener and return the port for the listener to the Thali software.
 3. The Thali software then opens a TCP/IP connection to the localhost TCP/IP listener. That listener will accept exactly one connection.
-4. The Bluetooth code will now take the input stream from the TCP/IP connection to the localhost TCP/IP listener and connect it to the output stream of the Bluetooth client connection. The Bluetooth code will then take the input stream from the Bluetooth client connection and connect it to the output stream from the localhost TCP/IP listener.
+4. The Bluetooth code will now take the input stream from the TCP/IP connection to the localhost TCP/IP listener and connect it to the output stream of the Bluetooth client connection. The Bluetooth code will then take the input stream from the Bluetooth client connection and connect it to the output stream from the localhost TCP/IP listener. Of course the first byte sent to the client will be confirmed as the response to the Bluetooth Handshake.
 
 This design means we are "crossing the streams" between the localhost TCP/IP listener's input/output streams and the Bluetooth Client's input/output streams. This means that only the stream content will be put over the air. None of the TCP/IP control flow, FIN packets or other logic will be transmitted. This means, for example, that the only way that the Bluetooth Server code will know that the TCP/IP connection on the Bluetooth Client side has been closed (since the FIN packet won't be transmitted) is when the Bluetooth Client closes the Bluetooth Client socket connection. This also means that we are depending on TCP/IP and Bluetooth's flow control to play well with each other. That is, if the Bluetooth Client connection's buffer is full then when we try to relay from the localhost TCP/IP listener's output stream to the Bluetooth Client's input stream the write request won't go through because there is no space in the buffer.
 
 The logic works the same on the Bluetooth Server side. Specifically:
 1. The Thali software tells the local Thali Bluetooth layer that it wants to receive incoming Bluetooth connections. As part of that API call telling the Thali Bluetooth layer to listen, the Thali software will specify a TCP/IP localhost listener and port.
-2. When a Bluetooth Client connection is made to the device the Thali Bluetooth code will open a TCP/IP client connection to the TCP/IP localhost listener and port specified by the Thali software in step 1. The Bluetooth server will then take its input stream and connect it to the TCP/IP client's output stream. It will then take the TCP/IP client's input stream and connect it to the Bluetooth Server's output stream.
+2. When a Bluetooth Client connection is made to the device the Thali Bluetooth code will open a TCP/IP client connection to the TCP/IP localhost listener and port specified by the Thali software in step 1. The Bluetooth server will wait to receive the Bluetooth Handshake and then response as defined by the Bluetooth Handshake. Once the Bluetooth Handshake is done then the Bluetooth Server will then take its input stream and connect it to the TCP/IP client's output stream. It will then take the TCP/IP client's input stream and connect it to the Bluetooth Server's output stream.
 
 If there are multiple simultaneous Bluetooth connections to the Bluetooth Server then there will be multiple simultaneous localhost TCP/IP client connections made to the submitted TCP/IP localhost listener and port.
 
@@ -391,10 +421,6 @@ Our solution depends on a behavior we have observed with Android. Whenever we st
 The source code for the BLE support in Lollipop is available [here](https://android.googlesource.com/platform/frameworks/base/+/lollipop-release/core/java/android/bluetooth/le/).
 
 ### startAdvertising
-Before turning an Android device into a peripheral we MUST determine if the local hardware actually supports being a peripheral. As explained [here](http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode) this can be determined by querying `bluetoothAdapter.isMultipleAdvertisementSupported`, `bluetoothAdapter.isOffloadedFilteringSupported` and `bluetoothAdapter.isOffloadedScanBatchingSupported`, the listed APIs MUST be queried and BLE advertising only activated if they all return true.
-
-__Open Issue:__ It isn't actually clear just how bad it is if we try to do advertising on a device that doesn't supporting on-chip filtering on on-chip scan batching. My assumption is that not having this hardware will make perf worse but in looking at [getBluetoothLeAdvertiser](https://android.googlesource.com/platform/frameworks/base/+/lollipop-release/core/java/android/bluetooth/BluetoothAdapter.java) they only check to see if `isMultipleAdvertisementSupported`. But for now we can err on the cautious side.
-
 When starting BLE advertising on Android the `startAdvertising()` API of `BluetoothLeAdvertiser` object is used. The settings, created by  [AdvertiseSettings.Builder](https://developer.android.com/reference/android/bluetooth/le/AdvertiseSettings.Builder.html), MUST be set as follows:
 * `setAdvertiseMode()` - This MUST be set to `ADVERTISE_MODE_LOW_LATENCY` when the application is in the foreground and `ADVERTISE_MODE_LOW_POWER` when the application is in the background.
 * `setConnectable()` - This MUST be set to false as we do not currently support any characteristics.
@@ -429,15 +455,37 @@ __Open Issue:__ - We need to run experiments to determine the practical battery 
 __Open Issue:__ - We run both scanning and advertising at the same time. Which means we need to also perform experiments to determine what happens when both are on in terms of battery consumption, responsiveness to discovery, etc.
 
 # Multi-Peer Connectivity Framework (MPCF)
-Apple's proprietary multi-peer connectivity framework has its own discovery mechanism that appears to run over both Bluetooth and Wi-Fi. Note however that iOS's implementation of Bluetooth uses a proprietary extension that requires having a public key cert pair signed by Apple. And multi-peer connectivity's use of Wi-Fi appears to use a proprietary variant of Wi-Fi Direct. In any case, Multi-Peer Connectivity only works with Apple devices (either iOS or OS/X).
+Apple's proprietary multi-peer connectivity framework has its own discovery mechanism that appears to run over both Bluetooth and Wi-Fi. Note however that iOS's implementation of Bluetooth uses a proprietary extension that requires having a public key cert pair signed by Apple. And multi-peer connectivity's use of Wi-Fi appears to use a proprietary variant of Wi-Fi Direct. In any case, Multi-Peer Connectivity only works with Apple devices (either iOS or OS/X). We use MPCF to enable Thali apps running in the foreground to discovery and communicate with each other.
 
+## MCNearbyServiceAdvertiser
 MPCF starts off by advertising via `MCNearbyServiceAdvertiser` the types of sessions that the device is willing to join. The advertisement consists of a peer ID, an info object made up of key/value pairs and a serviceType which can be between 1-15 characters long. Each key/value pair in the info object cannot be longer than 255 bytes. The total size of the info object cannot be more than 400 bytes (so it will fit into a single Bluetooth packet).
 
-It's hard to be sure what the exact maximum size of a MPCF announcement is. But given that info tops out at 400 bytes one would be reasonable to assume that peerID and service type are both less. The point then being that the announcement mechanism is not the best way to discover the full beacon string which can easily be 1K or more.
+I haven't run an experiment to see what the maximum size of a MPCF announcement is but given that info tops out at 400 bytes one would be reasonable to assume that peerID and service type are both less. The point then being that the announcement mechanism is not the best way to discover the full beacon string which can easily be 1K or more.
 
-Another complication is that it does not appear to be possible to change the information being advertised via MCNearbyServiceAdvertiser without starting and stopping advertising. And we have seen experimentally that when one starts and stops advertising there isn't a proper (or at least reliable) "byebye" signal so that other devices think the session is still around when it is not. Which means we get fun race conditions if we happen to stop advertising in order to change what we are advertising and someone else happens to be trying to connect to us.
+Therefore we will only use the MPCF announcement to identify ourselves as a Thali node and then use our TCP/IP binding to communicate with the /NotificationBeacons endpoint.
 
-All of the above means that when we perform discov
+This means that in calling `MCNearbyServiceAdvertiser`  we MUST set the arguments as follows:
+* `myPeerID` - A randomly generated UUID that MUST change every time MCNearbyServiceAdvertiser is called.
+* `info` - Empty
+* `serviceType` - The string "org.thaliproject.mpcf.announcement"
+
+## MCNearbyServiceBrowser
+MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `MCNearbyServiceBrowser` `myPeerID` MUST be set to a newly generated UUID. And yes, this means that the UUID being advertised in `MCNearbyServiceAdvertiser` is not the same UUID the peer advertises itself with on `MCNearbyServiceBrowser`. This should not matter. The `serviceType` used with `MCNearbyServiceBrowser` MUST be the same value used for `serviceType` with `MCNearbyServiceAdvertiser`, namely, "org.thaliproject.mpcf.announcement".
+
+## Binding TCP/IP to MPCF
+MPCF communication starts when one peer sends a session invitation to another peer. Once a session is establish between two (or more) peers then each peer can open an output socket to another peer. Because these are just output sockets they are simplex, not duplex. But our goal is to move a TCP/IP connection over MPCF and that requires a duplex connection. Our approach then is to create a situation where one Thali peer can open an output socket to another Thali peer and that Thali peer will then automatically respond with its own matching output socket. This then creates a full duplex connection between the peers.
+
+When a Thali peer discovers another Thali peer via `MCNearbyServiceBrowser` then the discovering peer MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session. The `MCSession` object MUST be initiated with same `myPeerID` used with `MCNearbyServiceBrowser` and both `securityIdentity` and `encryptionPreference` MUST be set to `nil`. The call to `invitePeer` on `MCNearbyServiceBrowser` MUST set `context` to `nil` and `timeout` to 30 seconds.
+
+We will refer to the Thali peer that sent an invitation to a sessions as the initiating peer and the Thali peer that receives the invitation as a responding peer. Please keep in mind that in the normal course of events 
+
+
+
+
+Each Thali peer MUST invite exactly one other Thali peer to a single session object. This means that if a Thali peer wants to simultaneously talk to multiple Thali peers it needs to set up multiple session objects, one for each peer. when calling `initWitPeer` on `MCSession` both `securityIdentity` and `encryptionPreference` MUST be `nil`.
+
+
+
 
 Another factor to consider is that MPCF is only available (mostly) when the Thali app is in the foreground. This is a limited period so battery consumption is not that big a deal. As such we will use the same approach as BLE on Android.
 
@@ -603,3 +651,4 @@ What’s interesting is that while this approach would protect the notifier’s 
 Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user’s behalf) or at the very least not on a process that is anywhere near a network connection.
 
 My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it’s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user’s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B’s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
+
