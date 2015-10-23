@@ -317,7 +317,7 @@ Systems MUST also detect when they are receiving an excessive number of incoming
 # BLE Binding
 For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send. 
 
-We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs.
+We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs. We also do not currently define any characteristics. Instead we transfer all the data we need in the BLE announcement PDU. In the future however, when we want to work with iOS in the background, we will need to introduce characteristics.
 
 Our BLE service UUID is: `b6a44ad1-d319-4b3a-815d-8b805a47fb51`
 
@@ -344,56 +344,33 @@ ServiceDataType = %x16
 ServiceDataValue = BluetoothAddress / iOSDevice
 
 BluetoothAddress = BluetoothFlag BluetoothValue
-BluetoothFlag = 0x00
+BluetoothFlag = 0
 BluetoothValue = 6-OCTET
 
-iOSDevice = 0x01
+iOSDevice = 1
 ```
 
 The payload of an advertising packet is 31 octets. This field is made up of AD structures which consist of three parts, a 1 octet length field, an AD type and AD Data. Generally advertisements consist of at least two AD structures. The first is for flags and the second is to advertise our service UUID. The flag field takes up a total of 3 bytes, 1 for length, 1 for type and 1 for the actual flag values. ServiceUUID takes up 18 bytes, 1 for length, 1 for type and 16 for the 128 bit UUID. So this leaves us with only 10 bytes that we control. We will advertise service data which means our overhead for length and type is 2 bytes leaving us with 8 bytes of actual data.
 
-## Android Settings
-Before turning an Android device into a peripheral we MUST determine if the local hardware actually supports being a peripheral. As explained [here](http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode) this can be determined by querying three different APIs, the listed APIs MUST be queried and BLE advertising only activated if they all return true.
-
-Android advertises over BLE by configuring itself using the [AdvertiseSettings.Builder](https://developer.android.com/reference/android/bluetooth/le/AdvertiseSettings.Builder.html). 
-
-Android implementations of Thali MUST use the following advertising settings:
-* `setAdvertiseMode()`
-* `setTimeout(0)` - We advertise as long as we are around
-* `setAdvertiseMode()` - This MUST be set to `ADVERTISE_MODE_LOW_LATENCY` when the application is in the foreground and `ADVERTISE_MODE_LOW_POWER` when the application is in the background.
-* `setTxPowerLevel()` - This MUST be set to `ADVERTISE_TX_POWER_LOW` when in the background and `ADVERTISE_TX_POWER_HIGH` when in the foreground.
-
-__Open Issue:__ - We need to perform practical experiments to determine what the actual battery drain is of having BLE advertising on all the time. If we primarily use low power then it really shouldn't be bad since BLE was designed to allow beacons to advertise themselves for years on a single battery.
-
-When scanning for Thali BLE peripherals Android devices MUST 
-
 ## BluetoothAddress
 In theory once someone has discovered a Thali peripheral the next step would be to issue a connect and start to use characteristics to move the beacon values. In practice however we have found this to be problematic because we have had serious reliability issues with connecting over BLE on Android. It is quite common for connects to randomly fail and for the BLE stack to then become unresponsive for a minute or two afterwards. We have had no problems receiving BLE advertisements, just connecting.
 
-Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
-
-##Notifying when beacons change
-Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
-
-Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. Therefore whenever the value in /NotificationBeacons change the BLE service MUST be stopped and restarted in order to obtain a new address. The result being that the peripheral will now look like a brand new device to everyone in the vicinity and they will automatically connect to get the new /NotificationBeacons value.
-
-## When to decide a peer has left
-In general BLE peripherals will advertise their presence on a regular interval thus allowing those around them to know of their presence. But 
+Therefore we are starting with a conservative stance. We use BLE advertisements to find Android Thali peripherals but we then switch to Bluetooth in order to transmit the beacons. To make this switch we have to discover the peripheral's Bluetooth address. It so happens that a Bluetooth address is 6 octets long. We need one byte to flag that this is a Bluetooth address and then 6 bytes for the actual address. This fits nicely into our 8 octets and explains the `BluetoothAddress` structure above.
 
 ## Binding TCP/IP to Bluetooth
 
-Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address. This creates a situation in which the central device becomes a Bluetooth client and the peripheral device becomes a Bluetooth server. Bluetooth connections are full duplex. We will only support a single TCP/IP connection at a time over the Bluetooth transport. But we will then use our [TCP Multiplexer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/tcpmultiplex.js) to enable multiple simultaneous TCP/IP connections to be opened from the Bluetooth Client to the Bluetooth Server. Note that if both devices want to open connections to each other then each has to simultaneous take on the role of Bluetooth Client and Bluetooth Server.
+Once the Bluetooth Address is discovered the central will switch to an insecure RFCOMM connection to the supplied Bluetooth Address. This creates a situation in which the central device becomes a Bluetooth client and the peripheral device becomes a Bluetooth server. Bluetooth connections are full duplex. We will only support a single TCP/IP connection at a time over the Bluetooth transport. But we will then use our [TCP Multiplexer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/tcpmultiplex.js) to enable multiple simultaneous TCP/IP connections to be opened from the Bluetooth Client to the Bluetooth Server. Note that if both devices want to open connections to each other then each has to simultaneously take on the role of Bluetooth Client and Bluetooth Server.
 
 The actual logic for relaying TCP/IP over the Bluetooth connection works as follows:
 1. The Thali software tells the local Thali Bluetooth layer to open a Bluetooth client connection to the remote peer
 2. The Bluetooth Client layer will establish the connection and will then open a localhost TCP/IP listener and return the port for the listener to the Thali software.
-3. The Thali Software then opens a TCP/IP connection to the localhost TCP/IP listener. That listener will accept exactly one connection.
+3. The Thali software then opens a TCP/IP connection to the localhost TCP/IP listener. That listener will accept exactly one connection.
 4. The Bluetooth code will now take the input stream from the TCP/IP connection to the localhost TCP/IP listener and connect it to the output stream of the Bluetooth client connection. The Bluetooth code will then take the input stream from the Bluetooth client connection and connect it to the output stream from the localhost TCP/IP listener.
 
-This design means we are "crossing the streams" between the localhost TCP/IP listener's input/output streams and the Bluetooth Client's input/output streams. This means that only the stream content will be put over the air. None of the TCP/IP control flow, fin or other logic will be transmitted. This means, for example, that the only way that the Bluetooth Server code will know that the TCP/IP connection on the Bluetooth Client side has been closed (since the FIN packet won't be transmitted) is when the Bluetooth Client closes the Bluetooth Client socket connection. This also means that we are depending on TCP/IP and Bluetooth's flow control to play well with each other. That is, if the Bluetooth Client connection's buffer is full then when we try to relay from the localhost TCP/IP listener's output stream to the Bluetooth Client's input stream the write request won't go through because there is no space in the buffer.
+This design means we are "crossing the streams" between the localhost TCP/IP listener's input/output streams and the Bluetooth Client's input/output streams. This means that only the stream content will be put over the air. None of the TCP/IP control flow, FIN packets or other logic will be transmitted. This means, for example, that the only way that the Bluetooth Server code will know that the TCP/IP connection on the Bluetooth Client side has been closed (since the FIN packet won't be transmitted) is when the Bluetooth Client closes the Bluetooth Client socket connection. This also means that we are depending on TCP/IP and Bluetooth's flow control to play well with each other. That is, if the Bluetooth Client connection's buffer is full then when we try to relay from the localhost TCP/IP listener's output stream to the Bluetooth Client's input stream the write request won't go through because there is no space in the buffer.
 
 The logic works the same on the Bluetooth Server side. Specifically:
-1. The Thali software tells the local Thali Bluetooth layer that it wants to receive incoming Bluetooth connections. As part of that require the Thali software will specify a TCP/IP localhost listener and port.
+1. The Thali software tells the local Thali Bluetooth layer that it wants to receive incoming Bluetooth connections. As part of that API call telling the Thali Bluetooth layer to listen, the Thali software will specify a TCP/IP localhost listener and port.
 2. When a Bluetooth Client connection is made to the device the Thali Bluetooth code will open a TCP/IP client connection to the TCP/IP localhost listener and port specified by the Thali software in step 1. The Bluetooth server will then take its input stream and connect it to the TCP/IP client's output stream. It will then take the TCP/IP client's input stream and connect it to the Bluetooth Server's output stream.
 
 If there are multiple simultaneous Bluetooth connections to the Bluetooth Server then there will be multiple simultaneous localhost TCP/IP client connections made to the submitted TCP/IP localhost listener and port.
@@ -404,6 +381,52 @@ As mentioned above this only creates a single TCP/IP connection over each Blueto
 
 ## iOSDevice
 Normally we do not use BLE for discovery with iOS. Instead we use the multi-peer connectivity framework whose binding will be described later in this document. However in order to enable iOS devices to be discovered in the background we also want to support BLE. However when an iOS device is in the background it can only communicate over BLE and so any further communication will have to occur using BLE characteristics. We will define the characteristics used to communicate beacon data in the future when we get closer to implementing this functionality.
+
+##Notifying when beacons change
+Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
+
+Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. Therefore whenever the value in /NotificationBeacons change the BLE service MUST be stopped and restarted in order to obtain a new address. The result being that the peripheral will now look like a brand new device to everyone in the vicinity and they will automatically connect to get the new /NotificationBeacons value.
+
+## Android Settings
+The source code for the BLE support in Lollipop is available [here](https://android.googlesource.com/platform/frameworks/base/+/lollipop-release/core/java/android/bluetooth/le/).
+
+### startAdvertising
+Before turning an Android device into a peripheral we MUST determine if the local hardware actually supports being a peripheral. As explained [here](http://stackoverflow.com/questions/26482611/chipsets-devices-supporting-android-5-ble-peripheral-mode) this can be determined by querying `bluetoothAdapter.isMultipleAdvertisementSupported`, `bluetoothAdapter.isOffloadedFilteringSupported` and `bluetoothAdapter.isOffloadedScanBatchingSupported`, the listed APIs MUST be queried and BLE advertising only activated if they all return true.
+
+__Open Issue:__ It isn't actually clear just how bad it is if we try to do advertising on a device that doesn't supporting on-chip filtering on on-chip scan batching. My assumption is that not having this hardware will make perf worse but in looking at [getBluetoothLeAdvertiser](https://android.googlesource.com/platform/frameworks/base/+/lollipop-release/core/java/android/bluetooth/BluetoothAdapter.java) they only check to see if `isMultipleAdvertisementSupported`. But for now we can err on the cautious side.
+
+When starting BLE advertising on Android the `startAdvertising()` API of `BluetoothLeAdvertiser` object is used. The settings, created by  [AdvertiseSettings.Builder](https://developer.android.com/reference/android/bluetooth/le/AdvertiseSettings.Builder.html), MUST be set as follows:
+* `setAdvertiseMode()` - This MUST be set to `ADVERTISE_MODE_LOW_LATENCY` when the application is in the foreground and `ADVERTISE_MODE_LOW_POWER` when the application is in the background.
+* `setConnectable()` - This MUST be set to false as we do not currently support any characteristics.
+* `setTimeout()` - This MUST be set to 0. We advertise as long as we are running.
+* `setTxPowerLevel()` - This MUST be set to `ADVERTISE_TX_POWER_LOW` when in the background and `ADVERTISE_TX_POWER_HIGH` when in the foreground.
+
+`advertiseData` MUST be set to:
+* `addManufacturerData()` - This MUST NOT be set. We need all the space in the BLE Advertisement we can get.
+* `addServiceData(serviceDataUuid, serviceData)` - `serviceDataUuid` MUST be set to the Thali service's BLE UUID and serviceData MUST be set to the single byte "0" followed by the BLE UUID as a byte stream.
+* `addServiceUuid(serviceUuid)` - `serviceUuid` MUST be set to the Thali service's BLE UUID.
+* `setIncludeDeviceName()` - Must be set to false. We need the space.
+* `setIncludeTxPowerLevel()` - Must be set to false. We need the space.
+
+When calling `startAdvertising()` the scanResponse argument MUST NOT be used as we do not support a scanResponse.
+
+__Open Issue:__ - We need to perform practical experiments to determine what the actual battery drain is of having BLE advertising on all the time. If we primarily use low power then it really shouldn't be bad since BLE was designed to allow beacons to advertise themselves for years on a single battery. But we need data.
+
+### startScan
+When calling startScan the filters argument MUST be used and MUST be set to Thali's BLE service UUID.
+
+When calling startScan the settings argument MUST be used and MUST be set to:
+* `setCallbackType(callbackType)` - If on API 23 then `callbackType` MUST be set to the flag `CALLBACK_TYPE_ALL_MATCHES` and MUST NOT include the `CALLBACK_TYPE_MATCH_LOST`. We are explicitly not going to worry about announcing when a BLE peripheral has gone. It really shouldn't matter given how we are using BLE.
+* `setMatchMode(matchMode)` - If on API 23 then `matchMode` MUST be set to `MATCH_MODE_STICKY` .
+* `setNumOfMatches(numOfMatches)` - If on API 23 then `numOfMatches` MUST bet set to `MATCH_NUM_MAX_ADVERTISEMENT`.
+* `setReportDelay(reportDelayMillis)` - `reportDelayMillis` MUST bet set to at least 500 ms in the foreground and 1000ms in the background. The delay helps to make sure that we don't end up killing our node performance by flooding JXcore with endless notifications, each of which results in stopping JXcore.
+* `setScanMode(scanMode)` - `scanMode` MUST be set to `SCAN_MODE_LOW_POWER` when running in the background and `SCAN_MODE_LOW_LATENCY` when running in the foreground.
+
+__Open Issue:__ - What is the practical difference between `MATCH_MODE_AGGRESSIVE` and `MATCH_MODE_STICKY`? The real question is - what percentage of the time will `MATCH_MODE_AGGRESSIVE` give us a "hit" where the signal strength is too weak for the Bluetooth follow up connection to work properly?
+
+__Open Issue:__ - We need to run experiments to determine the practical battery consumption consequences of running BLE scanning. Do the different scan modes make a big difference?
+
+__Open Issue:__ - We run both scanning and advertising at the same time. Which means we need to also perform experiments to determine what happens when both are on in terms of battery consumption, responsiveness to discovery, etc.
 
 # Multi-Peer Connectivity Framework (MPCF)
 Apple's proprietary multi-peer connectivity framework has its own discovery mechanism that appears to run over both Bluetooth and Wi-Fi. Note however that iOS's implementation of Bluetooth uses a proprietary extension that requires having a public key cert pair signed by Apple. And multi-peer connectivity's use of Wi-Fi appears to use a proprietary variant of Wi-Fi Direct. In any case, Multi-Peer Connectivity only works with Apple devices (either iOS or OS/X).
@@ -580,4 +603,3 @@ What’s interesting is that while this approach would protect the notifier’s 
 Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user’s behalf) or at the very least not on a process that is anywhere near a network connection.
 
 My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it’s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user’s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B’s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
-
