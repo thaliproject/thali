@@ -304,69 +304,37 @@ When a Thali peer discovers another Thali peer via `MCNearbyServiceBrowser` then
 * `withContext` - This MUST be set to `base64EncodedString` containing the Thali service's type name, e.g. "org.thaliproject.mpcf.announcement".
 * `timeout` - Set to 30 seconds.
 
-The discovered peer will then receive a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object. The discovered peer MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name. If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the discovered peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules. If the discovered peer accepts the invitation then it MUST record the `peerID` value and associate it with the created `MCSession` object.
+The discovered peer will then receive a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object. The discovered peer MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name. If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the discovered peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules. If the discovered peer accepts the invitation then it MUST record the `peerID` value and associate it with the created `MCSession` object. If the discovered peer joins the session then it MUST establish an output stream as defined below.
 
-When the discovering peer receives a callback on its `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST call `startStreamWithName:toPeer:error:` on its `MCSession` object targeted at the discovered peer with the `streamName` set to "ThaliStream".
+When the discovering peer receives a callback on its `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST establish an output stream with the discovered peer as defined below.
 
-When the discovered peer receives a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` it MUST confirm that:
-* The `peerID` matches the `peerID` that the discovered peer received in the invitation that caused it to create the `session` object supplied in the callback. If the `peerID` does not match then a system error must be raised because something went seriously wrong. The discovered peer should never have accepted an invitation from more than one peer per session.
+Both the discovering and discovered peers MUST establish output streams with each other by calling `startStreamWithName:toPeer:error:` on their `MCSession` objects targeted at the other peer with the `streamName` set to "ThaliStream".
+
+When each of the peers  receives a callback on their `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` they MUST confirm that:
+* The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. In the case of the discovering peer it means it invited more than one peer to the session.  In the case of the discovered peer it accepted invitations to the same session from more than one peer.
 * The `streamName` MUST be "ThaliStream" or the session MUST be terminated.
 
-At this point the discovered peer MUST call `startStreamWithName:toPeer:error:` on its `MCSession` object targeted at the discovering peer with the `streamName` set to "ThaliStream".
+Both the discovering and discovered peers MUST set a 10 second timer starting when they issue the `startStreamWithName:toPeer:error:` request. If they have not received the `session:didReceiveStream:withName:fromPeer:` callback for "ThaliStream" before the timer expires then they MUST kill the session.
 
-The discovering peer will then get a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` interface where it MUST confirm `peerID` and `streamName` as previously defined for the discovered peer.
+__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android?
 
-Now we finally have 
-
-
-. The `MCSession` object MUST be initiated with same `myPeerID` used with `MCNearbyServiceBrowser`  and `data` MUST be set to a `base64EncodedString` that records the previously defined Thali service name. The remainin
-
-and both `securityIdentity` and `encryptionPreference` MUST be set to `nil`. The call to `invitePeer` on `MCNearbyServiceBrowser` MUST set `context` to `nil` and `timeout` to 30 seconds.
-
-Once the `MCSession` state becomes `MCSessionStateConnected` then the discovering peer shares a session with the discovered peer. The discovering peer MUST then use `startStreamWithName` to establish a stream to the discovered peer. The `streamName` "ThaliStream". When the discovered peer  gets the `didReceiveStream` delegate callback with the `streamName`  "ThaliStream" then it MUST respond by using its MCSession object with the peer to establish its own `startStreamWithName` call also using the `streamName` "ThaliStream".
-
-If either the discovering or discovered peer should receive a `didReceiveStream` delegate callback with a `streamName` other than "ThaliStream" or if they receive more than one input stream from the other peer in a single session then they MUST terminate the session.
-
-Note that if two peers simultaneously want to open connections to each other than they will end up with two separate sessions.
-
-Once a session is established with the discovering peer opening up an output socket to the discovered peer and receiving an input socket from the discovered peer then we can switch to TCP/IP.
+Now we finally have a single session with both the discovering and discovered peer with an output stream between each of the peers giving us full duplex. So now we can finally switch to TCP/IP.
 
 The process from the perspective of the discovering peer is:
 
-1. Discover discovered peer advertising the Thali service name
-2. Invite the discovered peer to join a session
-3. Receive a notification that the discovered peer has joined the session
-4. Open an output stream named "ThaliStream" to the discovered peer
-5. Receive notification that the discovered peer has opened a stream named "ThaliStream" to the discovering peer
-6. Open a localhost TCP/IP listener on an open port and wait for the local Thali application to connect to the port. Only one connection will be accepted at a time.
-7. Once the localhost TCP/IP listener gets a connection from the Thali application then connect the output stream from the localhost TCP/IP listener to the MPCF input stream established by the discovering peer and connect the MPCF input stream from the discovered peer to the localhost TCP/IP listener output stream.
-
-__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android?
+1. Open a localhost TCP/IP listener on an open port and wait for the local Thali application to connect to the port. Only one connection will be accepted at a time.
+2. Once the localhost TCP/IP listener gets a connection from the Thali application then connect the output stream from the localhost TCP/IP listener to the MPCF input stream established by the discovering peer and connect the MPCF input stream from the discovered peer to the localhost TCP/IP listener output stream.
 
 On the discovered peer side the process is:
 
 1. The discovered peer's Thali application tells the Thali MPCF layer that it wishes to be discoverable and specifies the localhost TCP/IP port that any incoming connections should connect to.
-2. The discovered peer receives an invitation to join a session.
-3. 
+2. The discovered peer's Thali MPCF layer creates a TCP/IP client that it has connect to the localhost TCP/IP port specified by the Thali application is step 1.
+3. The discovered peer then connects the MPCF input stream from the discovering peer to the output stream from the TCP/IP client connection and the TCP/IP client connection's input stream to the MPCF's output stream.
 
-Each Thali peer MUST invite exactly one other Thali peer to a single session object. This means that if a Thali peer wants to simultaneously talk to multiple Thali peers it needs to set up multiple session objects, one for each peer. when calling `initWitPeer` on `MCSession` both `securityIdentity` and `encryptionPreference` MUST be `nil`.
+Note that if two peers simultaneously want to open connections to each other than they will end up with two separate sessions.
 
-
-
-
-Another factor to consider is that MPCF is only available (mostly) when the Thali app is in the foreground. This is a limited period so battery consumption is not that big a deal. As such we will use the same approach as BLE on Android.
-
-Peer ID - A GUID that MUST be randomly generated whenever the app is activated or comes out of sleep.
-serviceType - org.thaliproject.mpcf.announcement
-Info - None
-
-Upon discovering a Thali resource the searcher will then establish our fantastically complex stream based network connection that eventually tops out into TCP/IP links and make a request to the /NotificationBeacons endpoint as described in the previous section.
-
-I'm not going to even bother to fully describe how we used paired streams with default names to create MPCF connections. It would take a long time and one sincerely doubts that many people will ever successfully reproduce it (sometimes we aren't sure we can reproduce it). But such as the joys of MPCF. For details feel free to dig through the Objective-C code.
-
-The searcher is free to use a polling mechanism to detect any changes. Polling every 500 ms should be fine. This will provide an experience for the user of 'immediate' response if someone they are in the room with should happen to update something. Again, battery is not the primary concern given the limitations on MPCF usage.
-
-For now we won't worry about etags as a way to shortcut requests if the beacon string hasn't changed. It's a nice optimization we can add in later.
+## Handling beacon changes
+Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser` and then call `startAdvertisingPeer`. As defined above this will cause a new `peerID` to be advertised and should trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. This then notifies those peers that the advertiser has new notification values they need to examine.
 
 # Local Wi-Fi Binding
 The current plan is to use SSDP for local Wi-Fi discovery. This assumes that the local Wi-Fi access point allows both multicast as well as unicast between nodes on the network. That is not a safe assumption. But where it works we'll try to use SSDP. The main reason for picking SSDP over mDNS is simplicity. SSDP is a dirt simple text based protocol so it's very easy to deal with. If anyone has a super good reason why we should use mDNS instead we can switch.
@@ -392,3 +360,4 @@ The relatively short max-age used on requests means that caches will not overflo
 The SSDP client must be smart enough to realize if it is in a situation where multi-cast is allowed but unicast between peers on the network is not. If every unicast request to addresses discovered via SSDP are being rejected then the SSDP client must stop making announcements for some reasonable period of time.
 
 The obvious problem with SSDP (or mDNS for that matter) is that if the local multicast domain is large enough then all the traffic generated by a large enough number of Thali clients could get quite ugly. Imagine a conference hall with a single multi-cast domain with 10,000 people in it. Now, to be fair, this is unlikely. Most Wi-Fi APs used outside the home are not configured to allow multicast much less point to point communication. At a minimum each Thali peer will need to initially make 10,000 /NotificationBeacons requests. And process them! In general battery based devices have absolutely no business trying to operate in such a scenario. Therefore Thali peers need to be configured with some maximum number of devices they are willing to discover. When that maximum is exceeded the device needs to shut down SSDP for some period of time. The cost here btw is not just the messages traffic (10,000 devices all issuing GETs against each other translates to roughly 10000^2 = 100,000,000 requests) but also the cost of trying to validate all the beacons!
+
