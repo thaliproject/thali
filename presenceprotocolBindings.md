@@ -316,7 +316,7 @@ When each of the peers  receives a callback on their `MCSessionDelegate`'s `sess
 
 Both the discovering and discovered peers MUST set a 10 second timer starting when they issue the `startStreamWithName:toPeer:error:` request. If they have not received the `session:didReceiveStream:withName:fromPeer:` callback for "ThaliStream" before the timer expires then they MUST kill the session.
 
-__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android?
+__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android? Do we need to "prime" the connection the way we do with Bluetooth? Are surprise connections (a la BLE/Bluetooth) possible with MPCF? I suspect that discovery and connectivity generally happens over the same transports but I'm not 100% sure. Certainly there is nothing in the MPCF specs that belies the possibility of a peer showing up that one hasn't ever discovered. But could it be a peer that wanted to be discovered and somehow wasn't? If so then we need to put in the same surprise handling we have for Bluetooth.
 
 Now we finally have a single session with both the discovering and discovered peer with an output stream between each of the peers giving us full duplex. So now we can finally switch to TCP/IP.
 
