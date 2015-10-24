@@ -314,6 +314,16 @@ In the case of network systems that effectively support push discovery (this par
 
 Systems MUST also detect when they are receiving an excessive number of incoming connections over the high bandwidth transport (e.g. Bluetooth, Wi-Fi, etc.) and either filter out abusers if possible or shut down the notification discovery system all together for a time before trying again.
 
+# Implications of Bluetooth and Multi-Peer Connectivity Framework's (MPCF) TCP/IP Binding approaches
+
+As will be explained below we relay TCP/IP content over our non-TCP/IP transports by connecting TCP/IP output streams to the non-TCP/IP transport's input streams and the non-TCP/IP transport's input streams to TCP/IP's output streams. 
+
+But when we do this the only thing that gets moved is the data inside of the TCP/IP data packets. The data packet headers and the TCP control commands like FIN packets are not transmitted.
+
+This means that when either the Bluetooth or MPCF code terminate their TCP/IP level connections then they MUST simultaneously terminate their non-TCP transport connections. If they do not do this then there is no way for the other side of the connection to know that the TCP link has been broken.
+
+This also means that we are depending on the non-TCP transport connections to provide us with proper flow control as none of the TCP window sizing commands will be communicated across the wire.
+
 # BLE Binding
 For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send. 
 
@@ -397,8 +407,6 @@ The actual logic for relaying TCP/IP over the Bluetooth connection works as foll
 3. The Thali software then opens a TCP/IP connection to the localhost TCP/IP listener. That listener will accept exactly one connection.
 4. The Bluetooth code will now take the input stream from the TCP/IP connection to the localhost TCP/IP listener and connect it to the output stream of the Bluetooth client connection. The Bluetooth code will then take the input stream from the Bluetooth client connection and connect it to the output stream from the localhost TCP/IP listener. Of course the first byte sent to the client will be confirmed as the response to the Bluetooth Handshake.
 
-This design means we are "crossing the streams" between the localhost TCP/IP listener's input/output streams and the Bluetooth Client's input/output streams. This means that only the stream content will be put over the air. None of the TCP/IP control flow, FIN packets or other logic will be transmitted. This means, for example, that the only way that the Bluetooth Server code will know that the TCP/IP connection on the Bluetooth Client side has been closed (since the FIN packet won't be transmitted) is when the Bluetooth Client closes the Bluetooth Client socket connection. This also means that we are depending on TCP/IP and Bluetooth's flow control to play well with each other. That is, if the Bluetooth Client connection's buffer is full then when we try to relay from the localhost TCP/IP listener's output stream to the Bluetooth Client's input stream the write request won't go through because there is no space in the buffer.
-
 The logic works the same on the Bluetooth Server side. Specifically:
 1. The Thali software tells the local Thali Bluetooth layer that it wants to receive incoming Bluetooth connections. As part of that API call telling the Thali Bluetooth layer to listen, the Thali software will specify a TCP/IP localhost listener and port.
 2. When a Bluetooth Client connection is made to the device the Thali Bluetooth code will open a TCP/IP client connection to the TCP/IP localhost listener and port specified by the Thali software in step 1. The Bluetooth server will wait to receive the Bluetooth Handshake and then response as defined by the Bluetooth Handshake. Once the Bluetooth Handshake is done then the Bluetooth Server will then take its input stream and connect it to the TCP/IP client's output stream. It will then take the TCP/IP client's input stream and connect it to the Bluetooth Server's output stream.
@@ -469,18 +477,68 @@ This means that in calling `MCNearbyServiceAdvertiser`  we MUST set the argument
 * `info` - Empty
 * `serviceType` - The string "org.thaliproject.mpcf.announcement"
 
+The MCNearbyServiceAdvertiser object MUST also have its delegate property set to a proper callback.
+
 ## MCNearbyServiceBrowser
 MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `MCNearbyServiceBrowser` `myPeerID` MUST be set to a newly generated UUID. And yes, this means that the UUID being advertised in `MCNearbyServiceAdvertiser` is not the same UUID the peer advertises itself with on `MCNearbyServiceBrowser`. This should not matter. The `serviceType` used with `MCNearbyServiceBrowser` MUST be the same value used for `serviceType` with `MCNearbyServiceAdvertiser`, namely, "org.thaliproject.mpcf.announcement".
+
+The `MCNearbyServiceBrowser` MUST have its delegate property set to a proper callback.
 
 ## Binding TCP/IP to MPCF
 MPCF communication starts when one peer sends a session invitation to another peer. Once a session is establish between two (or more) peers then each peer can open an output socket to another peer. Because these are just output sockets they are simplex, not duplex. But our goal is to move a TCP/IP connection over MPCF and that requires a duplex connection. Our approach then is to create a situation where one Thali peer can open an output socket to another Thali peer and that Thali peer will then automatically respond with its own matching output socket. This then creates a full duplex connection between the peers.
 
-When a Thali peer discovers another Thali peer via `MCNearbyServiceBrowser` then the discovering peer MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session. The `MCSession` object MUST be initiated with same `myPeerID` used with `MCNearbyServiceBrowser` and both `securityIdentity` and `encryptionPreference` MUST be set to `nil`. The call to `invitePeer` on `MCNearbyServiceBrowser` MUST set `context` to `nil` and `timeout` to 30 seconds.
+Below we have two places where `MCSession` objects need to be created. In each case the `myPeerID` for the `MCSession` object MUST be set to the same `peerID` as being advertised with the peer's `MCNearbyServiceAdvertiser`. The `MCSession` object also MUST specify a proper callback for its `delegate` property.
 
-We will refer to the Thali peer that sent an invitation to a sessions as the initiating peer and the Thali peer that receives the invitation as a responding peer. Please keep in mind that in the normal course of events 
+__Open Issue:__ I actually cannot come up with a good reason why the `peerID` for `MCSession` couldn't be a brand new value. It's not like we use it for anything.
+
+When a Thali peer discovers another Thali peer via `MCNearbyServiceBrowser` then the discovering peer MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session with the following arguments:
+
+* `peerID` - The `peerID` of the discovered peer taken from the `MCNearbyServiceBrowser` callback.
+* `toSession` - The `MCSession` object that is passed in MUST be newly created for this connection following the previously specified rules.
+* `withContext` - This MUST be set to `base64EncodedString` containing the Thali service's type name, e.g. "org.thaliproject.mpcf.announcement".
+* `timeout` - Set to 30 seconds.
+
+The discovered peer will then receive a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object. The discovered peer MUST validate the arguments as follows:
+
+* `session` - The discovered peer MUST guarantee that it is not in the same session with any other peer than the peer identified in the `peerID`. If the session is already being used with another peer then the request MUST be rejected.
+that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name. If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the discovered peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
+
+When the discovering peer receives a callback on its `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST call `startStreamWithName:toPeer:error:` on its `MCSession` object. The `streamName` MUST be set to "ThaliStream".
+
+When the discovered peer receives a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` it MUST confirm that the `peerID` matches the `peerID` 
 
 
 
+
+. The `MCSession` object MUST be initiated with same `myPeerID` used with `MCNearbyServiceBrowser`  and `data` MUST be set to a `base64EncodedString` that records the previously defined Thali service name. The remainin
+
+and both `securityIdentity` and `encryptionPreference` MUST be set to `nil`. The call to `invitePeer` on `MCNearbyServiceBrowser` MUST set `context` to `nil` and `timeout` to 30 seconds.
+
+Once the `MCSession` state becomes `MCSessionStateConnected` then the discovering peer shares a session with the discovered peer. The discovering peer MUST then use `startStreamWithName` to establish a stream to the discovered peer. The `streamName` "ThaliStream". When the discovered peer  gets the `didReceiveStream` delegate callback with the `streamName`  "ThaliStream" then it MUST respond by using its MCSession object with the peer to establish its own `startStreamWithName` call also using the `streamName` "ThaliStream".
+
+If either the discovering or discovered peer should receive a `didReceiveStream` delegate callback with a `streamName` other than "ThaliStream" or if they receive more than one input stream from the other peer in a single session then they MUST terminate the session.
+
+Note that if two peers simultaneously want to open connections to each other than they will end up with two separate sessions.
+
+Once a session is established with the discovering peer opening up an output socket to the discovered peer and receiving an input socket from the discovered peer then we can switch to TCP/IP.
+
+The process from the perspective of the discovering peer is:
+
+1. Discover discovered peer advertising the Thali service name
+2. Invite the discovered peer to join a session
+3. Receive a notification that the discovered peer has joined the session
+4. Open an output stream named "ThaliStream" to the discovered peer
+5. Receive notification that the discovered peer has opened a stream named "ThaliStream" to the discovering peer
+6. Open a localhost TCP/IP listener on an open port and wait for the local Thali application to connect to the port. Only one connection will be accepted at a time.
+7. Once the localhost TCP/IP listener gets a connection from the Thali application then connect the output stream from the localhost TCP/IP listener to the MPCF input stream established by the discovering peer and connect the MPCF input stream from the discovered peer to the localhost TCP/IP listener output stream.
+
+__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android?
+
+On the discovered peer side the process is:
+
+1. The discovered peer's Thali application tells the Thali MPCF layer that it wishes to be discoverable and specifies the localhost TCP/IP port that any incoming connections should connect to.
+2. The discovered peer receives an invitation to join a session.
+3. 
 
 Each Thali peer MUST invite exactly one other Thali peer to a single session object. This means that if a Thali peer wants to simultaneously talk to multiple Thali peers it needs to set up multiple session objects, one for each peer. when calling `initWitPeer` on `MCSession` both `securityIdentity` and `encryptionPreference` MUST be `nil`.
 
