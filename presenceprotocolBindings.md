@@ -135,6 +135,7 @@ Systems MUST also detect when they are receiving an excessive number of incoming
 
 # Implications of Bluetooth and Multi-Peer Connectivity Framework's (MPCF) TCP/IP Binding approaches
 
+## TCP/IP Framing and command packets are torn off
 As will be explained below we relay TCP/IP content over our non-TCP/IP transports by connecting TCP/IP output streams to the non-TCP/IP transport's input streams and the non-TCP/IP transport's input streams to TCP/IP's output streams. 
 
 But when we do this the only thing that gets moved is the data inside of the TCP/IP data packets. The data packet headers and the TCP control commands like FIN packets are not transmitted.
@@ -143,7 +144,21 @@ This means that when either the Bluetooth or MPCF code terminate their TCP/IP le
 
 This also means that we are depending on the non-TCP transport connections to provide us with proper flow control as none of the TCP window sizing commands will be communicated across the wire.
 
+## Thali's multiplexing layer is a mandatory requirement
 In addition we only define a single TCP/IP connection that can be bound to the non-TCP transports. In general it is not useful to have only a single TCP/IP connection so we mandate that both the Bluetooth and MPCF bindings MUST always use the Thali [TCP Multiplexer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/tcpmultiplex.js) on top of the singleton TCP/IP connection in order to enable the establishment of multiple TCP/IP connections.
+
+## Optimizations for noisy environments
+For both the BLE and MPCF bindings the assumption is that when a node has something to notify they change their ID and this triggers everyone around to reconnect to them and pull down the new notifications. When there are a small number of devices around that works fine. But things can get ugly fast when there are very large number of devices. Imagine a conference or symposium with thousands of Thali apps shoved into a single room. Just pinging all the devices in the area, especially using non-TCP/IP transports, can take a very long time. Just setting up a Bluetooth connection can take several seconds, for example.
+
+To a certain extent peer to peer just doesn't work super well in massively noisy environments. Enormous common multi-cast channels never tend to turn out well for anyone. You have to break the environment down into pieces and then try to set up routing points between them. But that is way, way out of scope for Thali.
+
+Our general reaction to super noisy environments is to just shut down. Basically there is no difference for us between super noisy environments and a denial of service attack.
+
+However, and this clearly violates user privacy, there are hacks. 
+
+For example, let's say someone pulls out their Android Thali application and sends a message to someone. If the Thali app has previously talked to that person then it could record their Bluetooth address and try to just blind connect to the Bluetooth address. This costs several seconds but if the person is around and if there is enough bandwidth to talk then a Bluetooth connection can be established and communication can begin. This approach can be generalized where, when we are in a noisy environment, we switch from broadcast to point to point discovery and try to walk down the list of folks we want to notify. This only works because Android does not rotate Bluetooth network addresses. If it did then we couldn't use this shortcut. Note that this approach also works in the case that the Thali application didn't know the other application's Bluetooth address ahead of time but rather learns it via local discovery. Once the address is known, however that happened, it can be used to directly connect in the future.
+
+A similar trick is possible with iOS if we are willing to play evil games with peerIDs. There are two variants of this game. The less evil variant is that when an application establishes a `MCSession` it will never end it until it goes into the background. That way if two peers find each other then at least they can keep talking until the app goes into the background. A slightly more evil variant is that a peer will pick a `peerID` that it will use for some fixed period of time (say 24 hours) and will always advertise. It would then advertise a second `peerID` (assuming iOS allows for multiple simultaneous `MCNearbyServiceAdvertiser` objects to exist) that would then rotate everytime the notification beacon changes. When the peer makes connection with another peer it can communicate its static `peerID` so that the other peer can try to establish a direct connection in the future. Ideally we would be able to get rid of the second `peerID` by putting notification beacon "updated" values into the info field. But this assumes that if we stop and restart advertising with the same `peerID` but different info objects that this change will be picked up by those around us and thus make it an effective notification mechanism.
 
 # BLE Binding
 For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send. 
