@@ -144,6 +144,8 @@ This means that when either the Bluetooth or MPCF code terminate their TCP/IP le
 
 This also means that we are depending on the non-TCP transport connections to provide us with proper flow control as none of the TCP window sizing commands will be communicated across the wire.
 
+And most interestingly, this means that the actual port that the client was intended to attach to won't be included in the connection. In a way this makes sense as how would a remote client know which port to connect to anyway?
+
 ## Thali's multiplexing layer is a mandatory requirement
 In addition we only define a single TCP/IP connection that can be bound to the non-TCP transports. In general it is not useful to have only a single TCP/IP connection so we mandate that both the Bluetooth and MPCF bindings MUST always use the Thali [TCP Multiplexer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/tcpmultiplex.js) on top of the singleton TCP/IP connection in order to enable the establishment of multiple TCP/IP connections.
 
@@ -388,26 +390,141 @@ Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCN
 By changing the `peerID` this should trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. This then notifies those peers that the advertiser has new notification values they need to examine.
 
 # Local Wi-Fi Binding
-The current plan is to use SSDP for local Wi-Fi discovery. This assumes that the local Wi-Fi access point allows both multicast as well as unicast between nodes on the network. That is not a safe assumption. But where it works we'll try to use SSDP. The main reason for picking SSDP over mDNS is simplicity. SSDP is a dirt simple text based protocol so it's very easy to deal with. If anyone has a super good reason why we should use mDNS instead we can switch.
+If a device is connected to a Wi-Fi access point (AP) then the device may use SSDP to discover other Thali nodes on the same network. It is worth pointing out that Wi-Fi APs are configured in many different ways. Some APs will allow for UDP multi-cast (to allow things like discovering printers) but won't allow for TCP connections (or even unicast UDP) to any but a white list of devices. So just because discovery seems to work the Thali peer can't be sure if direct connectivity will work. We will handle this uncertainty by providing Thali applications with multiple ways to connect to the same peer if possible (e.g. both local Wi-Fi AP and Bluetooth) and letting them try the different choices in turn. The details of this behavior will be defined in a later spec on the connection layer.
 
-When a Thali peer comes onto a Wi-Fi network it must send a ssdp:alive message and repeat it every 500 ms while the application is being actively used and every minute when the application is in the background if using a power constrained device.
+The main reason for picking SSDP over mDNS is simplicity. SSDP is a dirt simple text based protocol so it's very easy to deal with. If anyone has a super good reason why we should use mDNS instead we can switch.
 
-The ssdp:alive message will use the following header values:
-NT: http://www.thaliproject.org/ssdp
-USN: A UUID URL whose value MUST be changed every time the beacon string is changed
-Location: A HTTP URL pointing to the device's IP address and port over which a HTTP GET request for /NotificationBeacons can be accepted
-Cache-Control: max-age = 60
+SSDP supports two discovery mechanisms which each have their own performance and battery implications. One mechanism is ssdp:discover requests. These requests are multicast over UDP and responses are then unicast over UDP back to the requester. This makes discovery requests particularly expensive because each ssdp:discover request will result in all present Thali clients sending typically 3 responses directly to the requester. This puts a high load on the network (especially dense networks) for everyone.
 
-If the server goes offline in a clean way then it must send a SSDP:byebye message using the same header value as given above. specifically NT and USN.
+Thali's SSDP layer MUST put in place a throttling mechanism to ensure that it will only send responses to ssdp:discover requests at a fixed rate. The throttling mechanism MUST be designed to ensure that if a discovery request sits in the request queue beyond a specific maximum time period then it MUST be dropped without response. The throttling mechanism MUST also be able to limit the size of the request queue so that if the queue gets too full then a LIFO mechanism will be used to keep the queue at a fixed maximum size.
 
-In general SEARCH requests should be used sparingly. Given that services are regularly announcing themselves anyway the only real purpose of SEARCH is to find devices that have gone into a sleep mode and aren't announcing themselves regularly. So in general a SEARCH request should only be issued when the Thali peer joins the network and then very infrequently there after, say no more than once every 5 minutes or so. The S header is to be set to the USN value as defined above. The ST header is set to the NT value above. The SEARCH response must contain a location header with a HTTP URL set as decribed above for the responding Thali peer. The SEARCH response must also use the same Cache-Control: max-age as defined above.
+When a Thali peer is connected to a Wi-Fi AP after having been in a disconnected state or if the Thali peer has been in a connected state but is handed off to a Wi-Fi AP with a new BSSID ID then the SSDP client MUST issue a sspd:discover request as defined below in order to look for Thali devices on the local network. The Thali SSDP client MUST NOT otherwise use ssdp:discover requests as they are expensive for everyone involved.
 
-After getting the location header, either via ssdp:alive message or SEARCH response the Thali peer must then issue a GET request to /NotificationsBeacons as described in previous sections.
+Note that the previous requires that Thali's native layer provide notifications when the BSSID changes. Such a requirement will be added to the mobile API.
 
-Any time the value of the NotificationBeacons endpoint changes a new USN must be generated and a new ssdp:alive message sent out. This will automatically cause all the Thali endpoints in range to get the new value.
+Note: The use of BSSID rather than SSID is meant to be a conservative choice. In theory a set of Wi-Fi APs all sharing the same SSID could be configured to share UDP multicast information between each other. In that case we would only care about checking for changes in SSID, not BSSID. But it's possible for a networking of APs that share the same SSID to not allow routing beyond the local Wi-Fi AP in which case each new BSSID is in effect a new multicast domain. Since there isn't a particularly good way to figure this out we are erring on the conservative side and treating each new BSSID as an isolated network.
 
-The relatively short max-age used on requests means that caches will not overflow due to all the 'new' devices constantly showing up on the network.
+When a Thali application is in the foreground and connected to a Wi-Fi network it MUST issue a ssdp:alive request as defined below every 500 ms. When the Thali application is in the background and connected to a Wi-Fi network it MUST issue a ssdp:alive message no more frequently than every 1000 ms. The purpose of these ssdp:alive messages is to account for the fact that ssdp:discover requests and responses are not reliable. It also provides a way to detect when a peer has gone away. If no ssdp:alive requests are heard for quite some time then the peer can be marked as gone.
 
-The SSDP client must be smart enough to realize if it is in a situation where multi-cast is allowed but unicast between peers on the network is not. If every unicast request to addresses discovered via SSDP are being rejected then the SSDP client must stop making announcements for some reasonable period of time.
+When a Thali application changes its notification values it MUST issue a ssdp:byebye message using its existing USN and then issue a ssdp:alive message using a new USN. This signals to all listeners that there are new notification values to be retrieved.
 
-The obvious problem with SSDP (or mDNS for that matter) is that if the local multicast domain is large enough then all the traffic generated by a large enough number of Thali clients could get quite ugly. Imagine a conference hall with a single multi-cast domain with 10,000 people in it. Now, to be fair, this is unlikely. Most Wi-Fi APs used outside the home are not configured to allow multicast much less point to point communication. At a minimum each Thali peer will need to initially make 10,000 /NotificationBeacons requests. And process them! In general battery based devices have absolutely no business trying to operate in such a scenario. Therefore Thali peers need to be configured with some maximum number of devices they are willing to discover. When that maximum is exceeded the device needs to shut down SSDP for some period of time. The cost here btw is not just the messages traffic (10,000 devices all issuing GETs against each other translates to roughly 10000^2 = 100,000,000 requests) but also the cost of trying to validate all the beacons!
+__Open Issue:__ It's tempting to just add in a new HTTP header to indicate that the notification values have been updated. This would make the logic for managing SSDP peers simpler as the USN would change less frequently. This is really a performance optimization. It's main benefit is that if a peer knows it doesn't care about a specific peer then once it detects that peer by matching on a notification beacon it can ignore the peer's further announcements. Also in the case that two peers are already synching and causing notification beacon value changes the two peers won't have to perform additional discoveries on each other because they don't recognize the USN. But we can implement this if perf analysis shows it's worth the effort.
+
+Thali's SSDP layer MUST put in place a throttling mechanism on the UDP Multicast port used to listen for SSDP related multicasts. If the traffic rate exceeds a configured threshold then the Thali SSDP layer MUST stop listening on the port for a period of time before trying to listen again.
+
+If a Thali peer is going to stop listening for SSDP events for a reason other than a throttling response or loss of network then it MUST send a ssdp:byebye event as defined below.
+
+## ssdp:alive
+The ssdp:alive message MUST use the following header values:
+
+* __NT:__ "http://www.thaliproject.org/ssdp"
+* __USN:__ A UUID URL whose value MUST be changed every time the beacon string is changed
+* __Location:__ A HTTP URL pointing to the device's IP address and port
+* __Cache-Control:__ max-age = 180
+
+We choose the relatively long period of 180 seconds in order to provide an opportunity for at least 3 rounds of ssdp:alive announcements from the peer to be detected before giving up. Note however that our current use of SSDP means we will likely ignore the cache-control header.
+
+## ssdp:byebye
+The ssdp:byebye message MUST use the following header values:
+
+* __NT:__ "http://www.thaliproject.org/ssdp"
+* __USN:__ The same UUID URL used in the last ssdp:alive announcement from the peer
+
+__Open Issue:__ It's likely that we are no longer going to communicate when peers disappear inside of the Thali software stack. The worst thing that happens if a peer is gone and we don't know it is that we waste time trying to connect to them. This is far from catastrophic. So maybe we can just skip byebye for now? Once less thing to test! This also means we can ignore the cache-control header in ssdp:alive. Although to be fair we will need some kind of cache clearing logic if only to keep the cache from growing to unbounded size.
+
+## ssdp:discover
+The ssdp:discover request MUST use the following header value:
+
+* __ST:__ "http://www.thaliproject.org/ssdp"
+
+A ssdp:discover response MUST use the following header values:
+
+* __ST:__ "http://www.thaliproject.org/ssdp"
+* __USN:__ The UUID URL that the peer is currently using for its ssdp:alive messages
+* __Cache-Control:__ max-age set to 180
+* __Location:__ The same value returned in ssdp:alive
+
+#DELETEME
+
+THIS IS A BUNCH OF NONSENSE THAT I'M STICKING AT THE END OF THE DOC TO MAKE IT LONG ENOUGH THAT THE AWFUL JUMPING BUG  IN STACKEDIT.IO DOESN'T ATTACK ME.
+
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
