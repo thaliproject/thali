@@ -1,35 +1,26 @@
-# ASCII-Font › http://patorjk.com/software/taag/#p=display&f=Slant&t=Phlow
-#
-#      _____ _ __          _____      __  __  _                 
-#     / ___/(_) /____     / ___/___  / /_/ /_(_)___  ____ ______
-#     \__ \/ / __/ _ \    \__ \/ _ \/ __/ __/ / __ \/ __ `/ ___/
-#    ___/ / / /_/  __/   ___/ /  __/ /_/ /_/ / / / / /_/ (__  ) 
-#   /____/_/\__/\___/   /____/\___/\__/\__/_/_/ /_/\__, /____/  
-#                                                 /____/        
-#
 # Title of your website
-title: "Feeling Responsive"
+title: "Thali"
 
 
 # The slogan describes your website and is used on homepage in <title> and other important places
-slogan: "A Flexible Theme for Jekyll"
+slogan: "Peer to peer web"
 
 
 # The description is used on homepage and in the footer to quickly describe your website. Use a maximum of 150 characters for SEO-purposes.
-description: "»Feeling Responsive« is a responsive theme for Jekyll based on the fabulous foundation framework with beautiful typography and a bright color palette."
+description: "Thali is an open-source software platform for creating apps that exploit the power of personal devices and put people in control of their data."
 
 # Main author of the website
 # See > authors.yml
-author: phlow
+author: thali
 
 # This URL is the main address for absolute links. Don't include a slash at the end.
 #
-url: 'https://phlow.github.io/feeling-responsive'
+url: 'http://thaliproject.org'
 baseurl: ''
 
 # This is for the editing function in _/includes/improve_content
 # Leave it empty if your site is not on GitHub/GitHub Pages
-improve_content: https://github.com/Phlow/feeling-responsive/edit/gh-pages
+improve_content: 'https://github.com/thaliproject/thali/edit/gh-pages'
 
 # This URL points directly to the images directory making
 # things easier to link to images in posts and templates. It needs a slash at the end.
@@ -37,7 +28,7 @@ improve_content: https://github.com/Phlow/feeling-responsive/edit/gh-pages
 # Example: <img src="{{ site.urlimg }}{{ post.image.title }}" />
 # Markdown-Example for posts ![Image Text]({{ site.urlimg }}image.jpg)
 #
-urlimg: 'https://phlow.github.io/feeling-responsive/images/'
+urlimg: 'https://github.com/thaliproject/thali/edit/gh-pages/images/'
 
 
 # Logo size is 600x80 pixels
@@ -63,6 +54,7 @@ exclude:
     - .sass-cache
     - Gemfile
     - Gemfile.lock
+    - Guardfile
     - LICENSE
     - README.md
     - INSTALL.md
@@ -101,7 +93,7 @@ defaults:
       show_meta: false 	# Hide metadata for all pages
       # sidebar:    		# Possible values › left, right › by default there will be no sidebar
       comments: false
-      author: phlow     # Default author for pages
+      author: thali     # Default author for pages
   -
     scope:
       path: ""
@@ -110,7 +102,7 @@ defaults:
       show_meta: true   # Show metadata for all posts
       # sidebar:        # Possible values › left, right › by default there will be no sidebar
       comments: false
-      author: phlow     # Default author for posts
+      author: thali     # Default author for posts
 
 
 
@@ -194,7 +186,7 @@ og_description:                     "Feeling Responsive is built on the fabulous
 #
 # used in _includes/comments
 
-disqus_shortname: feelingresponsive
+disqus_shortname: thali
 
 
 #      _____

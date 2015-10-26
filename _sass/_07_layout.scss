@@ -279,7 +279,7 @@ body.video cite { color: #fff; }
     #footer h4,
     #footer h5 {
         letter-spacing: 1px;
-        color: #fff;
+        color: $footer-h-color;
         text-transform: uppercase;
     }
 
@@ -319,12 +319,12 @@ body.video cite { color: #fff; }
     display: block;
     width: 36px;
     border-radius: 50%;
-    color: $subfooter-bg;
-    background: $subfooter-color;
+    color: $subfooter-link-color;
+    background: $subfooter-link-bg-color;
     text-align: center;
     &:hover {
-      background: $subfooter-bg;
-      color: #fff;
+      background: $subfooter-link-hover-color;
+      color: $subfooter-link-bg-hover-color;
     }
   }
 }

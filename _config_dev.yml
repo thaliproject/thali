@@ -19,3 +19,8 @@ sass:
 
 # Disable when not in production
 google_analytics_tracking_id:
+
+# Allow resources to be loaded from localhost
+webserver_headers:
+  "Access-Control-Allow-Origin": "*"
+  "Server": "localhost"

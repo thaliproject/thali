@@ -57,10 +57,10 @@
 .alert-box {
   font-family: $font-family-sans-serif;
   text-shadow: 0px 1px 1px rgba(0,0,0,0.9);
-} 
+}
   .alert-box p {
     margin-bottom: 0;
-  } 
+  }
   .alert-box a {
     text-shadow: 1px 1px 0px rgba(0, 0, 0, 1);
     color: #fff;
@@ -70,14 +70,14 @@
     border-bottom: 1px solid #fff;
   }
   .alert-box.terminal {
-    background: $grey-12; 
-    color: #fff; 
+    background: $grey-12;
+    color: #fff;
     border-color: scale-color($grey-12, $lightness: -14%);
     font-family: $font-family-monospace;
   }
   .alert-box.terminal::before {
     content: "$ ";
-    color: $ci-6;
+    color: $ci-5;
   }
   .alert-box.text {
     background-color: $grey-2;

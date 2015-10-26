@@ -20,8 +20,6 @@ image:
     title: mediaplayer_js-title.jpg
     thumb: mediaplayer_js-thumb.jpg
     homepage: mediaplayer_js-home.jpg
-    caption: Photo by Corey Blaz
-    caption_url: https://blaz.photography/
 mediaplayer: true
 ---
 [mediaelement.js][1] is like magic. It's browser and device support is perfect. To activate the video or audio player just set the following variable in front matter to `true`.
