@@ -1,8 +1,19 @@
 ---
-layout: blog
-title: "Blog of Feeling Responsive"
-teaser: "This is the Feeling Responsive Blog Template."
+layout: default
+title: "Blog"
+breadcrumb: false
 header:
-    image_fullwidth: "header-bus.jpg"
+   image_fullwidth: "NoInternetNoProblem.png"
 ---
+<div id="blog-index" class="row">
+	<div class="small-12 columns t30">
+		<h1>Thali blog posts</h1>
 
+		<ul>
+			{% for post in site.posts limit:1000 %}
+        <li><a href="{{ site.url }}{{ post.url }}" title="Read {{ post.title escape_once }}"><span class="iconfont"></span> {% if post.subheadline %}{{ post.subheadline }} › {% endif %}<strong>{{ post.title }}</strong></a></li>
+			{% endfor %}
+		</ul>
+
+	</div><!-- /.small-12.columns -->
+</div><!-- /.row -->

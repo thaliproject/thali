@@ -22,14 +22,14 @@
   - title: "Architecture overview"
     url: "/ThaliAndCouch/"
   - title: "Our Current Focus - IoT Scenarios"
-    url: "NodeOnDevices"
+    url: "/NodeOnDevices"
   - title: "Architectural overview on our IoT work"
-    url: "ThaliAndIoT"
+    url: "/ThaliAndIoT"
   - title: "Httpkey URL Scheme"
-    url: "HttpkeyURLScheme"
+    url: "/HttpkeyURLScheme"
   - title: "Thaligroup URL Scheme"
-    url: "ThaligroupURLScheme"
+    url: "/ThaligroupURLScheme"
 
-- title: "Alumni"
-  url: "/Alumni/"
-  side: left
+#- title: "Alumni"
+#  url: "/Alumni/"
+#  side: left
