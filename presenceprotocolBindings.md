@@ -300,6 +300,24 @@ __Open Issue:__ - We need to run experiments to determine the practical battery 
 
 __Open Issue:__ - We run both scanning and advertising at the same time. Which means we need to also perform experiments to determine what happens when both are on in terms of battery consumption, responsiveness to discovery, etc.
 
+### listenUsingInsecureRfcommWithServiceRecord
+This method is used to start a Bluetooth socket listening. Thali's Bluetooth stack MUST use this api any time it is advertising via BLE to accept requests to retrieve the notification beacon contents as well as to allow for synchronization and other higher level connections.
+
+The arguments MUST be used as follows:
+
+* `name` - "Thali_Bluetooth"
+* `uuid` - "0bbfc6ef-14cc-4ab2-af63-b92e887227ae"
+
+### createInsecureRfcommSocketToServiceRecord
+After having created a device via getRemoteDevice using the Bluetooth address retrieved over BLE the next step is to create a connection to that device. That is handled via `createInsecureRfcommSocketToServiceRecord`.  It's argument MUST be:
+
+* `uuid` - "0bbfc6ef-14cc-4ab2-af63-b92e887227ae"
+
+### More than one Thali app on an Android device
+Our current design has a problem in that we advertise a static SDP UUID This means that if two Thali apps are both running on the same Android device they are going to conflict when they both try to advertise the same SDP UUID. And of course no one can control which of the apps they end up connecting to.
+
+At the heart of this problem is a question of - what is a Thali app? The vision for Thali is that there is a Thali Device Hub which acts as a single store for all Thali related data so that the data is available to all apps and independent of any particular app. If that vision ships then we can give it its own SDP UUID. Meanwhile each Thali app will need its own SDP UUID. So eventually we'll have to amend this spec so that the name and uuid specified above become arguments passed into the Thali framework rather than something that is hard coded. But not today.
+
 # Multi-Peer Connectivity Framework (MPCF)
 Apple's proprietary multi-peer connectivity framework has its own discovery mechanism that appears to run over both Bluetooth and Wi-Fi. Note however that iOS's implementation of Bluetooth uses a proprietary extension that requires having a public key pair signed by Apple. And multi-peer connectivity's use of Wi-Fi when not connected to an access point appears to use a proprietary variant of Wi-Fi Direct. In any case, Multi-Peer Connectivity only works with Apple devices (either iOS or OS/X). We use MPCF to enable Thali apps running in the foreground to discovery and communicate with each other.
 
@@ -388,6 +406,9 @@ Note that if two peers simultaneously want to open connections to each other tha
 Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser` and discard the `MCNearbyServiceAdvertiser` instance. Then the Thali peer MUST create a new `MCNearbyServiceAdvertiser` instance with a new `peerID`. This process is required because once `peerID` is set on a `MCNearbyServiceAdvertiser` it cannot be changed.
 
 By changing the `peerID` this should trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. This then notifies those peers that the advertiser has new notification values they need to examine.
+
+## Multiple Thali Apps on the same iOS device
+Thali as specified here can only run in the foreground. So you can have as many Thali apps as you want, only the one in the foreground gets to play. If we want to distinguish between multiple types of Thali apps we can either require each app to get its own unique service type (which we would then take as an argument). Or we can specify a HTTP endpoint where remote apps can just query as to the app's type. And if and when we put in BLE support it would be easy enough to put in a characteristic with type data. So we are probably o.k.
 
 # Local Wi-Fi Binding
 If a device is connected to a Wi-Fi access point (AP) then the device may use SSDP to discover other Thali nodes on the same network. It is worth pointing out that Wi-Fi APs are configured in many different ways. Some APs will allow for UDP multi-cast (to allow things like discovering printers) but won't allow for TCP connections (or even unicast UDP) to any but a white list of devices. So just because discovery seems to work the Thali peer can't be sure if direct connectivity will work. We will handle this uncertainty by providing Thali applications with multiple ways to connect to the same peer if possible (e.g. both local Wi-Fi AP and Bluetooth) and letting them try the different choices in turn. The details of this behavior will be defined in a later spec on the connection layer.
