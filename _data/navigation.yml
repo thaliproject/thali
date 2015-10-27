@@ -10,6 +10,8 @@
     url: "/SetupForWindows/"
   - title: "Thali Guide To Git"
     url: "/ThaliGuideToGit/"
+  - title: "Developer Handbook"
+    url: "/DeveloperHandbook/"
   - title: "Ways To Contribute"
     url: "/WaysToContribute/"
 

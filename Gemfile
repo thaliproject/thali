@@ -1,7 +1,7 @@
 # A sample Gemfile
 source "https://rubygems.org"
 
-# gem "rails"
+gem 'github-pages'
 gem 'jekyll'
 gem 'guard'
 gem 'guard-jekyll'

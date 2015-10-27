@@ -323,13 +323,11 @@ body.video cite { color: #fff; }
     background: $subfooter-link-bg-color;
     text-align: center;
     &:hover {
-      background: $subfooter-link-hover-color;
-      color: $subfooter-link-bg-hover-color;
+      background: $subfooter-link-bg-hover-color;
+      color: $subfooter-link-hover-color;
     }
   }
 }
-
-
 
 /* CSS-Classes to add margin at top or bottom
 ------------------------------------------------------------------- */
