@@ -415,27 +415,13 @@ If a device is connected to a Wi-Fi access point (AP) then the device may use SS
 
 The main reason for picking SSDP over mDNS is simplicity. SSDP is a dirt simple text based protocol so it's very easy to deal with. If anyone has a super good reason why we should use mDNS instead we can switch.
 
-SSDP supports two discovery mechanisms which each have their own performance and battery implications. One mechanism is ssdp:discover requests. These requests are multicast over UDP and responses are then unicast over UDP back to the requester. This makes discovery requests particularly expensive because each ssdp:discover request will result in all present Thali clients sending typically 3 responses directly to the requester. This puts a high load on the network (especially dense networks) for everyone.
-
-Thali's SSDP layer MUST put in place a throttling mechanism to ensure that it will only send responses to ssdp:discover requests at a fixed rate. The throttling mechanism MUST be designed to ensure that if a discovery request sits in the request queue beyond a specific maximum time period then it MUST be dropped without response. The throttling mechanism MUST also be able to limit the size of the request queue so that if the queue gets too full then a LIFO mechanism will be used to keep the queue at a fixed maximum size.
-
-When a Thali peer is connected to a Wi-Fi AP after having been in a disconnected state or if the Thali peer has been in a connected state but is handed off to a Wi-Fi AP with a new BSSID ID then the SSDP client MUST issue a sspd:discover request as defined below in order to look for Thali devices on the local network. The Thali SSDP client MUST NOT otherwise use ssdp:discover requests as they are expensive for everyone involved.
-
-Note that the previous requires that Thali's native layer provide notifications when the BSSID changes. Such a requirement will be added to the mobile API.
-
-Note: The use of BSSID rather than SSID is meant to be a conservative choice. In theory a set of Wi-Fi APs all sharing the same SSID could be configured to share UDP multicast information between each other. In that case we would only care about checking for changes in SSID, not BSSID. But it's possible for a networking of APs that share the same SSID to not allow routing beyond the local Wi-Fi AP in which case each new BSSID is in effect a new multicast domain. Since there isn't a particularly good way to figure this out we are erring on the conservative side and treating each new BSSID as an isolated network.
-
-When a Thali application is in the foreground and connected to a Wi-Fi network it MUST issue a ssdp:alive request as defined below every 500 ms. When the Thali application is in the background and connected to a Wi-Fi network it MUST issue a ssdp:alive message no more frequently than every 1000 ms. The purpose of these ssdp:alive messages is to account for the fact that ssdp:discover requests and responses are not reliable. It also provides a way to detect when a peer has gone away. If no ssdp:alive requests are heard for quite some time then the peer can be marked as gone.
-
-When a Thali application changes its notification values it MUST issue a ssdp:byebye message using its existing USN and then issue a ssdp:alive message using a new USN. This signals to all listeners that there are new notification values to be retrieved.
-
-__Open Issue:__ It's tempting to just add in a new HTTP header to indicate that the notification values have been updated. This would make the logic for managing SSDP peers simpler as the USN would change less frequently. This is really a performance optimization. It's main benefit is that if a peer knows it doesn't care about a specific peer then once it detects that peer by matching on a notification beacon it can ignore the peer's further announcements. Also in the case that two peers are already synching and causing notification beacon value changes the two peers won't have to perform additional discoveries on each other because they don't recognize the USN. But we can implement this if perf analysis shows it's worth the effort.
-
-Thali's SSDP layer MUST put in place a throttling mechanism on the UDP Multicast port used to listen for SSDP related multicasts. If the traffic rate exceeds a configured threshold then the Thali SSDP layer MUST stop listening on the port for a period of time before trying to listen again.
-
-If a Thali peer is going to stop listening for SSDP events for a reason other than a throttling response or loss of network then it MUST send a ssdp:byebye event as defined below.
+SSDP supports two discovery mechanisms which each have their own performance and battery implications. One mechanism is ssdp:discover requests. These requests are multicast over UDP and responses are then unicast over UDP back to the requester. This makes discovery requests particularly expensive because each ssdp:discover request will result in all present Thali clients sending typically 3 responses directly to the requester. This puts a high load on the network (especially dense networks) for everyone. ssdp:alive messages on the other hand are sent out publicly to everyone with no response. So in general we will try to use ssdp:alive more than ssdp:discover.
 
 ## ssdp:alive
+When a Thali application is in the foreground and connected to a Wi-Fi network it MUST issue a ssdp:alive request as defined below every 500 ms. When the Thali application is in the background and connected to a Wi-Fi network it MUST issue a ssdp:alive message no more frequently than every 1000 ms. The purpose of these ssdp:alive messages is to account for the fact that ssdp:discover requests and responses are not reliable. It also provides a way to detect when a peer has gone away. If no ssdp:alive requests are heard for quite some time then the peer can be marked as gone.
+
+Whenever the Thali peer connects to a Wi-Fi network or if the Thali peer is already connected but the BSSID changes then the Thali peer MUST send an immediate ssdp:alive message and restart its send timer.
+
 The ssdp:alive message MUST use the following header values:
 
 * __NT:__ "http://www.thaliproject.org/ssdp"
@@ -446,7 +432,7 @@ The ssdp:alive message MUST use the following header values:
 We choose the relatively long period of 180 seconds in order to provide an opportunity for at least 3 rounds of ssdp:alive announcements from the peer to be detected before giving up. Note however that our current use of SSDP means we will likely ignore the cache-control header.
 
 ## ssdp:byebye
-The ssdp:byebye message MUST use the following header values:
+If a Thali peer is going to stop listening for SSDP events for a reason other than a throttling response or loss of network then it MUST send a ssdp:byebye event with the following header values:
 
 * __NT:__ "http://www.thaliproject.org/ssdp"
 * __USN:__ The same UUID URL used in the last ssdp:alive announcement from the peer
@@ -454,6 +440,8 @@ The ssdp:byebye message MUST use the following header values:
 __Open Issue:__ It's likely that we are no longer going to communicate when peers disappear inside of the Thali software stack. The worst thing that happens if a peer is gone and we don't know it is that we waste time trying to connect to them. This is far from catastrophic. So maybe we can just skip byebye for now? Once less thing to test! This also means we can ignore the cache-control header in ssdp:alive. Although to be fair we will need some kind of cache clearing logic if only to keep the cache from growing to unbounded size.
 
 ## ssdp:discover
+When a Thali peer is connected to a Wi-Fi AP after having been in a disconnected state or if the Thali peer has been in a connected state but is handed off to a Wi-Fi AP with a new BSSID ID then the Thali peer MUST issue a sspd:discover request as defined below in order to look for Thali devices on the local network. The Thali SSDP client MUST NOT otherwise use ssdp:discover requests as they are expensive for everyone involved.
+
 The ssdp:discover request MUST use the following header value:
 
 * __ST:__ "http://www.thaliproject.org/ssdp"
@@ -464,6 +452,19 @@ A ssdp:discover response MUST use the following header values:
 * __USN:__ The UUID URL that the peer is currently using for its ssdp:alive messages
 * __Cache-Control:__ max-age set to 180
 * __Location:__ The same value returned in ssdp:alive
+
+Thali's SSDP layer MUST put in place a throttling mechanism to ensure that it will only send responses to ssdp:discover requests at a fixed rate. The throttling mechanism MUST be designed to ensure that if a discovery request sits in the request queue beyond a specific maximum time period then it MUST be dropped without response. The throttling mechanism MUST also be able to limit the size of the request queue so that if the queue gets too full then a LIFO mechanism will be used to keep the queue at a fixed maximum size.
+
+## UDP Throttling
+Thali's SSDP layer MUST put in place a throttling mechanism on the UDP Multicast port used to listen for SSDP related multicasts. If the traffic rate exceeds a configured threshold then the Thali SSDP layer MUST stop listening on the port for a period of time before trying to listen again.
+
+## Notification value changes
+When a Thali application changes its notification values it MUST issue a ssdp:byebye message using its existing USN and then issue a ssdp:alive message using a new USN and reset its next message timer. This signals to all listeners that there are new notification values to be retrieved.
+
+__Open Issue:__ It's tempting to just add in a new HTTP header to indicate that the notification values have been updated. This would make the logic for managing SSDP peers simpler as the USN would change less frequently. This is really a performance optimization. It's main benefit is that if a peer knows it doesn't care about a specific peer then once it detects that peer by matching on a notification beacon it can ignore the peer's further announcements. Also in the case that two peers are already synching and causing notification beacon value changes the two peers won't have to perform additional discoveries on each other because they don't recognize the USN. But we can implement this if perf analysis shows it's worth the effort.
+
+## BSSID vs SSID
+The use of BSSID rather than SSID is meant to be a conservative choice. In theory a set of Wi-Fi APs all sharing the same SSID could be configured to share UDP multicast information between each other. In that case we would only care about checking for changes in SSID, not BSSID. But it's possible for a networking of APs that share the same SSID to not allow routing beyond the local Wi-Fi AP in which case each new BSSID is in effect a new multicast domain. Since there isn't a particularly good way to figure this out we are erring on the conservative side and treating each new BSSID as an isolated network.
 
 #DELETEME
 
