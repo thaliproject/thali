@@ -3,7 +3,7 @@ layout: page
 show_meta: false
 title: "Documentation"
 header:
-   image_fullwidth: "NoInternetNoProblem.png"
+   image_fullwidth: "no-internet-no-problem.png"
 permalink: "/Documentation/"
 ---
 <ul>

@@ -6,8 +6,8 @@
 #
 layout: frontpage
 header:
-  image: 'NoInternetNoProblem.png'
-  background-color: "#10A3CA"
+  image: 'no-internet-no-problem.png'
+  background-color: "#CA0046"
 widget1:
   title: "Local Peer to Peer"
   image: 'widget-1-302x182.png'

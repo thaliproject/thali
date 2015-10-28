@@ -275,6 +275,9 @@ body.video cite { color: #fff; }
 
     #footer a {
         color: $footer-link-color;
+        &:hover {
+          color: darken( $primary-color, 10% );
+        }
     }
     #footer h4,
     #footer h5 {
@@ -354,3 +357,99 @@ body.video cite { color: #fff; }
 .pr5  { padding-right: 5px !important; }
 .pr10 { padding-right: 10px !important; }
 .pr20 { padding-right: 20px !important; }
+
+/* Thali
+------------------------------------------------------------------- */
+
+$thali-bg: $ci-5;
+$topbar-height: 64px;
+
+#topbar {
+  position: fixed;
+  width: 100%;
+  top: 0;
+  z-index: 1;
+}
+
+#topbar,
+.thali-logo-wrapper {
+  background: $thali-bg;
+}
+
+.thali-logo-wrapper {
+  float: left;
+  height: $topbar-height;
+}
+
+.center {
+  margin: 0 auto;
+  text-align: center;
+}
+
+h1.thali-logo {
+  margin: 0;
+  padding: 0;
+}
+
+h1.thali-logo a {
+  display: inline-block;
+  height: 64px;
+  background: $thali-bg url('/images/thali-icon.png') no-repeat 10px 50%;
+  @include image-2x("/images/thali-icon@2x.png", 32px, 32px);
+  padding: 0 10px;
+}
+
+h1.thali-logo a span {
+  margin-left: 35px;
+  margin-top: 10px;
+  font-size: 32px;
+  font-weight: lighter;
+  letter-spacing: 80%;
+  color: $ci-3;
+  line-height: 100%;
+  vertical-align: middle;
+}
+
+.rhs {
+  float: right;
+  height: $topbar-height;
+}
+
+ul.button-list {
+  list-style: none;
+  height: 100%;
+}
+
+ul.button-list li {
+  float: left;
+  height: 100%;
+  margin-left: 10px;
+}
+
+ul.button-list li a {
+  display: block;
+  height: 100%;
+  color: $ci-4;
+  padding: 10px;
+}
+
+ul.button-list li a:hover {
+  color: $ci-3;
+}
+
+#masthead,
+#masthead-with-background-color,
+#masthead-no-image-header {
+  margin-top: $topbar-height; /* offset for fixed topbar */
+}
+
+#masthead-no-image-header {
+  //height: 175px;
+}
+
+/* retina @2x logo */
+#logo img {
+  width: 600px;
+  height: 80px;
+  display: block;
+}

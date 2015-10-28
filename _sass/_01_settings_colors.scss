@@ -36,8 +36,8 @@ $ci-5: #CA0046;
 /* Foundation Color Variables
 ------------------------------------------------------------------- */
 
-$primary-color: $ci-1;
-$secondary-color: $ci-2;
+$primary-color: $ci-5;
+$secondary-color: $ci-4;
 $warning-color: $ci-4;
 $alert-color: $ci-5;
 $success-color: $ci-1;
@@ -72,7 +72,7 @@ $grey-16: #0B0B0B;
 
 $menu_foreground: $grey-7;
 $menu_background: $body-bg;
-$menu_selected: $ci-1;
+$menu_selected: $primary-color;
 
 $topbar-bg-color: $menu_foreground; // Navigation menu text
 $topbar-bg: $menu_background; // Top bar bg
@@ -98,8 +98,8 @@ $topbar-dropdown-link-bg: $menu_background; // Dropdown menu background
 
 $topbar-menu-link-color: $menu_foreground; // Navigation text
 $topbar-menu-icon-color: $menu_foreground; // Navigation burger
-$topbar-menu-link-color-toggled: $ci-1; // Navigation menu selected
-$topbar-menu-icon-color-toggled: $ci-1; // Navigation burger
+$topbar-menu-link-color-toggled: $menu_selected; // Navigation menu selected
+$topbar-menu-icon-color-toggled: $menu_selected; // Navigation burger
 
 
 
@@ -109,7 +109,7 @@ $topbar-menu-icon-color-toggled: $ci-1; // Navigation burger
 $footer-bg: $grey-1;
 $footer-h-color: $grey-7; // footer headline color
 $footer-color: $grey-7; // footer text color
-$footer-link-color: $ci-1;
+$footer-link-color: $primary-color;
 
 
 $subfooter-bg: $grey-7;
@@ -117,7 +117,7 @@ $subfooter-color: $grey-1;
 
 $subfooter-link-color: $grey-7; // icon
 $subfooter-link-bg-color: $grey-1; // circle bg
-$subfooter-link-hover-color: $ci-1; // icon hover
+$subfooter-link-hover-color: $primary-color; // icon hover
 $subfooter-link-bg-hover-color: $ci-3; // circle bg hover
 
 

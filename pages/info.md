@@ -4,7 +4,7 @@ title: "What is Thali?"
 teaser: "No internet? No problem&hellip;"
 permalink: "/info/"
 header:
-    image_fullwidth: "NoInternetNoProblem.png"
+    image_fullwidth: "no-internet-no-problem.png"
 ---
 **Thali** is an open-source software platform for creating apps that exploit the power of personal devices and put people in control of their data.
 
@@ -48,6 +48,5 @@ Thali is being actively developed by David Douglas, Doug Seven, Jukka Silvennoin
 <p>
 <a href="https://twitter.com/thaliproject" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @thaliproject</a>
 <script>!function(d,s,id){var js,fjs=d.getElementsByTagName(s)[0],p=/^http:/.test(d.location)?'http':'https';if(!d.getElementById(id)){js=d.createElement(s);js.id=id;js.src=p+'://platform.twitter.com/widgets.js';fjs.parentNode.insertBefore(js,fjs);}}(document, 'script', 'twitter-wjs');</script>
-
-<a href="http://www.thaliproject.org/atom" class="iconfont icon-rss">Subscribe to Atom Feed</a>
 </p>
+<p><a href="http://www.thaliproject.org/atom" class="iconfont icon-rss"> Subscribe to Atom Feed</a></p>

@@ -20,7 +20,7 @@ baseurl: ''
 
 # This is for the editing function in _/includes/improve_content
 # Leave it empty if your site is not on GitHub/GitHub Pages
-improve_content: 'https://github.com/thaliproject/thali/edit/gh-pages'
+#improve_content: 'https://github.com/thaliproject/thali/edit/gh-pages'
 
 # This URL points directly to the images directory making
 # things easier to link to images in posts and templates. It needs a slash at the end.
@@ -32,7 +32,7 @@ urlimg: 'https://github.com/thaliproject/thali/edit/gh-pages/images/'
 
 
 # Logo size is 600x80 pixels
-logo: "logo.png"
+logo: "logo@2x.png"
 
 
 # Paginates all X entries
@@ -210,7 +210,7 @@ sass:
 #
 # used in _includes/footer_scripts
 
-google_analytics_tracking_id: UA-60112281-1
+#google_analytics_tracking_id: UA-60112281-1
 
 
 

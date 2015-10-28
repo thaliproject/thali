@@ -31,15 +31,15 @@ a:visited {
 }
 
 a:hover {
-        color: darken( $ci-1, 10% );
+        color: darken( $primary-color, 10% );
 }
 
 a:focus {
-        color: lighten( $ci-1, 20% );
+        color: lighten( $primary-color, 20% );
 }
 
 a:active {
-        color: darken( $ci-1, 20% );
+        color: darken( $primary-color, 20% );
 }
 
 
@@ -493,3 +493,8 @@ font-smoothing: antialiased;
 .icon-warning:before { content: "\f131"; }
 .icon-xing:before { content: "\f135"; }
 .icon-youtube:before { content: "\f132"; }
+
+/* personal taste */
+p strong {
+  white-space: nowrap;
+}
