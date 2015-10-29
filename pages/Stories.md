@@ -1,10 +1,9 @@
 ---
-title: Thali's Stories
+title: Stories
 layout: page-fullwidth
-permalink: "/Stories/"
+permalink: "/stories/"
 ---
 
-# Stories
 The following is a list of stories we need to complete in order to meet Thali's first major deliverable. Each story has a number that shows its dependencies. So, for example, we have a story 0 that just about everything depends on. We could then have stories 0.0 and 0.1. These would be two stories that can be done in parallel that both depend on story 0. So story 0.1.0 would be a story that depends on stories 0 and 0.1.
 
 There is nothing particularly magical about these stories. They certainly won't survive contact with the real world. But they show a possible plan of attack. In the real world they will almost certainly get remixed, changed, whatever. That's fine. But by having this list we at least have some idea of where we are going and how we think we are going to get there.
@@ -15,41 +14,41 @@ In addition there are dependencies between stories that are shown as not being d
 
 The following displays all the stories listed below in dependency order:
 
-```
-Stories
--1 - Integrate native and JXCore - COMPLETE
-    0 - Turn on the lights - COMPLETE
-        0.0 - Bring in the public keys - COMPLETE
-            0.0.0 - ACLs
-                0.0.0.1 - ACL Role Membership Changes
-            0.0.1 - Identity Exchange
-            0.0.2 - Notifications
-                0.0.2.0 - Secure Notifications
-                0.0.2.1 - Improving Notification Performance
-                0.0.2.2 - iOS background and Toasts
-            0.0.3 - Attachments and Quotas
-                0.0.3.0 - Fix Attachment Perf
-        0.1 - Android BLE Central
-            0.1.0 - Android BLE Peripheral
-                0.1.0.0 - Android/iOS interop
-        0.2 - BLE Hub
-        0.3 - Using Wi-Fi Infrastructure
-        0.4 - Using MyFi on Android or Wi-Fi Direct Pairing?
-        0.5 - Testing Framework
-        0.6 - Activate TLS
-        0.7 - LevelDB Support - COMPLETE
-        0.8 - 3 or more is a party
-    1 - Securing WebView to local Node.js Communication
-    2 - Supporting Internet based communication
-    3 - Native performance measurements
-        3.0 - Thali performance
-            3.0.0 - Load Testing
-    4 - Fuzzing and Hardening
-    5 - Life Cycle and Battery
-    6 - Shrink NPM Modules!
-    7 - Logging
-    8 - Refactoring for stand along shipping
-```
+##Stories:
+
+ - ~~**-1** Integrate native and JXCore~~ - COMPLETE
+ - ~~**0** Turn on the lights~~ - COMPLETE
+   - ~~**0.0** Bring in the public keys~~ - COMPLETE
+     - **0.0.0** ACLs
+       - **0.0.0.1** ACL Role Membership Changes
+     - **0.0.1** Identity Exchange
+     - **0.0.2** Notifications
+       - **0.0.2.0** Secure Notifications
+       - **0.0.2.1** Improving Notification Performance
+       - **0.0.2.2** iOS background and Toasts
+     - **0.0.3** Attachments and Quotas
+       - **0.0.3.0** Fix Attachment Perf
+   - **0.1** Android BLE Central
+     - **0.1.0** Android BLE Peripheral
+       - **0.1.0.0** Android/iOS interop
+   - **0.2** BLE Hub
+   - **0.3** Using Wi-Fi Infrastructure
+   - **0.4** Using MyFi on Android or Wi-Fi Direct Pairing?
+   - **0.5** Testing Framework
+   - **0.6** Activate TLS
+   - **0.7** LevelDB Support - COMPLETE
+   - **0.8** 3 or more is a party
+ - **1** Securing WebView to local Node.js Communication
+ - **2** Supporting Internet based communication
+ - **3** Native performance measurements
+   - **3.0** Thali performance
+     - **3.0.0** Load Testing
+ - **4** Fuzzing and Hardening
+ - **5** Life Cycle and Battery
+ - **6** Shrink NPM Modules!
+ - **7** Logging
+ - **8** Refactoring for stand along shipping
+
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
 
@@ -385,7 +384,7 @@ We need to measure the native performance for the following scenarios. This will
 For discovery we need to test:
 
 | Android | iOS |
-|---------|-----|
+| ------- | --- |
 | Wi-Fi AP using multi-cast | Wi-Fi AP using multi-cast |
 | BLE | BLE |
 | Wi-Fi Direct | |
@@ -400,10 +399,10 @@ For each of these we need to measure:
 For high bandwidth we need to test:
 
 | Android | iOS |
-|---------|-----|
-|Wi-Fi AP | Wi-Fi AP|
-|         | Multi-Peer Connectivity Framework|
-|Unpaired Bluetooth | |
+| ------- | --- |
+| Wi-Fi AP | Wi-Fi AP|
+| | Multi-Peer Connectivity Framework|
+| Unpaired Bluetooth | |
 | Wi-Fi Direct | |
 | MyFi | |
 
