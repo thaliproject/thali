@@ -2,6 +2,8 @@
 title: Secure Communication
 layout: page-fullwidth
 permalink: "/SecureCommunication/"
+categories:
+    - technologyinvestigations
 ---
 
 ##### Exchanging medical information

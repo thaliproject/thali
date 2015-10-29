@@ -3,7 +3,7 @@ title: Thali and Tor Onion Proxy
 layout: page-fullwidth
 permalink: "/ThaliAndTorOnionProxy/"
 categories:
-    - architecture
+    - technologyinvestigations
 ---
 
 # Introduction

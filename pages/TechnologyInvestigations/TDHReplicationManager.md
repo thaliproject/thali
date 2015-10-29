@@ -2,6 +2,8 @@
 title: TDH Replication Manager
 layout: page-fullwidth
 permalink: "/TDHReplicationManager/"
+categories:
+    - technologyinvestigations
 ---
 
 # Motivation

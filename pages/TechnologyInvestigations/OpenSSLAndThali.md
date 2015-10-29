@@ -1,7 +1,9 @@
 ---
 title: OpenSSL and Thali
 layout: page-fullwidth
-permalink: "/OpenSSLThali/"
+permalink: "/OpenSSLAndThali/"
+categories:
+    - technologyinvestigations
 ---
 
 # Requirements

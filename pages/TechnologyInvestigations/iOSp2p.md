@@ -1,7 +1,9 @@
 ---
-title: Exploring local P2P on iOS
+title: Exploring local p2p on iOS
 layout: page-fullwidth
-permalink: "/iOSP2P/"
+permalink: "/iOSp2p/"
+categories:
+    - technologyinvestigations
 ---
 # Code
 [https://github.com/thaliproject/ThaliBubbles](https://github.com/thaliproject/ThaliBubbles)

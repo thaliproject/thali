@@ -2,6 +2,8 @@
 title: Configuring PouchDB
 layout: page-fullwidth
 permalink: "/ConfiguringPouchDB/"
+categories:
+    - technologyinvestigations
 ---
 
 <dl>

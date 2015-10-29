@@ -2,6 +2,8 @@
 title: Building Thali on Top of I2P
 layout: page-fullwidth
 permalink: "/BuildingThaliOnTopOfI2P/"
+categories:
+    - technologyinvestigations
 ---
 
 Thali needs to work even in completely locked down network environments. We are seeing more and more situations where firewalls don't allow UDP at all. That basically the only communication is outgoing (not ingoing), only TCP and only on port 80 or 443. In fact more and more networks won't even let people on the same network access point talk to each other! So the firewalling is both internal and external.

@@ -3,7 +3,7 @@ title: Thali and Tor Hidden Services
 layout: page-fullwidth
 permalink: "/ThaliAndTorHiddenServices/"
 categories:
-    - architecture
+    - technologyinvestigations
 ---
 
 # Introduction

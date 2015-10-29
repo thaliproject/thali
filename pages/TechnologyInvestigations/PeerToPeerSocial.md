@@ -2,6 +2,8 @@
 title: PeerToPeerSocial
 layout: page-fullwidth
 permalink: "/PeerToPeerSocial/"
+categories:
+    - technologyinvestigations
 ---
 
 ##### Managing social connections #####

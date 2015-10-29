@@ -2,6 +2,9 @@
 title: Node on Devices
 layout: page-fullwidth
 permalink: "/NodeOnDevices/"
+categories:
+    - architecture
+    - technologyinvestigations
 ---
 
 # Scenarios for Node.js on Android, iOS and WinRT

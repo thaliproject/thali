@@ -2,6 +2,8 @@
 title: Experimenting with FireChat on Android
 layout: page-fullwidth
 permalink: "/ExperimentWithFireChat/"
+categories:
+    - technologyinvestigations
 ---
 # Executive Summary
 FireChat running offline on three Android devices was able to successfully communicate without any Internet connectivity using what appears to be a combination of Bluetooth and Wifi. No user interaction was needed to set up anything (e.g. no Bluetooth of WiFi approval dialogs from the OS) and notifications worked just fine when the apps were in the background. This is a pretty exciting proof that one can do a reasonable mesh application on Android. Oddly, FireChat worked less well when connected to the Internet.

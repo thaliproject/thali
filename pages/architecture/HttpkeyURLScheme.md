@@ -2,6 +2,8 @@
 title: Httpkey URL Scheme
 layout: page-fullwidth
 permalink: "/HttpkeyURLScheme/"
+categories:
+    - architecture
 ---
 
 # Introduction

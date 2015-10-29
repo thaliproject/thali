@@ -2,6 +2,8 @@
 title: Understanding Thali's Use of Maven
 layout: page-fullwidth
 permalink: "/UnderstandingThalisUseOfMaven/"
+categories:
+    - technologyinvestigations
 ---
 
 # Building locally, believe me, you want to start here first

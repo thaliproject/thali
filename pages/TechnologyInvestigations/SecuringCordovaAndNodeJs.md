@@ -2,6 +2,8 @@
 title: How to secure communication between Cordova and a local Node.js Server?
 layout: page-fullwidth
 permalink: "/SecuringCordovaAndNodeJs/"
+categories:
+    - technologyinvestigations
 ---
 Thali's architecture assumes that apps are written using Cordova and we will provide a Cordova plugin that will support launching a local Node.js process and running Node.js files. In general we expect that the Cordova Webview and the Node.js server will have separate life cycles. But we certainly need them to be able to securely communicate with each other. How can we do that with the least amount of pain?
 

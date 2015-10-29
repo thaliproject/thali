@@ -2,6 +2,8 @@
 title: Platform Checklist
 layout: page-fullwidth
 permalink: "/PlatformChecklist/"
+categories:
+    - technologyinvestigations
 ---
 
 This document attempts to capture our generic requirements to run Thali on a platform. We use this checklist to evaluate potential platforms and to help guide our development efforts on selected platforms.

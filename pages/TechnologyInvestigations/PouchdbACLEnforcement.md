@@ -2,6 +2,8 @@
 title: Defining an Express-PouchDB middleware for enforcing ACLs
 layout: page-fullwidth
 permalink: "/PouchdbACLEnforcement/"
+categories:
+    - technologyinvestigations
 ---
 
 # Defining an Express-PouchDB middleware for enforcing ACLs

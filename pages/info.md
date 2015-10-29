@@ -2,7 +2,7 @@
 layout: page
 title: "What is Thali?"
 teaser: "No internet? No problem&hellip;"
-permalink: "/info/"
+permalink: "/Info/"
 header:
     image_fullwidth: "no-internet-no-problem.png"
 ---

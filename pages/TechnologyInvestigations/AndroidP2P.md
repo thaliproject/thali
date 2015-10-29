@@ -2,6 +2,8 @@
 title: Exploring Android to Android P2P
 layout: page-fullwidth
 permalink: "/AndroidP2P/"
+categories:
+    - technologyinvestigations
 ---
 This is an investigation of getting multiple Android handsets, 4.x series, to successfully talk to each other.
 

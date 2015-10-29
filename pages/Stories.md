@@ -1,7 +1,7 @@
 ---
 title: Stories
 layout: page-fullwidth
-permalink: "/stories/"
+permalink: "/Stories/"
 ---
 
 The following is a list of stories we need to complete in order to meet Thali's first major deliverable. Each story has a number that shows its dependencies. So, for example, we have a story 0 that just about everything depends on. We could then have stories 0.0 and 0.1. These would be two stories that can be done in parallel that both depend on story 0. So story 0.1.0 would be a story that depends on stories 0 and 0.1.

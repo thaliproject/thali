@@ -2,6 +2,8 @@
 title: Building Thali on Top of Firefox
 layout: page-fullwidth
 permalink: "/BuildingThaliOnTopOfFirefox/"
+categories:
+    - technologyinvestigations
 ---
 
 # TLDR

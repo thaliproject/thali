@@ -2,6 +2,8 @@
 title: HTML 5 Raw Sockets Investigation
 layout: page-fullwidth
 permalink: "/HTML5RawSocketsInvestigation/"
+categories:
+    - technologyinvestigations
 ---
 
 Raw Sockets are an HTML 5 feature that allows one to open a raw TCP or UDP socket in the browser. The socket can be opened incoming or outgoing and there is even support for SSL (well, sorta, see below). As a foundation for building a peer to peer service in the browser it's pretty exciting. So why isn't Thali using it?
