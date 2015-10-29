@@ -3,7 +3,7 @@ layout: page
 show_meta: false
 title: "Architecture"
 header:
-   image_fullwidth: "no-internet-no-problem.png"
+   image_fullwidth: "header.png"
 permalink: "/Architecture/"
 ---
 <ul class="side-nav">

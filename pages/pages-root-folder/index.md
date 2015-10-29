@@ -6,21 +6,21 @@
 #
 layout: frontpage
 header:
-  image: 'no-internet-no-problem.png'
+  image: 'banner.png'
   background-color: "#CA0046"
 widget1:
-  title: "Local Peer to Peer"
-  image: 'widget-1-302x182.png'
+  title: "No Internet? No problem."
+  image: 'widget-no-internet.png'
   color: "#ff0000"
   text: 'Communicate with other local devices without any Internet support using BLE, Bluetooth and Wi-Fi Direct.'
 widget2:
   title: "Stay in sync"
-  image: 'widget-2-302x182.png'
-  text: 'Use and replicate JSON data and binary attachments.'
+  image: 'widget-sync.png'
+  text: 'Supports offline/online syncing to replicate JSON data and binary attachments.'
 widget3:
-  title: "Secure"
-  image: 'widget-3-302x182.png'
-  text: 'Always communicate on encrypted channels for iOS and Android.'
+  title: "Just write for web!"
+  image: 'widget-web.png'
+  text: 'Develop once using any web technology you like and get your app built for iOS and Android.'
 permalink: /index.html
 ---
 
