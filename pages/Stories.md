@@ -38,6 +38,8 @@ The following displays all the stories listed below in dependency order:
    - **0.6** Activate TLS
    - **0.7** LevelDB Support - COMPLETE
    - **0.8** 3 or more is a party
+   - **0.9** Running in the background on iOS
+   - **0.10** Running in the background on Android
  - **1** Securing WebView to local Node.js Communication
  - **2** Supporting Internet based communication
  - **3** Native performance measurements
@@ -360,6 +362,16 @@ Activate TLS and TLS validation once JxCore 0.4 is released. This was initially 
 # 0.8 - 3 or more is a party
 
 Right now our native discovery and connection layer isn't very smart about what happens if a device tries to connect to too many other devices. For example, with iOS's multi-peer connectivity framework one can only connect to up to 9 devices. As such we need to add a new error response if a connect request is made and all available channels are used up. We also need to make the replication manager smart enough to handle this error and queue up the request until more connections are available.
+
+# 0.9 - Running in the background on iOS
+
+We need to make sure we can go through the entire iOS lifecycle without breaking anything. This means we can transverse all the state changes in ![Figure 2-3 State changes in an iOS app](https://developer.apple.com/library/ios/documentation/iPhone/Conceptual/iPhoneOSProgrammingGuide/Art/high_level_flow_2x.png) without anything blowing up. We need explicit tests to force us through all the various stages and make sure we stay properly functional.
+
+We also need to deal with the fact that iOS apparently likes to quietly yank ports (both incoming and outgoing) for TCP/IP once the app goes into Background. There are some tricks to delay this but those tricks are only delays, the loss of ports is inevitable. This is known to cause Node.js to crash since it thinks (when it wakes up) that it still has the ports when iOS has taken them away. We therefore need to make sure we properly manage the notifications from iOS so that we close all the ports ourselves as the right time.
+
+# 0.10 - Running in the background on Android
+
+Android has its own life cycle, foreground activvity, visible activity, background activity and empty process (aka a service). We have to make sure that as a cordova app goes through this life cycles that our Thali code behaves itself. We have some behaviors (like the time we wait between advertisements) that change depending on if we are in the foreground or background. We also have to make sure that if we are killed that we properly use onSaveInstanceState() to figure out what, if anything, we need to persist.
 
 # 1 - Securing WebView to local Node.js communication
 
