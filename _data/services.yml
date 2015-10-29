@@ -12,13 +12,17 @@
   url: "/TechnologyInvestigations/"
   title: "A series on technologies that are used, or might have been used, to create Thali."
 
-- name: "Fork me on GitHub"
-  url: "https://github.com/thaliproject/"
-  title: "Fork me on GitHub"
+- name: "Stories"
+  url: "/Stories/"
+  title: "Thali Development Stories"
 
-- name: "Atom"
-  url: "/atom.xml"
-  title: "Subscribe to Atom Feed"
+#- name: "Fork me on GitHub"
+#  url: "https://github.com/thaliproject/"
+#  title: "Fork me on GitHub"
+
+#- name: "Atom"
+#  url: "/atom.xml"
+#  title: "Subscribe to Atom Feed"
 
 #- name: "sitemap.xml"
 #  url: "/sitemap.xml"

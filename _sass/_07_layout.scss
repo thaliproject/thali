@@ -244,7 +244,7 @@ body.video cite { color: #fff; }
 ------------------------------------------------------------------- */
 
 #up-to-top {
-    padding: 160px 0 10px 0;
+    padding: 32px 0 10px 0; // 160px 0 10px 0;
 }
 #up-to-top a {
     font-size: 24px;
@@ -412,7 +412,6 @@ h1.thali-logo a span {
 
 .rhs {
   float: right;
-  height: $topbar-height;
 }
 
 ul.button-list {
@@ -437,9 +436,12 @@ ul.button-list li a:hover {
   color: $ci-3;
 }
 
+/* tweaks */
+
 #masthead,
 #masthead-with-background-color,
-#masthead-no-image-header {
+#masthead-no-image-header,
+.no-header {
   margin-top: $topbar-height; /* offset for fixed topbar */
 }
 
@@ -452,4 +454,8 @@ ul.button-list li a:hover {
   width: 600px;
   height: 80px;
   display: block;
+}
+
+ul.side-nav li a {
+  clear: both;
 }

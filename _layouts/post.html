@@ -3,9 +3,12 @@ layout: default
 format: post
 ---
 <div class="row t30">
-	<div class="medium-8 columns{% if page.sidebar == NULL %} medium-offset-2 end{% endif %}{% if page.sidebar == "left" %} medium-push-4{% endif %}">
+	<div class="medium-8 columns{% if page.sidebar == "left" %} medium-push-4{% endif %}">
 		<article itemscope itemtype="http://schema.org/Article">
 			<header>
+				{% if page.date %}
+				<time class="icon-calendar pr20 dim" datetime="{{ page.date | date: "%Y-%m-%d" }}" itemprop="datePublished"> {{ page.date | date: "%B %d, %Y" }}</time>
+				{% endif %}
 
 				<span itemprop="name">
 					{% if page.subheadline %}<p class="subheadline">{{ page.subheadline }}</p>{% endif %}
@@ -28,6 +31,18 @@ format: post
 			{% include _meta_information.html %}
 			{% endif %}
 
+			<p><a href="http://www.thaliproject.org/atom" class="iconfont icon-rss">Subscribe to Atom Feed</a></p>
+
+			<div id="post-nav" class="row">
+				{% if page.previous.url %}
+				<div class="small-5 columns"><a class="button small radius prev" href="{{ site.url }}{{page.previous.url}}">&laquo; {{page.previous.title}}</a></div><!-- /.small-4.columns -->
+				{% endif %}
+				<div class="small-2 columns text-center"><!-- <a class="radius button small" href="{{ site.url }}/blog/" title="Blog {{ site.data.language.archive }}">{{ site.data.language.archive }}</a> --></div><!-- /.small-4.columns -->
+				{% if page.next.url %}
+				<div class="small-5 columns text-right"><a class="button small radius next" href="{{ site.url }}{{page.next.url}}">{{page.next.title}} &raquo;</a></div><!-- /.small-4.columns -->
+				{% endif %}
+			</div>
+
 			{% if page.comments == true %}
 			{% include _comments.html %}
 			{% endif %}
@@ -39,10 +54,7 @@ format: post
 	<div class="medium-4 columns medium-pull-8">
 		{% include _sidebar.html %}
 	</div><!-- /.medium-4.columns -->
-	{% endif %}
-
-
-	{% if page.sidebar == "right" %}
+	{% else %}
 	<div class="medium-4 columns">
 		{% include _sidebar.html %}
 	</div><!-- /.medium-4.columns -->
