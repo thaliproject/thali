@@ -53,3 +53,14 @@ s0.parentNode.insertBefore(s1,s0);
 </script>
 {% endif %}
 
+
+
+{% comment %}
+#  Make all external links automatically open in "_blank" tab
+#
+{% endcomment %}
+<script type="text/javascript">
+$(document.links).filter(function() {
+  return this.hostname != window.location.hostname;
+}).attr('target', '_blank');
+</script>
