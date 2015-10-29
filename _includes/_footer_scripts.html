@@ -6,7 +6,7 @@ $('audio,video').mediaelementplayer();
 
 
 <script src="{{ site.url }}{{ site.baseurl }}/assets/js/javascript.min.js"></script>
-
+<script src="{{ site.url }}{{ site.baseurl }}/assets/js/toc.js"></script>
 
 {% if page.header.image_fullwidth %}
 <script>
@@ -63,4 +63,16 @@ s0.parentNode.insertBefore(s1,s0);
 $(document.links).filter(function() {
   return this.hostname != window.location.hostname;
 }).attr('target', '_blank');
+</script>
+
+
+
+{% comment %}
+#  Generate Table Of Contents
+#
+{% endcomment %}
+<script type="text/javascript">
+$(document).ready(function() {
+    $('#toc').toc({ title:"Table of Contents", listType:"ul", headers: 'h1,h2,h3,h4' });
+});
 </script>

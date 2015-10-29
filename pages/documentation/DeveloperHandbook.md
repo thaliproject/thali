@@ -1,14 +1,11 @@
 ---
 title: Developer Handbook
-layout: page-fullwidth
+layout: page
+sidebar: right
 permalink: "/DeveloperHandbook/"
 categories:
     - documentation
 ---
-
-# Warning
-
-This doc has gotten really long and could really benefit from having a TOC but near as I can tell there is no way to have GitHub Pages automatically generate a TOC for you. So use search or scroll. Sorry. :(
 
 # Introduction
 

@@ -108,6 +108,9 @@ body.video cite { color: #fff; }
     #masthead-no-image-header {
         display: none;
     }
+    #topbar {
+      position: static !important; /* scroll top bar on mobile */
+    }
 }
 
 
@@ -440,6 +443,10 @@ ul.button-list li a:hover {
 
 /* tweaks */
 
+main {
+  margin-top: $topbar-height; /* offset for fixed topbar */
+}
+
 #masthead,
 #masthead-with-background-color,
 #masthead-no-image-header,
@@ -449,6 +456,11 @@ ul.button-list li a:hover {
 
 #masthead-no-image-header {
   //height: 175px;
+}
+
+/* TOC */
+.clickable-header {
+  padding-top: $topbar-height; /* offset for fixed topbar */
 }
 
 /* retina @2x logo */

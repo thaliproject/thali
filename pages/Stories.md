@@ -1,6 +1,7 @@
 ---
-title: Stories
-layout: page-fullwidth
+title: Thali Stories
+layout: page
+sidebar: right
 permalink: "/Stories/"
 ---
 
@@ -10,15 +11,13 @@ There is nothing particularly magical about these stories. They certainly won't 
 
 In addition there are dependencies between stories that are shown as not being dependent. For example, ACLs, notifications and quotas are all shown as being parallel stories but in fact all depend on having an eventual consistency hosting framework (see below for details). Rather than creating tons of tiny stories I've laid things out in a general "big picture" flow with the understanding that all dependencies aren't fully shown.
 
-# Story dependency chart
-
+#####Story dependency chart
 The following displays all the stories listed below in dependency order:
 
-##Stories:
-
- - ~~**-1** Integrate native and JXCore~~ - COMPLETE
- - ~~**0** Turn on the lights~~ - COMPLETE
-   - ~~**0.0** Bring in the public keys~~ - COMPLETE
+#Stories:
+ - ~~**-1** Integrate native and JXCore~~
+ - ~~**0** Turn on the lights~~
+   - ~~**0.0** Bring in the public keys~~
      - **0.0.0** ACLs
        - **0.0.0.1** ACL Role Membership Changes
      - **0.0.1** Identity Exchange
@@ -36,7 +35,7 @@ The following displays all the stories listed below in dependency order:
    - **0.4** Using MyFi on Android or Wi-Fi Direct Pairing?
    - **0.5** Testing Framework
    - **0.6** Activate TLS
-   - **0.7** LevelDB Support - COMPLETE
+   - **0.7** LevelDB Support
    - **0.8** 3 or more is a party
    - **0.9** Running in the background on iOS
    - **0.10** Running in the background on Android
@@ -54,7 +53,7 @@ The following displays all the stories listed below in dependency order:
 
 In theory any items listed in parallel can be done in parallel. So this is NOT a linear structure. We will pick which stories to tackle based on resources, priorities and mood.
 
-# ~~-1 - Integrate Native and JXCore~~ - COMPLETE
+# ~~-1 - Integrate Native and JXCore~~
 
 ~~So it turns out that story 0 was a bit hard to get working all at once so we are slipping in another story that lets us make progress in the meantime. That's why the version ID doesn't work as well as one might like. Sorry. :(~~
 
@@ -68,7 +67,7 @@ In theory any items listed in parallel can be done in parallel. So this is NOT a
 
 ~~The point of this story is that we will have successfully integrated the native P2P infrastructure for both discovery and high bandwidth transfer into Node.jx.~~
 
-# ~~0 - Turn on the lights~~ - COMPLETE
+# ~~0 - Turn on the lights~~
 
 ~~In this milestone we just want to get the pieces sorta working together. We are explicitly not worried about security or performance.~~
 
@@ -117,7 +116,7 @@ In theory any items listed in parallel can be done in parallel. So this is NOT a
 * ~~Whenever someone is discovered the app must immediately connect to them and do a push and pull synch.~~
 * ~~The app must also hook into the changes stream of the local postcard DB and anytime there is a change created by the local user the app must do a push synch with all the folks it has discovered who it hasn't been notified have gone away.~~
 
-# ~~ 0.0 - Bring in the public keys! ~~ - COMPLETE
+# ~~0.0 - Bring in the public keys!~~
 
 ~~__Status Update:__ - Work is already underway on the UX and api changes needed for story 0.0. We have refactored the database and put in hooks for the crypto.~~
 
@@ -355,7 +354,7 @@ How do we test local P2P in an automated fashion? We need to set up a bunch of p
 
 Activate TLS and TLS validation once JxCore 0.4 is released. This was initially part of story 0.0 but has been pushed back. Please refer to the note in story 0.0 for more details.
 
-# 0.7  - ~~LevelDB Support~~ - COMPLETE
+# 0.7  - ~~LevelDB Support~~
 
 ~~JXCore provides built in support for LevelDown and LevelDB and PouchDB can then use that for persistent storage. But unfortunately there is a bug that is keeping LevelDown from working properly. This story is about making sure that bug gets fixed so we can have persistent storage. Until this bug is fixed we will use memdown which means whenever the app thread is killed it will lose all state!~~
 
