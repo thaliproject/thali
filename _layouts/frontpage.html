@@ -86,6 +86,39 @@ format: blog-index
     </div><!-- /.row -->
 {% endunless %}
 
+<!-- Thali content links -->
+<div class="row">
+  <div class="small-12 columns">
+
+    <section class="category">
+      <h2>Architecture</h2>
+      <ul class="side-nav">
+          {% for page in site.pages %}
+            {% if page.categories contains 'architecture' %}
+              <li><a href="{{ site.url }}{{ page.url }}">{{ page.title }}</a></li>
+            {% endif %}
+          {% endfor %}
+      </ul>
+    </section>
+
+    <section class="category">
+      <h2>Developer Handbook</h2>
+      <ul class="side-nav">
+          {% for page in site.pages %}
+            {% if page.categories contains 'documentation' %}
+              <li><a href="{{ site.url }}{{ page.url }}">{{ page.title }}</a></li>
+            {% endif %}
+          {% endfor %}
+      </ul>
+    </section>
+
+    <section class="category">
+      <h2>Technology Investigations</h2>
+      <p>A <a href="/TechnologyInvestigations">series on technologies</a> that are used, or might have been used, to create Thali.</p>
+    </section>
+
+  </div>
+</div>
 
 {% comment %}
 *
