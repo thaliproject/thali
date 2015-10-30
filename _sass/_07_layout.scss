@@ -364,7 +364,10 @@ body.video cite { color: #fff; }
 ------------------------------------------------------------------- */
 
 $thali-bg: $ci-5;
-$topbar-height: 64px;
+
+$thali-logo-width: 114px;
+$thali-logo-height: 128px;
+$topbar-height: $thali-logo-height/2;
 
 #topbar {
   width: 100%;
@@ -390,6 +393,28 @@ h1.thali-logo {
   padding: 0;
 }
 
+/* logo - image */
+h1.thali-logo a {
+  display: block;
+  padding: 0 10px;
+  width: $thali-logo-width;
+  height: $topbar-height;
+  background: $thali-bg url('/images/thali-menu.png') no-repeat 10px 50%;
+  @include image-2x("/images/thali-menu@2x.png", $thali-logo-width, $thali-logo-height);
+  background-position: 0 0;
+  overflow: hidden;
+}
+
+h1.thali-logo a:hover{
+  background-position: 0 100%;
+}
+
+h1.thali-logo a span {
+  display: none;
+}
+
+/* logo - icon and text */
+/*
 h1.thali-logo a {
   display: inline-block;
   height: 64px;
@@ -408,6 +433,7 @@ h1.thali-logo a span {
   line-height: 100%;
   vertical-align: middle;
 }
+*/
 
 .rhs {
   float: right;
