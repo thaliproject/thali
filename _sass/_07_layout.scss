@@ -108,9 +108,6 @@ body.video cite { color: #fff; }
     #masthead-no-image-header {
         display: none;
     }
-    #topbar {
-      position: static !important; /* scroll top bar on mobile */
-    }
 }
 
 
@@ -370,10 +367,7 @@ $thali-bg: $ci-5;
 $topbar-height: 64px;
 
 #topbar {
-  position: fixed;
   width: 100%;
-  top: 0;
-  z-index: 1;
 }
 
 #topbar,
@@ -441,23 +435,6 @@ ul.button-list li a:hover {
   color: $ci-3;
 }
 
-/* tweaks */
-
-main {
-  margin-top: $topbar-height; /* offset for fixed topbar */
-}
-
-#masthead,
-#masthead-with-background-color,
-#masthead-no-image-header,
-.no-header {
-  margin-top: $topbar-height; /* offset for fixed topbar */
-}
-
-#masthead-no-image-header {
-  //height: 175px;
-}
-
 /* TOC */
 .clickable-header {
   padding-top: $topbar-height; /* offset for fixed topbar */
@@ -499,4 +476,23 @@ div.app-icon {
   background-color: white;
   border-radius: 23px;
   box-shadow: 0px 5px 10px $grey-3;
+}
+
+/* Masthead › medium-up
+------------------------------------------------------------------- */
+
+@media #{$medium-up} {
+  #topbar {
+    position: fixed;
+    top: 0;
+    z-index: 1;
+  }
+
+  #masthead,
+  #masthead-with-background-color,
+  #masthead-no-image-header,
+  .no-header {
+    margin-top: $topbar-height; /* offset for fixed topbar */
+  }
+
 }

@@ -16,9 +16,9 @@ widget1:
 widget2:
   title: "Stay in sync"
   image: 'widget-sync.png'
-  text: 'Supports offline/online syncing to replicate JSON data and binary attachments.'
+  text: 'Thali takes care of offline/online syncing by replicating JSON data and binary attachments.'
 widget3:
-  title: "Just write for web!"
+  title: "Write once for web!"
   image: 'widget-web.png'
   text: 'Develop once using any web technology you like and get your app built for iOS and Android.'
 permalink: /index.html

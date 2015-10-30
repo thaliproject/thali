@@ -1,8 +1,6 @@
 ---
 layout: post
 title: Developing a web app that behaves like a native app
-categories:
-    - postcard
 header:
    image_fullwidth: "postcard-android.jpg"
 ---
