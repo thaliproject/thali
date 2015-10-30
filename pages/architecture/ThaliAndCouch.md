@@ -19,7 +19,7 @@ This document is targeted at developers and intended to provide a high level ove
 
 ## Authentication
 
-Running a peer to peer web means accepting incoming connections and this means we need a standardized way to authenticate who is making requests. Thali's answer to this problem is the [Httpkey URL Scheme](HttpkeyURLScheme). This scheme essentially says:
+Running a peer to peer web means accepting incoming connections and this means we need a standardized way to authenticate who is making requests. Thali's answer to this problem is the [Httpkey URL Scheme](/HttpkeyURLScheme). This scheme essentially says:
 
 1. Security principals (read: users, but this could also be services, hence the more generic term security principal) are identified with public keys.
 
@@ -51,7 +51,7 @@ But once we had the CouchDB server it became quite natural to ask - well what ab
 
 ## Thali, the Internet of Things (IoT), local discovery and high latency meshes
 
-As explained in detail [here](ThaliAndIoT) it turns out that Thali's technologies are extremely useful for IoT scenarios, especially industrial scenarios. This has led us to reprioritize two technologies that were always part of the Thali vision but now are getting done earlier.
+As explained in detail [here](/ThaliAndIoT) it turns out that Thali's technologies are extremely useful for IoT scenarios, especially industrial scenarios. This has led us to reprioritize two technologies that were always part of the Thali vision but now are getting done earlier.
 
 The first is local discovery. That is, using BLE, Bluetooth and Wi-Fi to discover local devices in areas without any cellular of centralized Wi-Fi support.
 
@@ -59,7 +59,7 @@ The second is high latency meshes. Thali always wanted to support high latency m
 
 ## Firewalls & NATs
 
-As a practical matter firewalls and NATs make it between difficult and impossible to host services behind them. The good news is that there are standardized efforts to address these problems, the bad news is that these efforts are either often unsupported by real world firewalls/NATs or not fit for our purposes (e.g. see [here](StunTurnICEInvestigation)). However there is one solution that is free and widely deployed that does meet our needs in many, although not all, cases - [Tor hidden services](https://www.torproject.org/docs/hidden-services.html.en ). So we will be adopting Tor hidden services as our foundational mechanism for exposing server endpoints on devices.
+As a practical matter firewalls and NATs make it between difficult and impossible to host services behind them. The good news is that there are standardized efforts to address these problems, the bad news is that these efforts are either often unsupported by real world firewalls/NATs or not fit for our purposes (e.g. see [here](/StunTurnICEInvestigation)). However there is one solution that is free and widely deployed that does meet our needs in many, although not all, cases - [Tor hidden services](https://www.torproject.org/docs/hidden-services.html.en ). So we will be adopting Tor hidden services as our foundational mechanism for exposing server endpoints on devices.
 
 ## Device Discovery on the Internet
 
@@ -69,7 +69,7 @@ As explained in the link above Tor hidden services allow one to map from a publi
 
 ## Architecture Overview
 
-Because Thali is finding communities, like IoT, who need parts of its capabilities we are trying to refactor ourselves into a useful set of libraries. See [here](ThaliAndIoT) for our current thinking on how we will break Thali up into useful sub-pieces. The rest of this section applies to technology we hope to deliver after we have delivered on the IoT scenarios, specifically, the Thali Device Hub.
+Because Thali is finding communities, like IoT, who need parts of its capabilities we are trying to refactor ourselves into a useful set of libraries. See [here](/ThaliAndIoT) for our current thinking on how we will break Thali up into useful sub-pieces. The rest of this section applies to technology we hope to deliver after we have delivered on the IoT scenarios, specifically, the Thali Device Hub.
 
 <dl>
 <dt> Thali Device Hub</dt>
@@ -102,7 +102,7 @@ Local Thali App -->  | Local CouchDB Singleton Service  <-- Local Replication Ma
 
 ## Talking to the Thali Device Hub
 
-For now, mostly to make things easy, all communication between an application and the CouchDB instance on the same device will occur via the network using localhost. This means, amongst other things, that a [httpkey URL](HttpkeyURLScheme) will be used. Yes, it means that we will be running a full SSL stack locally. Yes this is a bit silly and some platforms provide much better tools to handle this. But for right now the simplicity of using the same stack locally and remotely is worth the inefficiency.
+For now, mostly to make things easy, all communication between an application and the CouchDB instance on the same device will occur via the network using localhost. This means, amongst other things, that a [httpkey URL](/HttpkeyURLScheme) will be used. Yes, it means that we will be running a full SSL stack locally. Yes this is a bit silly and some platforms provide much better tools to handle this. But for right now the simplicity of using the same stack locally and remotely is worth the inefficiency.
 
 This means that any application that wants to talk to the CouchDB singleton service from Thali needs to:
 
@@ -110,7 +110,7 @@ This means that any application that wants to talk to the CouchDB singleton serv
 
 1. Find out the port the singleton service is on
 
-How this works in practice will depend on the specific OS. We investigate the issues at some length [here](SecuringCordovaAndNodeJs). The difference however in that in the previously linked article the concern is how to connect a Cordova WebView and its associated node.js server. In this case we are talking about how to connect any arbitrary application on the device and a central Thali Device Hub.
+How this works in practice will depend on the specific OS. We investigate the issues at some length [here](/SecuringCordovaAndNodeJs). The difference however in that in the previously linked article the concern is how to connect a Cordova WebView and its associated node.js server. In this case we are talking about how to connect any arbitrary application on the device and a central Thali Device Hub.
 
 ### Access control on the Thali Device Hub
 
@@ -128,7 +128,7 @@ For now all replication will be 'last writer wins'. That is, if there is a confl
 
 None of this is enough of course. We will inevitably need databases that are local only, that have different conflict resolution policies, that deal with quotas (which we aren't going to implement immediately), etc. But one step at a time.
 
-For a lot more details on TDH replication please see [here](TDHReplicationManager).
+For a lot more details on TDH replication please see [here](/TDHReplicationManager).
 
 ### Discovering users
 
@@ -160,7 +160,7 @@ We will be providing a standard JSON format hosted in the Thali Device Hub where
 
 There is some common UX that the Thali Device Hub needs to support. Minimally it will need a UX to handle pairing devices as well as exchanging keys with friends. It will need some kind of status page to help users when things go wrong. It will probably also need some kind of storage management UX to deal with stores that get too big.
 
-[TDH Replication Manager](TDHReplicationManager) provides more details on how we manage replication.
+[TDH Replication Manager](/TDHReplicationManager) provides more details on how we manage replication.
 
 ## Thali Application
 

@@ -10,7 +10,7 @@ categories:
 
 If you would like to contribute, consider these options:
 
-* Subscribe to our [blog](atom.xml)
+* Subscribe to our [blog](/atom.xml)
 * Join the [discussion](https://pairlist10.pair.net/mailman/listinfo/thali-talk)!
 * Follow us on [Twitter](https://twitter.com/thaliproject)
 * Submit an [issue](https://github.com/thaliproject/Thali_CordovaPlugin/issues) (please include which version you were running against, your environment (e.g. OS, compiler, etc.), what results you were expecting, what results you got and repro steps)

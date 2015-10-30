@@ -23,7 +23,7 @@ The rest of this article explores exactly what libraries we need to build in ord
 * __Devices__ - The intersection of GPCs and things.
 
 # Node.js Everywhere
-As [previously mentioned](nodeondevices) a key decision made in Thali land is that we are going to switch from Java to Javascript. The driver for this decision was the desire to have Thali code run literally 'everywhere'. However the belief is that only two languages truly run absolutely everywhere - C and Javascript. We picked Javascript.
+As [previously mentioned](/NodeOnDevices) a key decision made in Thali land is that we are going to switch from Java to Javascript. The driver for this decision was the desire to have Thali code run literally 'everywhere'. However the belief is that only two languages truly run absolutely everywhere - C and Javascript. We picked Javascript.
 
 But Thali does most of its work in the background, not in a web browser. So we need a packaging framework for Thali logic that is based around listeners and waiting for events. This is, of course, what Node.js is perfect for and as such we have picked Node.js as our core platform.
 

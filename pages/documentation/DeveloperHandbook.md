@@ -17,28 +17,30 @@ Welcome to Thali! So you want to learn more? Great!
 3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/index.md) and add them to the "Who?" section.
 4. Send out a mail to the public mailing list about them joining
 4. If they are a Microsoft employee then:
-  5. add them to the internal OWA Thali group
-  6. add them to our weekly standup and other random meetings
-  7. send out a mail to the internal mailing list about them joining
-  8. Harass the new member to go get connected via [https://opensourcehub2.microsoft.com/](https://opensourcehub2.microsoft.com/)
+5. Add them to the internal OWA Thali group
+6. Add them to our weekly standup and other random meetings
+7. Send out a mail to the internal mailing list about them joining
+8. Harass the new member to go get connected via [https://opensourcehub2.microsoft.com/](https://opensourcehub2.microsoft.com/)
 
 # Read!
-The first thing to do is read. Please start [here](ThaliAndCouch). You can probably skip most of the links except for [this one](nodeondevices) and [this one](ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
+The first thing to do is read. Please start [here](/ThaliAndCouch). You can probably skip most of the links except for [this one](/NodeOnDevices) and [this one](/ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
 
 # Sign up to follow us
-Please go [here](WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you go to our [main projects](https://github.com/thaliproject/) and hit 'watch' on them in GitHub. Right now our "main" projects are a moving target but basically any project that has been modified in the last two months is probably worth watching.
+Please go [here](/WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you go to our [main projects](https://github.com/thaliproject/) and hit 'watch' on them in GitHub. Right now our "main" projects are a moving target but basically any project that has been modified in the last two months is probably worth watching.
 
 If you don't 'watch' the projects then you won't get notified when we have updates, new issues, etc. So please hit 'watch'.
 
 # Wiki
-Our main website is www.thaliproject.org and it is a [Github pages](https://pages.github.com/) site that is run out of the gh-pages branch of https://github.com/thaliproject/thali. Please go read up on Github pages and understand what the header matter is, how MD files work, etc. The good news is that you can edit the pages directly in the Github web UX in our depot. You don't have to download the site and then submit PRs.
+Our main website is www.thaliproject.org and it is a [Github pages](https://pages.github.com/) site that is run out of the 'gh-pages' branch in the [Thali repository](https://github.com/thaliproject/thali). Please go read up on Github pages and understand what the header matter is, how MD files work, etc. The good news is that you can edit the pages directly in the Github web UX in our depot. You don't have to download the site and then submit PRs.
 
-HOWEVER!!!! If you make a signifigant changes to the website then please submit the change as a PR (you can do that from the Gihub depo web UX, just choose the second option by commit) and then accept your own PR. This will send a notification out to everyone about the change. Otherwise you can just use automatic commit.
+HOWEVER!!!! If you make a significant changes to the website then please submit the change as a PR (you can do that from the Github repo web UX, just choose the second option by commit) and then accept your own PR. This will send a notification out to everyone about the change. Otherwise you can just use automatic commit.
+
+Also check any Markdown links start with a backslash '/' otherwise Jekyll will create a relative link from the directory in the 'pages' folder.
 
 # Blogging
 We like to blog but most of us blog on our own blogs. But we would like to republish here interesting articles. So here are the instructions on how to use our blog.
 
-1. Go to https://github.com/thaliproject/thali/tree/gh-pages/_posts
+1. Go to [gh-pages/_posts](https://github.com/thaliproject/thali/tree/gh-pages/_posts)
 2. Create a new entry following the date format you see in the directory, the definition is given [here](http://jekyllrb.com/docs/posts/)
 3. Make sure you put in the 'front matter' (just look at any of the existing posts, they all have it at the top) and then write up your blog article.
 4. Keep in mind that your blog article will be automatically pushed to our twitter feed so please make the first sentence in the blog article something that will read reasonably well on Twitter.
@@ -60,10 +62,10 @@ Wednesday/Thursday - Each dev is responsible for putting their proposed work ite
 Friday - On Friday we walk through all the items "in progress" and see how we did. Success means doing a demo showing the working functionality. The demo can just be test code. It doesn't need to be pretty. We then close all successfully completed items and review the items in proposed work. All the approved items are then moved to 'in progress' to start the new sprint.
 
 # Our backlog/stories
-Strictly speaking the backlog and current work is all tracked using GitHub issues that are aggregated with Waffle as specified above. But we do have a set of higher level stories we maintain to help us see the path ahead. Those stories are defined [here](stories).
+Strictly speaking the backlog and current work is all tracked using GitHub issues that are aggregated with Waffle as specified above. But we do have a set of higher level stories we maintain to help us see the path ahead. Those stories are defined [here](/Stories).
 
 # Naming branches in our depots
-In all of our depots master should only be used for the latest known "good". That is, nobody should ever be doing development in master. Only "finished" code should be in master. Typically code is finished when it is part of a completed story (e.g. see [stories](stories)).
+In all of our depots master should only be used for the latest known "good". That is, nobody should ever be doing development in master. Only "finished" code should be in master. Typically code is finished when it is part of a completed story (e.g. see [stories](/Stories)).
 
 All development work therefore occurs on branches. Because we have multiple depots with multiple developers we want to add a little consistency to how we handle naming branches so its easier to find and understand what people are working on. Branch names should always be of the form "storyX" where X is the number assigned to the story. Note that there is no space. Dealing with spaces can be annoying so we will just skip them.
 
@@ -131,12 +133,12 @@ We don't really have coding guidelines per se in HTML (we don't write enough for
 # Dev Machine Set Up
 We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
 
-We have a bunch of instructions on how to get this software for Windows, see [set up for windows](SetupForWindows) but we have tested everything on Mac and Linux and it all runs just fine there as well.
+We have a bunch of instructions on how to get this software for Windows, see [set up for windows](/SetupForWindows) but we have tested everything on Mac and Linux and it all runs just fine there as well.
 
-NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](SetupForWindows) BECAUSE IT CONTAINS IMPORTANT CONFIGURATION INSTRUCTIONS THAT APPLY TO ALL PLATFORMS
+NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](/SetupForWindows) BECAUSE IT CONTAINS IMPORTANT CONFIGURATION INSTRUCTIONS THAT APPLY TO ALL PLATFORMS
 
 # Git
-The [Thali Guide to Git](ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there.
+The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there.
 
 But please, DO NOT SUBMIT COMMITS DIRECTLY TO THE DEPOT! Fork and then submit PRs from a branch on your fork. The *only* exception to this rule is update to gh-pages for the website. Those (and those alone) may be pushed directly to the depot.
 
@@ -162,7 +164,7 @@ Then you want to look [here](http://stackoverflow.com/questions/7836313/how-to-s
 
 Right now we are using stock PouchDB. We just keep this section around if we have to remember how we used to build our own version.
 
-[Configuring PouchDB](ConfiguringPouchDB)
+[Configuring PouchDB](/ConfiguringPouchDB)
 
 ## How to debug PouchDB tests in Node.js and Intellij
 I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran into is that I use IntelliJ as my IDE and I needed a way to run PouchDB's mocha tests. Normally this is handled easily by just executing ./bin/test-node.sh which handles all the details. The good news is that what test-node.sh does is very straight forward and easy to set up as a test in IntelliJ. Except.... it turns out that in the tests directory there are tests both for node.js and tests for the browser. test-node.sh works around this by providing a test file path that ends with test.*.js where all files that match that pattern are guaranteed to be safe for node.js. The shell then expands the wild card into a set of files and then node/mocha gets called. The issue is https://youtrack.jetbrains.com/issue/WEB-10067 which doesn't support wild card expansing of files when specifying the test directory. To work around this here is what I do.

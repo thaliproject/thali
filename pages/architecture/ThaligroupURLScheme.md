@@ -34,7 +34,7 @@ All owner, group and path types MUST be registered with IANA following <code>[in
 
 # Owner
 
-Groups MUST be defined in the context of an owner. The owner production identifies who that owner can be. All identity-key productions defined in [Httpkey URL Scheme](HttpkeyURLScheme) are automatically registered as owner values.
+Groups MUST be defined in the context of an owner. The owner production identifies who that owner can be. All identity-key productions defined in [Httpkey URL Scheme](/HttpkeyURLScheme) are automatically registered as owner values.
 
 [OPEN ISSUE: By only using the identity-key we identify the owner by their public key. But that isn't actually resolvable. Do we want to also stick in the ability to put in an onion address or other owner authority?]
 
@@ -60,7 +60,7 @@ A transformer MUST reject transformation requests for thaligroup URIs whose path
 
 By default only simple string comparison as defined in section 6.2.1 of [RFC 3986](http://tools.ietf.org/html/rfc3986) MUST be used to compare two thaligroup URIs for equality.
 
-In terms of comparing owners on their own the rules specific in [Httpkey URL Scheme](HttpkeyURLScheme) MUST be used.
+In terms of comparing owners on their own the rules specific in [Httpkey URL Scheme](/HttpkeyURLScheme) MUST be used.
 
 To just compare the group parts of a thaligroup URI the comparison logic MUST first prove equality of owner as specified above and then MUST do a simple string comparison of just the group production. If both parts are equal then the identified groups are the same.
 
@@ -86,4 +86,4 @@ This thaligroup URI specifies that it refers to the group named goodfriends as d
 # Q&A
 
 ## Is this spec done?
-See [Httpkey URL Scheme](HttpkeyURLScheme), the same applies here.
+See [Httpkey URL Scheme](/HttpkeyURLScheme), the same applies here.
