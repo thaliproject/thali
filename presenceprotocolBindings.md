@@ -309,7 +309,7 @@ Therefore we will only use the MPCF announcement to identify ourselves as a Thal
 
 __Open Issue:__ This design explicitly assumes that it is fine to have multiple independent sessions between the same peers using MPCF.
 
-__Open Issue:__ This design also assumes that if `MCNearbyServiceAdvertiser` is turned off and then back on with a different `peerID`  this will not affect any preexisting sessions.
+__Note:__ We have runs tests that show that if `MCNearbyServiceAdvertiser` is turned off and then back on with a different `peerID`  this will not affect any preexisting sessions.
 
 ## MCNearbyServiceBrowser
 MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `initWithPeer:serviceType:` on  `MCNearbyServiceBrowser` the arguments MUST be:
@@ -357,7 +357,7 @@ When the discovering peer receives a callback on its `MCSessionDelegate`'s `sess
 
 Both the discovering and discovered peers MUST establish output streams with each other by calling `startStreamWithName:toPeer:error:` on their `MCSession` objects targeted at the other peer with the `streamName` set to "ThaliStream".
 
-When each of the peers  receives a callback on their `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` they MUST confirm that:
+When each of the peers receives a callback on their `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` they MUST confirm that:
 * The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. In the case of the discovering peer it means it invited more than one peer to the session.  In the case of the discovered peer it accepted invitations to the same session from more than one peer.
 * The `streamName` MUST be "ThaliStream" or the session MUST be terminated.
 
