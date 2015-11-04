@@ -16,11 +16,12 @@ Welcome to Thali! So you want to learn more? Great!
 2. Go [here](https://github.com/orgs/thaliproject/people) and add them as an owner.
 3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/index.md) and add them to the "Who?" section.
 4. Send out a mail to the public mailing list about them joining
-4. If they are a Microsoft employee then:
-5. Add them to the internal OWA Thali group
-6. Add them to our weekly standup and other random meetings
-7. Send out a mail to the internal mailing list about them joining
-8. Harass the new member to go get connected via [https://opensourcehub.microsoft.com/](https://opensourcehub.microsoft.com/)
+5. If they are a Microsoft employee then:
+ 1. Add them to the internal OWA Thali group
+ 2. Add them to our weekly standup and other random meetings
+ 3. Send out a mail to the internal mailing list about them joining
+ 4. Harass the new member to go get connected via [https://opensourcehub.microsoft.com/](https://opensourcehub.microsoft.com/)
+ 5. Add them to our various private slack channels
 
 # Read!
 The first thing to do is read. Please start [here](/ThaliAndCouch). You can probably skip most of the links except for [this one](/NodeOnDevices) and [this one](/ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
