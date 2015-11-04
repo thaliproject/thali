@@ -40,7 +40,7 @@ Our software is based on:
 
 # Who?
 
-Thali is being actively developed by David Douglas, Doug Seven, Jukka Silvennoinen, Matthew Podwysocki, Sreejumon Purayil, Srikanth Challa, Toby Bradshaw and Yaron Y. Goland from Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing. You can also see our past contributors on our [Alumni Page](alumni).
+Thali is being actively developed by David Douglas, Doug Seven, Jukka Silvennoinen, Matthew Podwysocki, Toby Bradshaw, Tomi Paananen, Ville Rantala and Yaron Y. Goland from Microsoft. We love all sorts of [contributions!](WaysToContribute) The previous page also contains lots of great ways to track what we are doing. You can also see our past contributors on our [Alumni Page](alumni).
 
 <p>
 <a href="https://twitter.com/thaliproject" class="twitter-follow-button" data-show-count="false" data-dnt="true">Follow @thaliproject</a>
