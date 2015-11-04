@@ -20,7 +20,7 @@ Welcome to Thali! So you want to learn more? Great!
 5. Add them to the internal OWA Thali group
 6. Add them to our weekly standup and other random meetings
 7. Send out a mail to the internal mailing list about them joining
-8. Harass the new member to go get connected via [https://opensourcehub2.microsoft.com/](https://opensourcehub2.microsoft.com/)
+8. Harass the new member to go get connected via [https://opensourcehub.microsoft.com/](https://opensourcehub.microsoft.com/)
 
 # Read!
 The first thing to do is read. Please start [here](/ThaliAndCouch). You can probably skip most of the links except for [this one](/NodeOnDevices) and [this one](/ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
@@ -51,15 +51,7 @@ That's it. The article will automatically be picked up by our blog feed.
 Just a note that we forward our blog articles to Twitter using [TwitterFeed](http://twitterfeed.com/).
 
 # Process!!!!
-We have 1 week sprints.
-
-Monday - Sprint starts!
-
-Wednesday/Thursday - Each dev is responsible for putting their proposed work items for the next sprint in the ready column of https://waffle.io/thaliproject/thali. Items in the ready column should be one week or less of work. And yes, this means that if you have some huge item assigned to you in the backlog we expect you to break off one week or less pieces that go to the ready column.
-
- Items should ideally result in working code. For example, let's say we are doing discovery. The first week we might just announce our location. The next week we might put in the crypto. The idea is to break things into steps that each result in some code that can run. And yes, we are willing to have things take longer. Experience shows that by ending each sprint with running code, even if this means creating additional mini-milestones, in the long run we are more likely to have good code.
-
-Friday - On Friday we walk through all the items "in progress" and see how we did. Success means doing a demo showing the working functionality. The demo can just be test code. It doesn't need to be pretty. We then close all successfully completed items and review the items in proposed work. All the approved items are then moved to 'in progress' to start the new sprint.
+We have daily standups where we review everyone's work in [waffle](https://github.com/thaliproject/thali/blob/gh-pages/index.md). Whatever you are working on now should be in "In Progress" and whatever is on deck for the major feature(s) you are working on should be in "Ready". "Backlog" is just that, things we should do but haven't committed to doing quite yet. "IceBox" are just ideas that we may or may not ever do.
 
 # Our backlog/stories
 Strictly speaking the backlog and current work is all tracked using GitHub issues that are aggregated with Waffle as specified above. But we do have a set of higher level stories we maintain to help us see the path ahead. Those stories are defined [here](/Stories).
