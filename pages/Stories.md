@@ -196,7 +196,7 @@ __Postcard App__ -
 * We need to add UX for specifying a group rather than individual users on a postcard
 * We need to add UX for changing the membership of groups
 
-# 0.0.1 - Identity Exchange
+# ~~0.0.1 - Identity Exchange~~ - COMPLETE
 
 Now we introduce the idea that identities have to be explicitly exchanged.
 
