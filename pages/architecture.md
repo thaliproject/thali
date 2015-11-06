@@ -3,7 +3,9 @@ layout: page
 show_meta: false
 title: "Architecture"
 header:
-   image_fullwidth: "header.png"
+  image: 'banner.png'
+  caption: 'An experimental platform for building the peer web from Microsoft'
+  background-color: "#CA0046"
 permalink: "/Architecture/"
 ---
 <ul class="side-nav">

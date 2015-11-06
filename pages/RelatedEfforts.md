@@ -2,6 +2,8 @@
 title: Related Efforts
 layout: page-fullwidth
 permalink: "/RelatedEfforts/"
+header:
+   image_fullwidth: "header.png"
 ---
 
 # Mapping the redecentralization movement

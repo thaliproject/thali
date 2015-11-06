@@ -2,6 +2,8 @@
 title: Technology Investigations
 layout: page-fullwidth
 permalink: "/TechnologyInvestigations/"
+header:
+   image_fullwidth: "header.png"
 ---
 ##Thali, Node.js & PouchDB
 

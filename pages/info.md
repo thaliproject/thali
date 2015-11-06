@@ -2,6 +2,8 @@
 title: "What is Thali?"
 layout: page-fullwidth
 permalink: "/Info/"
+header:
+   image_fullwidth: "header.png"
 ---
 **Thali** is an open-source software platform for creating apps that exploit the power of personal devices and put people in control of their data.
 

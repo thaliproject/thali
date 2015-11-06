@@ -2,6 +2,8 @@
 title: Thali Alumni
 layout: page-fullwidth
 permalink: "/Alumni/"
+header:
+   image_fullwidth: "header.png"
 ---
 The main group at Microsoft that works on Thali uses an agile model where we can pull in resources as we need them. This means we don't have a standing team for Thali. Therefore the purpose of this page is to honor the folks who have contributed to Thali.
 
@@ -23,6 +25,6 @@ For just over a month we had the awesome help of [Wenhui Lu](https://twitter.com
 
 [Brian Lambert](http://www.softwarenerd.org/) - Brian created the foundation of our iOS code including figuring out how the heck to make BLE centrals work in the background, how to get an iPhone to be both a central and a peripheral at the same time and how to integrate the multipeer connectivity framework. He also was the original designer of the native API we use to communicate from JXCore/Node.js to native code and debugged through a lot of tricky issues in the early days of JXCore's native plugin api on iOS. He still helps out from time to time but now has moved on to lead his own project.
 
-[Sreejumon Purayil](http://sreesharp.com) - Sreejumon helped to create the initial version of the Postcard app that demonstrates what Thali can do and worked on the install and logging infrastructure. Install in particular was a nightmare because we had to get Android, iOS, Cordova and Node all playing well together. 
+[Sreejumon Purayil](http://sreesharp.com) - Sreejumon helped to create the initial version of the Postcard app that demonstrates what Thali can do and worked on the install and logging infrastructure. Install in particular was a nightmare because we had to get Android, iOS, Cordova and Node all playing well together.
 
 [Srikanth Challa](https://www.linkedin.com/pub/srikanth-challa/10/b47/905) - Srikanth did the work to put in support for HKDF and PKCS12 libraries directly into JXCore thus enabling new capabilities in JXCore's crypto library. He also worked on integrating these capabilities into Thali and updating the Postcard app to be able to use them. He also helped with some early work on implement a prototype of our notification system's crypto using the extended APIs.

@@ -2,6 +2,8 @@
 title: Prior Art
 layout: page-fullwidth
 permalink: "/PriorArt/"
+header:
+   image_fullwidth: "header.png"
 ---
 
 ## Groove

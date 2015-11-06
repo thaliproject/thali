@@ -7,6 +7,7 @@
 layout: frontpage
 header:
   image: 'banner.png'
+  caption: 'An experimental platform for building the peer web from Microsoft'
   background-color: "#CA0046"
 widget1:
   title: "No Internet? No problem."
