@@ -2,6 +2,8 @@
 title: Building Thali on Top of I2P
 layout: page-fullwidth
 permalink: "/BuildingThaliOnTopOfI2P/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

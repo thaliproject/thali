@@ -2,6 +2,8 @@
 title: Picking a Backlog Manager for Thali
 layout: page-fullwidth
 permalink: "/PickingABacklogManagerForThali/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

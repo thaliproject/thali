@@ -2,6 +2,8 @@
 title: STUN / TURN / ICE Investigation
 layout: page-fullwidth
 permalink: "/StunTurnICEInvestigation/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

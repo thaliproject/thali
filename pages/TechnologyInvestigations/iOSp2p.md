@@ -2,6 +2,8 @@
 title: Exploring local p2p on iOS
 layout: page-fullwidth
 permalink: "/iOSp2p/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

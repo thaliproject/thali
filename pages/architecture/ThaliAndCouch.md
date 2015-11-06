@@ -2,6 +2,8 @@
 title: Thali and Couch
 layout: page-fullwidth
 permalink: "/ThaliAndCouch/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - architecture
 ---

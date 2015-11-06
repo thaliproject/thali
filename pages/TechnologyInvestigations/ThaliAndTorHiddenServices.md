@@ -2,6 +2,8 @@
 title: Thali and Tor Hidden Services
 layout: page-fullwidth
 permalink: "/ThaliAndTorHiddenServices/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

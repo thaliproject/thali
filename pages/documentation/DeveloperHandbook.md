@@ -5,6 +5,8 @@ sidebar: right
 permalink: "/DeveloperHandbook/"
 categories:
     - documentation
+header:
+   image_fullwidth: "header.png"
 ---
 
 # Introduction

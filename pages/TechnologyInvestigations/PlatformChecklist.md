@@ -2,6 +2,8 @@
 title: Platform Checklist
 layout: page-fullwidth
 permalink: "/PlatformChecklist/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

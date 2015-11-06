@@ -2,6 +2,8 @@
 title: Node on Devices
 layout: page-fullwidth
 permalink: "/NodeOnDevices/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - architecture
     - technologyinvestigations

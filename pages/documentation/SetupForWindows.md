@@ -4,6 +4,8 @@ layout: page-fullwidth
 permalink: "/SetupForWindows/"
 categories:
     - documentation
+header:
+   image_fullwidth: "header.png"
 ---
 
 

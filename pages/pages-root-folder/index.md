@@ -7,7 +7,7 @@
 layout: frontpage
 header:
   image: 'banner.png'
-  caption: 'An experimental platform for building the peer web from Microsoft'
+  caption: 'An experimental platform for building the peer web sponsored by Microsoft'
   background-color: "#CA0046"
 widget1:
   title: "No Internet? No problem."
@@ -19,9 +19,9 @@ widget2:
   image: 'widget-sync.png'
   text: 'Thali takes care of offline/online syncing by replicating JSON data and binary attachments.'
 widget3:
-  title: "Write once for web!"
+  title: "Your Phone is a Web Server!"
   image: 'widget-web.png'
-  text: 'Develop once using any web technology you like and get your app built for iOS and Android.'
+  text: "Write your web interface using Cordova and run your Node.js server code on iOS and Android."
 permalink: /index.html
 ---
 

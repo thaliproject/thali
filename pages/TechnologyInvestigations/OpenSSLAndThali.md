@@ -2,6 +2,8 @@
 title: OpenSSL and Thali
 layout: page-fullwidth
 permalink: "/OpenSSLAndThali/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

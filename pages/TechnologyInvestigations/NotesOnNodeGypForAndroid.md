@@ -2,6 +2,8 @@
 title: Notes on Node-Gyp for Android
 layout: page-fullwidth
 permalink: "/NotesOnNodeGypForAndroid/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

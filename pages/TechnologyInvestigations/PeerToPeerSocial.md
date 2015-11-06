@@ -2,6 +2,8 @@
 title: PeerToPeerSocial
 layout: page-fullwidth
 permalink: "/PeerToPeerSocial/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

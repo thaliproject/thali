@@ -2,6 +2,8 @@
 title: Experimenting with FireChat on Android
 layout: page-fullwidth
 permalink: "/ExperimentWithFireChat/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

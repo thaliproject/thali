@@ -2,6 +2,8 @@
 title: Httpkey URL Scheme
 layout: page-fullwidth
 permalink: "/HttpkeyURLScheme/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - architecture
 ---
@@ -10,7 +12,7 @@ categories:
 
 Thali is a peer to peer infrastructure that uses mutual SSL auth with self signed keys to allow two endpoints to communicate with each other.
 
-In Thali (taken from systems like [http://en.wikipedia.org/wiki/Simple_public-key_infrastructure SPKI](http://en.wikipedia.org/wiki/Simple_public-key_infrastructure SPKI)) an identity is a public key. So to securely connect to an endpoint that is believed to be owned by a particular identity that endpoint has to prove it is related to the public key. The httpkey URL format allows one to specify a HTTP endpoint along with the public key that is believed to own that endpoint. When connecting to the endpoint TLS is used and the endpoint has to then authenticate itself via TLS server authentication using either a cert that contains the desired key or the server must present a cert chain that links to the desired key.
+In Thali (taken from systems like [SPKI](http://en.wikipedia.org/wiki/Simple_public-key_infrastructure SPKI)) an identity is a public key. So to securely connect to an endpoint that is believed to be owned by a particular identity that endpoint has to prove it is related to the public key. The httpkey URL format allows one to specify a HTTP endpoint along with the public key that is believed to own that endpoint. When connecting to the endpoint TLS is used and the endpoint has to then authenticate itself via TLS server authentication using either a cert that contains the desired key or the server must present a cert chain that links to the desired key.
 
 Outside of ad-hoc networking scenarios we expect Thali endpoints to be exposed as Tor hidden services by default. We therefore mandate that any URL processor that supports httpkey URLs must also support .onion addresses and connecting to Tor hidden services.
 

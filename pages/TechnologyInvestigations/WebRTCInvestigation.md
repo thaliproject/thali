@@ -2,6 +2,8 @@
 title: Web RTC Investigation
 layout: page-fullwidth
 permalink: "/WebRTCInvestigation/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

@@ -2,6 +2,8 @@
 title: Exploring Android to Android P2P
 layout: page-fullwidth
 permalink: "/AndroidP2P/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

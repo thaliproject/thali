@@ -2,6 +2,8 @@
 title: Thaligroup URL Scheme
 layout: page-fullwidth
 permalink: "/ThaligroupURLScheme/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - architecture
 ---

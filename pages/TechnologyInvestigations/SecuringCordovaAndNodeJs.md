@@ -2,6 +2,8 @@
 title: How to secure communication between Cordova and a local Node.js Server?
 layout: page-fullwidth
 permalink: "/SecuringCordovaAndNodeJs/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

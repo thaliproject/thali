@@ -2,6 +2,8 @@
 title: TDH Replication Manager
 layout: page-fullwidth
 permalink: "/TDHReplicationManager/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

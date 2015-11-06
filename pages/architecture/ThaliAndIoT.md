@@ -2,6 +2,8 @@
 title: Thali and the Internet of Things
 layout: page-fullwidth
 permalink: "/ThaliAndIoT/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - architecture
 ---

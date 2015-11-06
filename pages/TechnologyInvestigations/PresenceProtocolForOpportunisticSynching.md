@@ -2,6 +2,8 @@
 title: Thali local P2P presence protocol for opportunistic synching
 layout: page-fullwidth
 permalink: "/PresenceProtocolForOpportunisticSynching/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

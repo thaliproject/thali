@@ -2,6 +2,8 @@
 title: Understanding Thali's Use of Maven
 layout: page-fullwidth
 permalink: "/UnderstandingThalisUseOfMaven/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

@@ -32,6 +32,21 @@ format: blog-index
 </div><!-- /.row -->
 
 
+<!-- Postcard app -->
+<section class="strip feature">
+  <div class="row">
+    <div class="columns medium-6">
+      <img src="/images/postcard-android.jpg" alt="Postcard app syncing on Android" />
+    </div>
+    <div class="columns medium-6">
+      <div class="app-icon"><img src="/images/postcard-icon.png" alt="Postcard" class="app-icon" /></div>
+      <h2 class="pt20">Postcard app</h2>
+      <p>To demonstrate the <a href="https://github.com/thaliproject/Thali_CordovaPlugin">Thali Cordova plugin</a> we created the <a href="https://github.com/thaliproject/postcardapp">Postcard app</a> which sends messages or 'postcards' across mobile devices equipped with Smart Bluetooth. Postcards can be added, updated and deleted and any changes will be automatically synchronized across devices. Future plans for Postcard app are available as part of <a href="/Stories">Thali developer stories</a>.</p>
+    </div>
+  </div>
+</section>
+
+
 {% comment %}
 *
 * First check, if there are any posts at all
@@ -87,56 +102,6 @@ format: blog-index
 {% endunless %}
 
 
-
-<!-- Postcard app -->
-<section class="strip feature">
-  <div class="row">
-    <div class="columns medium-6">
-      <img src="/images/postcard-android.jpg" alt="Postcard app syncing on Android" />
-    </div>
-    <div class="columns medium-6">
-      <div class="app-icon"><img src="/images/postcard-icon.png" alt="Postcard" class="app-icon" /></div>
-      <h2 class="pt20">Postcard app</h2>
-      <p>To demonstrate the <a href="https://github.com/thaliproject/Thali_CordovaPlugin">Thali Cordova plugin</a> we created the <a href="https://github.com/thaliproject/postcardapp">Postcard app</a> which sends messages or 'postcards' across mobile devices equipped with Smart Bluetooth. Postcards can be added, updated and deleted and any changes will be automatically synchronized across devices. Future plans for Postcard app are available as part of <a href="/Stories">Thali developer stories</a>.</p>
-    </div>
-  </div>
-</section>
-
-
-
-<!-- Thali content links -->
-<div class="row">
-  <div class="small-12 columns">
-
-    <section class="category">
-      <h2>Architecture</h2>
-      <ul class="side-nav">
-          {% for page in site.pages %}
-            {% if page.categories contains 'architecture' %}
-              <li><a href="{{ site.url }}{{ page.url }}">{{ page.title }}</a></li>
-            {% endif %}
-          {% endfor %}
-      </ul>
-    </section>
-
-    <section class="category">
-      <h2>Developer Handbook</h2>
-      <ul class="side-nav">
-          {% for page in site.pages %}
-            {% if page.categories contains 'documentation' %}
-              <li><a href="{{ site.url }}{{ page.url }}">{{ page.title }}</a></li>
-            {% endif %}
-          {% endfor %}
-      </ul>
-    </section>
-
-    <section class="category">
-      <h2>Technology Investigations</h2>
-      <p>A <a href="/TechnologyInvestigations">series on technologies</a> that are used, or might have been used, to create Thali.</p>
-    </section>
-
-  </div>
-</div>
 
 
 

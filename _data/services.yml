@@ -1,5 +1,13 @@
 - menu_name: "Thali"
 
+- name: "Architecture"
+  url: "/architecture"
+  title: "Architecture"
+
+- name: "Contribution Guide"
+  url: "/WaysToContribute"
+  title: "Contribution Guide"
+
 - name: "Related Efforts"
   url: "/RelatedEfforts/"
   title: "Related Efforts"

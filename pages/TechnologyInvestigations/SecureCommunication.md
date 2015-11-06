@@ -2,6 +2,8 @@
 title: Secure Communication
 layout: page-fullwidth
 permalink: "/SecureCommunication/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

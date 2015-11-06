@@ -2,6 +2,8 @@
 title: CouchDB Clients to Thali-enable
 layout: page-fullwidth
 permalink: "/CouchDBClientsToThaliEnable/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

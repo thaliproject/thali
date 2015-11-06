@@ -2,6 +2,8 @@
 title: HTML 5 Raw Sockets Investigation
 layout: page-fullwidth
 permalink: "/HTML5RawSocketsInvestigation/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---

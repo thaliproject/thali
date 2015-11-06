@@ -2,6 +2,8 @@
 title: Thali and Tor Onion Proxy
 layout: page-fullwidth
 permalink: "/ThaliAndTorOnionProxy/"
+header:
+   image_fullwidth: "header.png"
 categories:
     - technologyinvestigations
 ---
