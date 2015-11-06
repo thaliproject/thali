@@ -1,0 +1,156 @@
+/* TOC – Color Variables
+
+- Basics
+- Corporate Identity Colorpalette
+- Foundation Color Variables
+- Grey Scale
+- Topbar-Navigation
+- Footer
+- Code
+
+*/
+
+
+
+/* Basics
+------------------------------------------------------------------- */
+
+$text-color:       	#111;
+$body-font-color: 	$text-color;
+$body-bg: 			#fdfdfd;
+
+
+
+/* Corporate Identity Colorpalette
+   https://color.adobe.com/de/Flat-Design-Colors-v2-color-theme-4341903/
+------------------------------------------------------------------- */
+
+$ci-1: #10A3CA;
+$ci-2: #368196;
+$ci-3: #ECFBF6;
+$ci-4: #FE5648;
+$ci-5: #CA0046;
+
+
+
+/* Foundation Color Variables
+------------------------------------------------------------------- */
+
+$primary-color: $ci-5;
+$secondary-color: $ci-4;
+$warning-color: $ci-4;
+$alert-color: $ci-5;
+$success-color: $ci-1;
+$info-color: $ci-2;
+
+
+
+/* Grey Scale
+------------------------------------------------------------------- */
+
+$grey-1: #E4E4E4;
+$grey-2: #D7D7D7;
+$grey-3: #CBCBCB;
+$grey-4: #BEBEBE;
+$grey-5: #A4A4A4;
+$grey-6: #979797;
+$grey-7: #8B8B8B;
+$grey-8: #7E7E7E;
+$grey-9: #646464;
+$grey-10: #575757;
+$grey-11: #4B4B4B;
+$grey-12: #3E3E3E;
+$grey-13: #313131;
+$grey-14: #242424;
+$grey-15: #171717;
+$grey-16: #0B0B0B;
+
+
+
+/* Topbar-Navigation
+------------------------------------------------------------------- */
+
+$menu_foreground: $grey-7;
+$menu_background: $body-bg;
+$menu_selected: $primary-color;
+
+$topbar-bg-color: $menu_foreground; // Navigation menu text
+$topbar-bg: $menu_background; // Top bar bg
+
+$topbar-dropdown-toggle-color: $menu_foreground; // Drop down arrow tint
+
+$topbar-link-color: $menu_foreground; // Menu Text
+$topbar-link-color-hover: $menu_selected; // Menu Text rollover
+$topbar-link-color-active: $menu_selected;
+$topbar-link-color-active-hover: $menu_selected;
+
+$topbar-dropdown-label-color: $menu_foreground; // Text
+$topbar-dropdown-link-bg-hover: $grey-1; // Menu Background rollover
+
+$topbar-link-bg-active: $menu_background; // Top bar rollover bg / Active Navigation Link
+$topbar-link-bg-hover: $menu_background;
+$topbar-link-bg-active-hover: $menu_background;
+
+
+$topbar-dropdown-bg: $menu_background; // Background Mobile Navigation
+$topbar-dropdown-link-color: $menu_foreground; // Menu Text
+$topbar-dropdown-link-bg: $menu_background; // Dropdown menu background
+
+$topbar-menu-link-color: $menu_foreground; // Navigation text
+$topbar-menu-icon-color: $menu_foreground; // Navigation burger
+$topbar-menu-link-color-toggled: $menu_selected; // Navigation menu selected
+$topbar-menu-icon-color-toggled: $menu_selected; // Navigation burger
+
+
+
+/* Footer
+------------------------------------------------------------------- */
+
+$footer-bg: $grey-1;
+$footer-h-color: $grey-7; // footer headline color
+$footer-color: $grey-7; // footer text color
+$footer-link-color: $primary-color;
+
+
+$subfooter-bg: $grey-7;
+$subfooter-color: $grey-1;
+
+$subfooter-link-color: $grey-7; // icon
+$subfooter-link-bg-color: $grey-1; // circle bg
+$subfooter-link-hover-color: $primary-color; // icon hover
+$subfooter-link-bg-hover-color: $ci-3; // circle bg hover
+
+
+/* Code
+------------------------------------------------------------------- */
+
+$code-background-color: scale-color($secondary-color, $lightness: 70%);
+
+$highlight-background: #ffffff;
+$highlight-comment: #999988;
+$highlight-error: #a61717;
+$highlight-comment-special: #999999;
+$highlight-deleted: #000000;
+$highlight-error-2: #aa0000;
+$highlight-literal-string: #d14;
+$highlight-literal-number: #009999;
+$highlight-name-attribut: #008080;
+$highlight-error-background: #e3d2d2;
+$highlight-generic-deleted: #ffdddd;
+$highlight-generic-deleted-specific: #ffaaaa;
+$highlight-generic-inserted: #ddffdd;
+$highlight-generic-inserted-specific: #aaffaa;
+$highlight-generic-output: #888888;
+$highlight-generic-prompt: #555555;
+$highlight-subheading: #aaaaaa;
+$highlight-keyword-type: #445588;
+$highlight-name-builtin: #0086B3;
+$highlight-name-class: #445588;
+$highlight-name-entity: #800080;
+$highlight-name-exception: #990000;
+$highlight-name-function: #990000;
+$highlight-name-namespace: #555555;
+$highlight-name-tag: #000080;
+$highlight-text-whitespace: #bbbbbb;
+$highlight-literal-string-regex: #009926;
+$highlight-literal-string-symbol: #990073;

@@ -1,47 +1,24 @@
-<!DOCTYPE html>
-<html>
- 
+---
+layout: compress
+---
+<!doctype html>
+<html class="no-js" lang="{% if site.language == nil %}en{% else %}{{ site.language }}{% endif %}">
 <head>
-
-<title>
-  {% if page.title != null %}
-    {{ page.title }}
-    {% else %}
-    <title>Thali</title>
-    {% endif %}
-</title>
- <link rel="stylesheet" type="text/css" href="/thali/stylesheets/stylesheet.css"> 
- <link rel="stylesheet" type="text/css" href="/stylesheets/stylesheet.css"> 
- <link rel="alternate" type="application/atom+xml" title="{{ site.root_desc }}" href="http://www.thaliproject.org/atom">
+	{% include _head.html %}
 </head>
+<body id="top-of-page" class="{{ page.format }}">
+	{% unless page.skip_boilerplate %}
+	{% include _navigation.html %}
+	{% endunless %}
 
-<body>
-  <a href="https://github.com/thaliproject"><img style="position: absolute; top: 0; right: 0; border: 0;" src="https://s3.amazonaws.com/github/ribbons/forkme_right_gray_6d6d6d.png" alt="Fork me on GitHub"></a>
-  {% if page.title != null %}
-    <h1 class="PageTitle">{{ page.title }}</h1>
-  {% endif %}
-  
- <table>
-  
- <tr>
- <td valign="top" style="width:15%;background-color:lightgray">
+	{% include _masthead.html %}
 
-  {% include TableOfContents.html %}
-</tdv>
+	{{ content }}
 
-<td>
- &nbsp;&nbsp;&nbsp;&nbsp;
-</td>
+	{% unless page.skip_boilerplate %}
+	{% include _footer.html %}
+	{% endunless %}
 
-<td valign="top">
-  
-<div id="main">
-  {{ content }}
-</div>
-
-</td>
-</tr>
-</table>
-
+	{% include _footer_scripts.html %}
 </body>
 </html>
