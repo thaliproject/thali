@@ -1,6 +1,11 @@
 ---
-title: Thali local P2P presence protocol for opportunistic synching
-layout: default
+title: Bindings for Non-TCP transports to TCP for Thali
+layout: page-fullwidth
+permalink: "/PresenceProtocolBindings/"
+header:
+   image_fullwidth: "header.png"
+categories:
+    - technologyinvestigations
 ---
 
 # Bindings for Discovery and Connectivity
