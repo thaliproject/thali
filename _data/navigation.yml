@@ -1,0 +1,35 @@
+- title: Thali
+  url: "/"
+  side: left
+
+- title: Documentation
+  url: "/Documentation/"
+  side: left
+  dropdown:
+  - title: "Setup for Windows"
+    url: "/SetupForWindows/"
+  - title: "Thali Guide To Git"
+    url: "/ThaliGuideToGit/"
+  - title: "Developer Handbook"
+    url: "/DeveloperHandbook/"
+  - title: "Ways To Contribute"
+    url: "/WaysToContribute/"
+
+- title: Architecture
+  url: "/Architecture/"
+  side: left
+  dropdown:
+  - title: "Architecture overview"
+    url: "/ThaliAndCouch/"
+  - title: "Our Current Focus - IoT Scenarios"
+    url: "/NodeOnDevices"
+  - title: "Architectural overview on our IoT work"
+    url: "/ThaliAndIoT"
+  - title: "Httpkey URL Scheme"
+    url: "/HttpkeyURLScheme"
+  - title: "Thaligroup URL Scheme"
+    url: "/ThaligroupURLScheme"
+
+#- title: "Alumni"
+#  url: "/Alumni/"
+#  side: left

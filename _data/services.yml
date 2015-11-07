@@ -1,0 +1,37 @@
+- menu_name: "Thali"
+
+- name: "Architecture"
+  url: "/architecture"
+  title: "Architecture"
+
+- name: "Contribution Guide"
+  url: "/WaysToContribute"
+  title: "Contribution Guide"
+
+- name: "Related Efforts"
+  url: "/RelatedEfforts/"
+  title: "Related Efforts"
+
+- name: "Prior Art"
+  url: "/PriorArt/"
+  title: "Prior Art"
+
+- name: "Technology Investigations"
+  url: "/TechnologyInvestigations/"
+  title: "A series on technologies that are used, or might have been used, to create Thali."
+
+- name: "Stories"
+  url: "/Stories/"
+  title: "Thali Development Stories"
+
+#- name: "Fork me on GitHub"
+#  url: "https://github.com/thaliproject/"
+#  title: "Fork me on GitHub"
+
+#- name: "Atom"
+#  url: "/atom.xml"
+#  title: "Subscribe to Atom Feed"
+
+#- name: "sitemap.xml"
+#  url: "/sitemap.xml"
+#  title: "Sitemap for Google Webmaster Tools"

@@ -1,0 +1,13 @@
+- menu_name: "Links"
+
+- name: "JXCore"
+  url: "http://jxcore.io/"
+  title: "Node.js for iOS and Android"
+
+- name: "Cordova"
+  url: "https://cordova.apache.org/"
+  title: "Mobile web app development"
+
+- name: "PouchDB"
+  url: "http://pouchdb.com/"
+  title: "JS database with offline/online sync"

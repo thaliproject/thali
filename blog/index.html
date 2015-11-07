@@ -1,0 +1,25 @@
+---
+layout: default
+title: "Blog"
+breadcrumb: false
+header: no
+---
+<div id="blog-index" class="row no-header">
+	<div class="small-12 columns t30">
+		<h1>Thali blog</h1>
+
+		<ul class="side-nav">
+			{% for post in site.posts limit:1000 %}
+        <li>
+          <a href="{{ site.url }}{{ post.url }}" title="Read {{ post.title escape_once }}">
+            <span class="iconfont"></span> {% if post.subheadline %}{{ post.subheadline }} › {% endif %}<strong>{{ post.title }}</strong>
+            {% if post.date %}
+    				<time class="rhs" datetime="{{ post.date | date: "%Y-%m-%d" }}" itemprop="datePublished"><span class="dim">{{ post.date | date: "%B %d, %Y" }}</span></time>
+    				{% endif %}
+          </a>
+        </li>
+			{% endfor %}
+		</ul>
+
+	</div><!-- /.small-12.columns -->
+</div><!-- /.row -->

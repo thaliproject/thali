@@ -1,6 +1,6 @@
 ---
 layout: post
-title: UX with Wifi Direct: The connection acceptance dialog
+title: UX with Wifi Direct - The connection acceptance dialog
 ---
 
 When connecting devices with Wifi direct API, there are acceptance dialogs shown to ask users permission for establishing connections.

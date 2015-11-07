@@ -1,0 +1,524 @@
+/* TOC
+
+- Adjustments: Video Layout
+- Navigation
+- Search
+- Masthead
+- Masthead › small-only
+- Masthead › medium-only
+- Masthead › large-only
+- Masthead › xlarge-up
+- Breadcrumb
+- Meta
+- Jump to top
+- Footer
+- Subfooter
+- CSS-Classes to add margin at top or bottom
+
+*/
+
+
+
+/* Adjustments: Video Layout
+------------------------------------------------------------------- */
+
+body.video,
+body.video #masthead-no-image-header { background: #000; }
+body.video #masthead-no-image-header { margin-bottom: 60px; }
+body.video h1,
+body.video h2,
+body.video h3,
+body.video h4,
+body.video h5,
+body.video h6,
+body.video p,
+body.video a,
+body.video blockquote:before,
+body.video blockquote:after,
+body.video cite a, { color: #fff; }
+body.video cite a:visited, { color: #fff; }
+body.video cite { color: #fff; }
+
+
+
+/* Navigation
+------------------------------------------------------------------- */
+
+#navigation {
+    -webkit-box-shadow: 0 2px 2px 0 rgba(0,0,0,.2);
+    box-shadow: 0 2px 3px 0 rgba(0,0,0,.2);
+}
+
+
+
+/* Search
+------------------------------------------------------------------- */
+
+.no-js form#search {
+  display: none;
+}
+
+
+
+/* Masthead
+------------------------------------------------------------------- */
+
+#masthead {
+    background-color: $primary-color;
+}
+#masthead-no-image-header {
+    background-color: $primary-color;
+}
+#masthead-with-text {
+    text-align: center;
+    font-size: rem-calc(54);
+    font-family: $header-font-family;
+    color: #fff;
+    text-transform: uppercase;
+    text-shadow: 0 2px 3px rgba(0,0,0,.4);
+}
+#masthead-no-image-header {
+    height: 175px;
+}
+#masthead-no-image-header #logo img {
+    margin-top: 60px;
+}
+
+/* Masthead › small-only
+------------------------------------------------------------------- */
+
+@media #{$small-only} {
+    #logo img {
+        display: none;
+    }
+    #masthead {
+        height: 200px;
+    }
+    #masthead-with-pattern {
+        padding: 15px 0;
+    }
+    #masthead-with-background-color {
+        padding: 15px 0;
+    }
+    #masthead-with-text {
+        height: 220px;
+        padding: 30px 0;
+        font-size: rem-calc(36);
+    }
+    #masthead-no-image-header {
+        display: none;
+    }
+}
+
+
+/* Masthead › medium-only
+------------------------------------------------------------------- */
+
+@media #{$medium-only} {
+    #logo img {
+        margin-top: 60px;
+    }
+    #masthead {
+        height: 280px;
+    }
+    #masthead-with-pattern {
+        padding: 20px 0;
+    }
+    #masthead-with-background-color {
+        padding: 20px 0;
+    }
+    #masthead-with-text {
+        padding: 60px 0;
+        height: 300px;
+    }
+}
+
+
+/* Masthead › large-only
+------------------------------------------------------------------- */
+
+@media #{$large-only} {
+    #logo img {
+        margin-top: 80px;
+    }
+    #masthead {
+        height: 310px;
+    }
+    #masthead-with-pattern {
+        padding: 30px 0;
+    }
+    #masthead-with-background-color {
+        padding: 30px 0;
+    }
+    #masthead-with-text {
+        height: 330px;
+        padding: 60px 0;
+    }
+}
+
+
+/* Masthead › xlarge-up
+------------------------------------------------------------------- */
+
+@media #{$xlarge-up} {
+    #logo img {
+        margin-top: 110px;
+    }
+    #masthead {
+        height: 380px;
+    }
+    #masthead-with-pattern {
+        padding: 45px 0;
+    }
+    #masthead-with-background-color {
+        padding: 45px 0;
+    }
+    #masthead-with-text {
+        padding: 95px 0;
+        height: 400px;
+    }
+}
+
+
+#title-image-small {
+    height: 240px;
+}
+#title-image-large {
+    height: 520px;
+}
+#title-image-index-small {
+    height: 120px;
+}
+#title-image-index-large {
+    height: 260px;
+}
+
+
+
+/* Breadcrumb
+------------------------------------------------------------------- */
+
+#breadcrumb {
+    background: scale-color($grey-1, $lightness: 55%);
+    border-top: 1px solid scale-color($grey-1, $lightness: 45%);
+    border-bottom: 1px solid scale-color($grey-1, $lightness: 45%);
+}
+.breadcrumbs>.current {
+  font-weight: bold;
+}
+
+
+/* Meta
+------------------------------------------------------------------- */
+
+#page-meta, #page-meta a {
+    color: $grey-5;
+}
+
+#page-meta .button {
+    background: $grey-5;
+    border: 0;
+}
+#page-meta .button {
+    color: #fff;
+}
+#page-meta .button:hover {
+    background: $primary-color;
+}
+.meta-info p {
+  font-size: rem-calc(13);
+  color: scale-color($grey-1, $lightness: 40%);
+}
+  .meta-info a {
+    text-decoration: underline;
+    color: scale-color($grey-1, $lightness: 40%);
+  }
+  .meta-info a:hover {
+    text-decoration: none;
+    color: $secondary-color;
+  }
+
+
+
+/* Jump to top
+------------------------------------------------------------------- */
+
+#up-to-top {
+    padding: 32px 0 10px 0; // 160px 0 10px 0;
+}
+#up-to-top a {
+    font-size: 24px;
+    padding: 5px;
+    border-radius: 3px;
+}
+#up-to-top a:hover {
+    background: $grey-2;
+}
+
+
+
+/* Footer
+------------------------------------------------------------------- */
+
+#footer-content p,
+#footer-content li {
+    font-size: rem-calc(13);
+    font-weight: 300;
+}
+
+#footer {
+    padding-top: 30px;
+    padding-bottom: 20px;
+    background: $footer-bg;
+    color: $footer-color;
+    }
+
+    #footer a {
+        color: $footer-link-color;
+        &:hover {
+          color: darken( $primary-color, 10% );
+        }
+    }
+    #footer h4,
+    #footer h5 {
+        letter-spacing: 1px;
+        color: $footer-h-color;
+        text-transform: uppercase;
+    }
+
+
+
+/* Subfooter
+------------------------------------------------------------------- */
+
+#subfooter {
+    background: $subfooter-bg;
+    color: $subfooter-color;
+    padding-top: 30px;
+}
+
+#subfooter-left ul.inline-list {
+    float: left;
+}
+
+.credits a {
+    color: $subfooter-link-color;
+    border: 0;
+    text-transform: uppercase;
+    &:hover {
+        color: #fff;
+  }
+}
+
+.social-icons {
+    margin-bottom: 10px !important;
+
+// Beware of SCSS-Syntax here
+  li {
+    padding: 0 0 20px 0;
+  }
+  a {
+    font-size: rem-calc(23);
+    display: block;
+    width: 36px;
+    border-radius: 50%;
+    color: $subfooter-link-color;
+    background: $subfooter-link-bg-color;
+    text-align: center;
+    &:hover {
+      background: $subfooter-link-bg-hover-color;
+      color: $subfooter-link-hover-color;
+    }
+  }
+}
+
+/* CSS-Classes to add margin at top or bottom
+------------------------------------------------------------------- */
+
+.t10 { margin-top: 10px !important; }
+.t15 { margin-top: 15px !important; }
+.t20 { margin-top: 20px !important; }
+.t30 { margin-top: 30px !important; }
+.t50 { margin-top: 50px !important; }
+.t60 { margin-top: 60px !important; }
+.t70 { margin-top: 70px !important; }
+.t80 { margin-top: 80px !important; }
+.t90 { margin-top: 90px !important; }
+
+.b15 { margin-bottom: 15px !important; }
+.b20 { margin-bottom: 20px !important; }
+.b30 { margin-bottom: 30px !important; }
+.b60 { margin-bottom: 60px !important; }
+
+.l15 { margin-left: 15px !important; }
+.r15 { margin-right: 15px !important; }
+
+.pl20 { padding-left: 20px !important; }
+.pr5  { padding-right: 5px !important; }
+.pr10 { padding-right: 10px !important; }
+.pr20 { padding-right: 20px !important; }
+.pt20 { padding-top: 20px !important; }
+.pb20 { padding-bottom: 20px !important; }
+
+/* Thali
+------------------------------------------------------------------- */
+
+$thali-bg: $ci-5;
+
+$thali-logo-width: 114px;
+$thali-logo-height: 128px;
+$topbar-height: $thali-logo-height/2;
+
+#topbar {
+  width: 100%;
+}
+
+#topbar,
+.thali-logo-wrapper {
+  background: $thali-bg;
+}
+
+.thali-logo-wrapper {
+  float: left;
+  height: $topbar-height;
+}
+
+.center {
+  margin: 0 auto;
+  text-align: center;
+}
+
+h1.thali-logo {
+  margin: 0;
+  padding: 0;
+}
+
+/* logo - image */
+h1.thali-logo a {
+  display: block;
+  padding: 0 10px;
+  width: $thali-logo-width;
+  height: $topbar-height;
+  background: $thali-bg url('/images/thali-menu.png') no-repeat 10px 50%;
+  @include image-2x("/images/thali-menu@2x.png", $thali-logo-width, $thali-logo-height);
+  background-position: 0 0;
+  overflow: hidden;
+}
+
+h1.thali-logo a:hover{
+  background-position: 0 100%;
+}
+
+h1.thali-logo a span {
+  display: none;
+}
+
+/* logo - icon and text */
+/*
+h1.thali-logo a {
+  display: inline-block;
+  height: 64px;
+  background: $thali-bg url('/images/thali-icon.png') no-repeat 10px 50%;
+  @include image-2x("/images/thali-icon@2x.png", 32px, 32px);
+  padding: 0 10px;
+}
+
+h1.thali-logo a span {
+  margin-left: 35px;
+  margin-top: 10px;
+  font-size: 32px;
+  font-weight: lighter;
+  letter-spacing: 80%;
+  color: $ci-3;
+  line-height: 100%;
+  vertical-align: middle;
+}
+*/
+
+.rhs {
+  float: right;
+}
+
+ul.button-list {
+  list-style: none;
+  height: 100%;
+}
+
+ul.button-list li {
+  float: left;
+  height: 100%;
+  margin-left: 10px;
+}
+
+ul.button-list li a {
+  display: block;
+  height: 100%;
+  color: $ci-4;
+  padding: 18px 10px;
+}
+
+ul.button-list li a:hover {
+  color: $ci-3;
+}
+
+/* TOC */
+.clickable-header {
+  padding-top: $topbar-height; /* offset for fixed topbar */
+}
+
+/* retina @2x logo */
+#logo img {
+  width: 600px;
+  height: 80px;
+  display: block;
+}
+
+ul.side-nav li a {
+  clear: both;
+}
+
+section.category {
+  padding-top: 20px;
+  padding-bottom: 20px;
+}
+
+section.feature {
+  margin-top: 20px;
+  margin-bottom: 20px;
+}
+
+/* home */
+section.strip {
+  width: 100%;
+}
+
+div.app-icon,
+img.app-icon {
+  width: 144px;
+  height: 144px;
+}
+
+div.app-icon {
+  background-color: white;
+  border-radius: 23px;
+  box-shadow: 0px 5px 10px $grey-3;
+}
+
+/* Masthead › medium-up
+------------------------------------------------------------------- */
+
+@media #{$medium-up} {
+  #topbar {
+    position: fixed;
+    top: 0;
+    z-index: 1;
+  }
+
+  #masthead,
+  #masthead-with-background-color,
+  #masthead-no-image-header,
+  .no-header {
+    margin-top: $topbar-height; /* offset for fixed topbar */
+  }
+
+}
