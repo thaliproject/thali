@@ -332,9 +332,9 @@ I haven't run an experiment to see what the maximum size of a MPCF announcement 
 
 Therefore we will only use the MPCF announcement to identify ourselves as a Thali node and then use our TCP/IP binding for further communication in order to retrieve things like notification beacons via the [HTTP endpoint](Transferring-discovery-beacon-values-over-HTTP).
 
-__Open Issue:__ This design explicitly assumes that it is fine to have multiple independent sessions between the same peers using MPCF.
-
 __Note:__ We have runs tests that show that if `MCNearbyServiceAdvertiser` is turned off and then back on with a different `peerID`  this will not affect any preexisting sessions.
+
+__Note:__ Our experiments with iOS 8 have shown that if we form two simultaneous MCSession objects between the same two peers then when moving larger amounts of data the streams associated with those session objects will spontaneously fail. This has proven to be a big enough problem that we have been forced to work around it by making sure that we only have a single MCSession object between any two peers and then multiplexing TCP connections established on either end across a single pair of streams associated with that session.
 
 ## MCNearbyServiceBrowser
 MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `initWithPeer:serviceType:` on  `MCNearbyServiceBrowser` the arguments MUST be:
@@ -347,8 +347,6 @@ The `MCNearbyServiceBrowser` MUST have its delegate property set to a proper cal
 
 Because iOS requires that `MCNearbyServiceBrowser` MUST stop running when the application goes into the background this means that anytime the application enters the foreground if it wants to discover Thali peers then it MUST activate `MCNearbyServiceBrowser` as defined in this section with a fresh UUID.
 
-__Open Issue:__ Requiring a fresh UUID in theory makes security a tiny bit better (it's hard to argue it makes it a lot better given that the Bluetooth and WiFi MAC addresses are hard coded in iOS) but it also has a performance penalty. When an application goes into the background it's unlikely (although not impossible, see requirements below) that its database state will change. Therefore when it comes out of background it most likely has no new notifications to share. Therefore if it could use the same UUID it previously used in the case that the notification beacons haven't changed since it went into the background then this could save network connections by peers who know they have already retrieved and handled those beacons. Is this optimization worth implementing? Certainly not now, but eventually it might.
-
 ## MCNearbyServiceAdvertiser
 When the Thali application wishes to be discovered, typically because it has notification beacon values to advertise, it MUST create a `MCNearbyServiceAdvertiser`  object with the arguments as follows:
 * `myPeerID` - The same UUID as currently being used by `MCNearbyServiceBrowser`.
@@ -357,58 +355,71 @@ When the Thali application wishes to be discovered, typically because it has not
 
 The MCNearbyServiceAdvertiser object MUST also have its delegate property set to a proper callback.
 
-__Open Issue:__ It isn't clear to me if it is actually necessary for the UUID used by `MCNearbyServceAdvertise` and `MCNearbyServiceBrowser` to be the same. This certainly provides no security benefit since any advertisements and session establishment requests (which would come from discovery) will have the same network addresses and so clearly be related. So even if we used different UUIDs it wouldn't provide any additional security. But using the same UUID hard codes in the idea that `MCNearbyServiceBrowser` MUST be running for `MCNearbyServiceAdvertise` to be used. And given how Thali works that is actually a reasonable assumption. So it may not be harmful to require the same UUID but maybe it's not helpful either? Should we just use different UUIDs?
+The use of the same peerID on both `MCNearbyServiceBrowser` and `MCNearbyServiceAdvertiser` is driven by the need to easily identify when we might be trying to create two `MCSessions` objects between the same peers.
 
 ## Running MCSession connections in the background
 iOS explicitly supports taking existing `MCSession` connections established in the foreground into the background for a period of time (typically one or two minutes) before the OS will terminate them. Thali's MPCF code MUST be implemented to enable `MCSession` connections to be taken into the background. Typically this requires establishing a background task when going into the background and handling the `MCSession` connections there.
 
 ## Binding TCP/IP to MPCF
-MPCF communication starts when one peer sends a session invitation to another peer. Once a session is establish between two peers then each peer can open an output socket to another peer. Because these are just output sockets they are simplex, not duplex. But our goal is to move a TCP/IP connection over MPCF and that requires a duplex connection. Our approach then is to create a situation where one Thali peer can open an output socket to another Thali peer and that Thali peer will then automatically respond with its own matching output socket going to the first peer. This then creates a full duplex connection between the peers.
+The core of the binding is the `MCSession` object. This object can be created in one of two ways:
 
-Below we have two places where `MCSession` objects need to be created. In each case the `myPeerID` for the `MCSession` object MUST be set to the same `peerID` as being advertised with the peer's `MCNearbyServiceBrowser`. The `MCSession` object also MUST specify a proper callback for its `delegate` property.
+1. The local peer makes a request to the native layer to open a connection to a remote peer which causes the local peer to create a `MCSession` object and invite the remote peer to join it.
+2. A remote peer creates a `MCSession` object and invites the local peer to join.
 
-__Open Issue:__ I actually cannot come up with a good reason why the `peerID` for `MCSession` couldn't be a brand new value. It's not like we use it for anything.
+But per the previously mentioned bug we MUST NOT end up in a situation where we have two `MCSession` objects on the same peer involving the same remote peer.
 
-When a Thali peer discovers another Thali peer via `MCNearbyServiceBrowser` then the discovering peer, if it wishes to establish a TCP/IP connection with the discovered peer, MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session with the following arguments:
+Our solution to this situation is to leverage the fact that as defined below `peerID`s are UUIDs. This means they are (within reason) globally unique and they can be lexically compared. The larger of two UUIDs is defined as the UUID whose value represented as ASCII bytes when compared in ASCII ordering is the first to have a higher byte value for a character.
+
+### Lexically Larger Peer
+If a lexically larger peer wishes to connect to a lexically smaller peer then it MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session with the following arguments:
 
 * `peerID` - The `peerID` of the discovered peer taken from the `MCNearbyServiceBrowser` callback.
 * `toSession` - The `MCSession` object that is passed in MUST be newly created for this connection following the previously specified rules.
 * `withContext` - This MUST be set to `base64EncodedString` containing the Thali service's type name, e.g. "thaliproject".
 * `timeout` - Unless overridden by the application the default timeout MUST be 10 seconds.
 
-The discovered peer will then receive a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object. The discovered peer MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the discovered peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules. If the discovered peer accepts the invitation then it MUST record the `peerID` value and associate it with the created `MCSession` object. If the discovered peer joins the session then it MUST establish an output stream as defined below.
+When the lexically larger peer receives a call on  `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST establish an output stream with the lexically smaller peer by calling `startStreamWithName:toPeer:error:` on the `MCSession` objects targeted at the lexically smaller peer with the `streamName` set to "ThaliStream".
 
-When the discovering peer receives a callback on its `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST establish an output stream with the discovered peer as defined below.
-
-Both the discovering and discovered peers MUST establish output streams with each other by calling `startStreamWithName:toPeer:error:` on their `MCSession` objects targeted at the other peer with the `streamName` set to "ThaliStream".
-
-When each of the peers receives a callback on their `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` they MUST confirm that:
-* The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. In the case of the discovering peer it means it invited more than one peer to the session.  In the case of the discovered peer it accepted invitations to the same session from more than one peer.
+The lexically larger peer will then receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm that:
+* The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. Specifically the lexically larger peer must have somehow invited more than one peer to the session.
 * The `streamName` MUST be "ThaliStream" or the session MUST be terminated.
 
-Both the discovering and discovered peers MUST set a timer starting when they issue the `startStreamWithName:toPeer:error:` request. If they have not received the `session:didReceiveStream:withName:fromPeer:` callback for "ThaliStream" before the timer expires then they MUST kill the session. By default the timer MUST be set to 10 seconds unless this value is overridden by the application.
+At this point the session is said to be ready. That is, both peers are members of the same session and both have established output streams to each other.
 
-__Open Issue:__ I bet we don't need that extra 10 second timer. I don't see why we shouldn't make it a responsibility of the upper layer (e.g. node.js code) that once it establishes a TCP/IP connection if the connection doesn't terminate properly then it should just disconnect. That way we don't need to track anything at the native layer. Less native code is good, right?
+It is possible for a peer to receive an `invitePeer` request from a lexically smaller peer. In that case the lexically smaller peer is trying to signal to the lexically larger peer that it wishes to connect. The lexically larger peer MUST reject the `invitePeer` request with `accept` set to `false` and if a `MCSession` does not already exist with the lexically smaller peer (e.g. a race condition) then it MUST eventually establish a MPCF connection to the lexically smaller peer following the instructions in this section. Note that the lexically larger peer's ability to establish a connection can be gated by bandwidth, battery or other issues.
 
-__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android? Do we need to "prime" the connection the way we do with Bluetooth? Are surprise connections (a la BLE/Bluetooth) possible with MPCF? I suspect that discovery and connectivity generally happens over the same transports but I'm not 100% sure. If MPCF were to do discovery over bluetooth but connectivity of Wi-Fi then a surprise connection si certainly possible. Certainly there is nothing in the MPCF specs that belies the possibility of a peer showing up that one hasn't ever discovered. But could it be a peer that wanted to be discovered and somehow wasn't? If so then we need to put in the same surprise handling we have for Bluetooth.
+### Lexically Smaller Peer
 
-Now we finally have a single session with both the discovering and discovered peer with an output stream between each of the peers giving us full duplex. So now we can finally switch to TCP/IP.
+From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules. 
 
-The process for establishing a TCP/IP connection from the perspective of the discovering peer is:
+As soon as the session invitation is accepted the lexically smaller peer MUST establish an output stream with the lexically larger peer following the same rules as given for the lexically larger peer above.
+
+The lexically smaller peer MUST wait to receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm its values as given for the lexically larger peer. 
+
+At this point the session is said to be ready. That is, both peers are members of the same session and both have established output streams to each other.
+
+It is possible that a lexically smaller peer wants to communicate with a lexically larger peer with whom it does not have an existing `MCSession`. In that case the lexically smaller peer MAY issue an `invitePeer` request to the lexically larger peer following the rules for `invitePeer` definition give above for the lexically larger peer. If the lexically smaller peer's invitation does not receive a response and if the lexically larger peer has not otherwise established a `MCsession` with the lexically smaller peer then the lexically smaller peer MAY assume that the lexically larger peer has not received the invitation and so the lexically smaller peer MAY try again. Note that there MUST be a reasonable limit on how often invitations are repeated, at a maximum invitations MUST NOT be repeated more often than every 300 ms. If the lexically smaller peer's invitation is rejected without the lexically larger peer having tried to establish its own `MCSession` then the lexically smaller peer MUST assume that the lexically larger peer has its own reasons for not connecting now and MUST NOT repeat the invitation. If the lexically smaller peer's invitation is accepted then the lexically smaller peer MUST log this event (there is something clearly wrong with somebody) along with all involved peerIDs and then MUST close the `MCSession`.
+
+__OPEN ISSUE:__ Is there any reason to have a handshake like we do with Bluetooth on Android? Do we need to "prime" the connection the way we do with Bluetooth? Are surprise connections (a la BLE/Bluetooth) possible with MPCF? I suspect that discovery and connectivity generally happens over the same transports but I'm not 100% sure. If MPCF were to do discovery over bluetooth but connectivity of Wi-Fi then a surprise connection is certainly possible. Certainly there is nothing in the MPCF specs that belies the possibility of a peer showing up that one hasn't ever discovered. But could it be a peer that wanted to be discovered and somehow wasn't? If so then we need to put in the same surprise handling we have for Bluetooth.
+
+### Moving TCP Content on two levels
+Because we are reusing a single pair of MPCF sockets to establish TCP/IP connections in two directions we have to use a multiplex solution that can layer independent TCP/IP connections going in both directions over a single pair of MPCF sockets. For the native layer TCP/IP connection (not the TCP/IP connections multiplexed on top of it) the lexically larger peer will be treated as the TCP/IP client and the lexically smaller peer as the TCP/IP server.
+
+The details of this are complex and will be defined in the Node.js specifications. The key thing to know is that the lexically larger peer will:
 
 1. Open a localhost TCP/IP listener on an open port and wait for the local Thali application to connect to the port. Only one connection will be accepted at a time.
-2. Once the localhost TCP/IP listener gets a connection from the Thali application then connect the output stream from the localhost TCP/IP listener to the MPCF input stream established by the discovering peer and connect the MPCF input stream from the discovered peer to the localhost TCP/IP listener output stream.
+2. Once the localhost TCP/IP listener gets a connection from the Thali application then connect the output stream from the localhost TCP/IP listener to the MPCF output stream established by the lexically larger peer and the localhost TCP/IP listener's input stream to the input stream established by the lexically smaller peer.
+3. Once a session is ready (as defined above) if the `MCSession` was created at the initiative of the lexically smaller peer (e.g. it wasn't created in response to a request from the Thali application) then the lexically larger peer MUST signal the Node.js layer of the `MCSession` and assocaited TCP/IP listener's existence so that a multiplexer can be set up for the connection.
 
-On the discovered peer side the process is:
+For the lexically smaller peer:
 
-1. The discovered peer's Thali application tells the Thali MPCF layer that it wishes to be discoverable and specifies the localhost TCP/IP port that any incoming connections should connect to.
-2. The discovered peer's Thali MPCF layer creates a TCP/IP client that it has connect to the localhost TCP/IP port specified by the Thali application is step 1.
-3. The discovered peer then connects the MPCF input stream from the discovering peer to the output stream from the TCP/IP client connection and the TCP/IP client connection's input stream to the MPCF's output stream.
+1. Open a localhost TCP/IP client that connects to a port passed in by the Thali application. This port MUST point at multiplexer logic.
+2. Connect the TCP/IP client's input stream to the MPCF input stream from the lexically larger peer and the TCP/IP client's output stream to the MPCF output stream from the lexically smaller peer.
 
-Note that if two peers simultaneously want to open connections to each other than they will end up with two separate sessions.
+It will then be up to the Node.js layer to add a multiplexer on top of this single TCP/IP connect. That multiplexer will be able to establish TCP/IP connections in both directions. See the Node.js documentation for more details.
 
 ## Handling beacon changes
-Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser` and discard the `MCNearbyServiceAdvertiser` instance. Then the Thali peer MUST create a new `MCNearbyServiceAdvertiser` instance with a new `peerID`. This process is required because once `peerID` is set on a `MCNearbyServiceAdvertiser` it cannot be changed.
+Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser`. The old `MCNearbyServiceAdvertiser` instance SHOULD be discarded but it is acceptable for there to be a delay in doing so as apparently iOS reacts badly if `MCNearbyServericeAdvertiser` objects get discarded too quickly. Then the Thali peer MUST create a new `MCNearbyServiceAdvertiser` instance with a new `peerID`. This process is required because once `peerID` is set on a `MCNearbyServiceAdvertiser` it cannot be changed.
 
 By changing the `peerID` this should trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. This then notifies those peers that the advertiser has new notification values they need to examine.
 
@@ -555,3 +566,4 @@ JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
 JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
 JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
 JUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNKJUNK
+
