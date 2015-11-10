@@ -1,7 +1,7 @@
 - menu_name: "Thali"
 
 - name: "Architecture"
-  url: "/architecture"
+  url: "/Architecture"
   title: "Architecture"
 
 - name: "Contribution Guide"
