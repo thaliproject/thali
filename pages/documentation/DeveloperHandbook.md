@@ -16,7 +16,7 @@ Welcome to Thali! So you want to learn more? Great!
 # Checklist for adding a new team member
 1. Tell them that they need to read this doc and make sure they do what it says in terms of things to sign up for.
 2. Go [here](https://github.com/orgs/thaliproject/people) and add them as an owner.
-3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/index.md) and add them to the "Who?" section.
+3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/pages/info.md) and add them to the "Who?" section.
 4. Send out a mail to the public mailing list about them joining
 5. If they are a Microsoft employee then:
  1. Add them to the internal OWA Thali group
@@ -30,12 +30,13 @@ The first thing to do is read. Please start [here](/ThaliAndCouch). You can prob
 
 Next step is to walk through our spec stack. After reading the above the specs to read are roughly in this order (feel free to skim):
 
-* [Notification Crypto Design](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/presenceprotocolforopportunisticsynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
-* [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/presenceprotocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
-* [Our Mobile Layer Bindings](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
-* [A wrapping for our mobile layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliMobileNativeWrapper.js) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
-* [Our WiFi Discovery layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
-* [Connectivity Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
+* [Notification Crypto Design](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolForOpportunisticSynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
+* [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
+* [Our Mobile Layer Bindings](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
+* [A wrapping for our mobile layer](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolForOpportunisticSynching.md) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
+* [Our TCP Server/Multiplex Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/TCPServersManager.js) - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
+* [Our WiFi Discovery layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
+* [Connectivity Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
 * [Notification Beacons](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliNotificationBeacons.js) - Defines an API for generating and processing notification beacons
 
 These specs are under active development. With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_03_yarong and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
