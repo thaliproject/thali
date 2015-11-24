@@ -118,6 +118,8 @@ Any `decrypt_error` or `unknown_psk_identity` TLS errors MUST be returned to the
 
 From a node.js perspective the fun starts [here](https://github.com/jxcore/jxcore/blob/master/lib/https.js) since that is the actual interface we need to support for PouchDB but very quickly the venue will change to [here](https://github.com/jxcore/jxcore/blob/master/lib/tls.js). From there I believe you end up [here](https://github.com/jxcore/jxcore/blob/master/src/wrappers/node_crypto.cc). From there you can finally just pull out your favorite C IDE and start to navigate around.
 
+[This PR](https://github.com/nodejs/node-v0.x-archive/pull/1162) which was never accepted, and has grown 'dated' given the changes to nodejs provides an implementation that should be reviewed.
+
 # Transferring discovery beacon values over HTTP
 Many of our bindings need to move the preamble and beacon values over a TCP/IP connection. When required we use HTTP (not HTTPS) as the transport. Specifically, the IP address and port will be discovered using whatever mechanisms are specified by the binding. But at the other end of that IP address and port is a HTTP server which supports unauthenticated/unencrypted GET requests to the endpoint /NotificationBeacons.
 
