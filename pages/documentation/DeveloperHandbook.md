@@ -30,16 +30,17 @@ The first thing to do is read. Please start [here](/ThaliAndCouch). You can prob
 
 Next step is to walk through our spec stack. After reading the above the specs to read are roughly in this order (feel free to skim):
 
-* [Notification Crypto Design](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolForOpportunisticSynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
-* [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
-* [Our Mobile Layer Bindings](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
-* [A wrapping for our mobile layer](https://github.com/thaliproject/thali/blob/yaronyg-patch-4/pages/TechnologyInvestigations/PresenceProtocolForOpportunisticSynching.md) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
-* [Our TCP Server/Multiplex Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/TCPServersManager.js) - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
-* [Our WiFi Discovery layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
-* [Connectivity Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/NextGeneration/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
+* [Notification Crypto Design](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolForOpportunisticSynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
+* [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
+* [Our Mobile Layer Bindings](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
+* [A wrapping for our mobile layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobileNativeWrapper.js) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
+* [Our TCP Server/Multiplex Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/TCPServersManager.js) - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
+* [Our WiFi Discovery layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
+* [Connectivity Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
 * [Notification Beacons](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliNotificationBeacons.js) - Defines an API for generating and processing notification beacons
+* [Thali Mobile WiFi Mock](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/wifiBasedNativeMock.js) - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop.
 
-These specs are under active development. With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_03_yarong and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
+With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_001 and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
 
 At this time our repo's are:
 * https://github.com/thaliproject/thali - This is our website
