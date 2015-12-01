@@ -52,7 +52,6 @@ A discovery announcement consists of three parts. A version Id, a pre-amble and 
 
 The pre-amble and beacon are defined using Augmented BNF as specified in RFC 4234 with the exception that I changed the section 3.7 requirement on nRule to be n-Rule because 88OCTET look like 880 instead of 88:
 
-
 ```
 DiscoveryAnnouncementWithoutVersionId = PreAmble 1*Beacon
 PreAmble = PubKe Expiration
@@ -62,6 +61,8 @@ Beacon = 48-OCTET
 ```
 
 PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
+
+__NOTE:__ For the moment we plan on using the base64 encoded format outputted by Node.js's ECDH library to encode the public keys. Eventually we'll even figure out what format it is using and standardize that.
 
 PubKe is an ephemeral public key that MUST be regenerated any time any part of the pre-amble or beacon list change.
 
@@ -99,7 +100,7 @@ The variables used above are:
 
 __beacons__ - a byte array containing beacon content.
 
-__Expiration__ - a 64 bit integer encoding the desired expiration date for the discovery announcement.
+__Expiration__ - a 64 bit integer encoding the desired expiration date for the discovery announcement measured in milliseconds since the epoch (1 January 1970 00:00:00 UTC).
 
 __GCM__ - Specifies Galois/Counter Mode for AES encryption.
 
@@ -140,7 +141,7 @@ __+__ - When applied to two arrays it concatenates them together.
 # Processing the pre-amble and beacons
 When a device receives a discovery announcement it has to validate several things.
 
-If the device has seen the PubKe value previous then it MUST ignore the discovery announcement it has just received as a duplicate of a discovery announcement it has seen before. Therefore devices MUST have a cache to store PubKe values (or a secure hash therefore) they have seen before and SHOULD keep entries in the cache until the associated expiration time of the discovery announcement they were received on has passed. A should is specified versus a must in recognition of the fact that the cache MAY have to be purged due to space issues.
+If the device has seen the PubKe value previously then it MUST ignore the discovery announcement it has just received as a duplicate of a discovery announcement it has seen before. Therefore devices MUST have a cache to store PubKe values (or a secure hash therefore) they have seen before and SHOULD keep entries in the cache until the associated expiration time of the discovery announcement they were received on has passed. A should is specified versus a must in recognition of the fact that the cache may have to be purged due to space issues.
 
 If a device hasn't previously seen the PubKe then it MUST validate that the PubKe is from the appropriate curve or it MUST be ignored.
 
@@ -156,7 +157,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
     KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
     IV = KeyingMaterial.slice(0,16)
     HKey = KeyingMaterial.slice(16, 32)
-	UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
+    UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
 
     if (UnencryptedKeyId == null) { // GCM mac check failed
        next;
@@ -165,7 +166,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
     PubKx = addressBook.get(UnencryptedKeyId)
 
     if (PubKx == null) { // Device that claims to have sent the announcement is not recognized
-      next;
+      return null; // Once we find a matching beacon we stop, even if the sender is unrecognized
     }
 
     BeaconHmac = encryptedBeacon.slice(32, 48)
@@ -200,15 +201,6 @@ __empty()__ - Specifies if a stream still has remaining content.
 __get(k)__ - Returns the value associated with the submitted key, null if there is no associated value.
 
 __read(n)__ - Reads n bytes from a stream.
-
-# BLE Binding
-[TBD - There are several things we need to develop here. We need to specify our service ID. This will act as our version number and specify things like format and curve. We then need to specify how to move our discover announcement over BLE. Although it turns out that you can negotiate the MTU from 20 bytes it apparently doesn't get much larger than 200 or so bytes and in most cases we expect our discovery announcement to be between 1k - 2k. So we will need to define an encoding for moving this value using characteristics. There are some issues here I just don't understand yet. For example, is there any concept of a 'session identifier' in BLE? If not then it's possible that someone could start downloading characteristics to build the discovery announcement only to have those characteristics change under them and invalidate their download. We have to be able to detect when that happens. It's not hard, its just necessary. We also need to define a protocol specifically for iOS. The issue there is that apps cannot be peripherals if they are in the background or stopped. But they can be centrals. So if someone in the room is a peripheral (e.g. has a Thali app in the foreground) then we need the apps in the background (who CAN detect a peripheral even though they are in the background) to forward their discovery announcements to the peripheral so it can realy it to all the other centrals in the room that are in the background. We also need to specify how "wake up" commands are sent via the peripheral. In other words device A is "awake" and acting as a peripheral for devices B and C who both have their Thali apps asleep. When device A announces itself (because the App is in the foreground) then devices B and C will connect because they have registered to be notified of available peripherals. In that case B and C will both send A their discovery announcements and A will forward the announcement on. In other words, B will send its announcement to A who will send it to C and C to A who will send it to B. A is acting like a repeater. Now lets say that B receives C's announcement and discovers that C wants to talk to B. Because of restrictions in iOS it isn't possible for B and C to talk unless they both have their Thali apps in the foreground. So B needs to send a notification to C saying "Hey, I got your discovery announcement and I'm ready to talk!". In that case both B and C would notify their users using a device alert to open the phone and turn on the Thali app so they can exchange data using the multi-peer connectivity framework (which only works, more or less, when the app is in the foreground). But the only way to kick this off is through A. In other words B needs to send a message to A telling it to tell C to wake up its user. So we need to define a protocol to handle all of that.]
-
-# Wi-Fi Direct Discovery Binding
-[TBD - The main issue so far with Wi-Fi Direct discovery is how are we going to do it? Android supports at least two options, SSDP from UPnP and mDNS. Both support sending arbitrary strings. In mDNS's case its possible to send a service ID (as discussed in BLE) but it seems like in practice it can't be much more than 100 bytes. One can also send a TXT record with name/value pairs. The total size of the name + the value has to be less than 255 bytes. I tried to run some experiments to see how many name/value pairs I could send and ran into some issues with, I think, caching where Android wouldn't try to re-download a TXT record because it thinks it already has it. I think. Maybe. Right now I don't have time to dig deeper. The other alternative is SSDP which supports sending a bunch of service discovery strings. But I have no idea how big they can be. So right now I just don't know if it's possible to send 1K or 2K of data over the Wi-Fi Direct discovery mechanism. In the worst case we will have to do something nasty like send a service ID and a single text field in a TXT record. That txt field would contain a hash of the ephemeral key of the discovery announcement. That would be small and I'm confident we can get it safely across either SSDP or mDNS (assuming we can deal with the caching issues, who knows there?). A client who sees a hash it doesn't recognize will then have to open a Wi-Fi Direct connection and at that point we can use IP to move whatever data we need. Of course due to wi-fi pairing issues (see Jukka's articles) this might not work so alternatively we would have to use Bluetooth. That's o.k. we have enough space in discovery to send the Bluetooth address. Alternatively we could use a Wi-Fi AP point. There are ways.]
-
-# Transferring from Discovery to TLS
-[TBD - Once we find that we want to talk to somebody, how do we connect to them? In the case of Wi-Fi Direct I already mentioned at least three ways we can connect but we have to specify which ones we will use or how to advertise what choice we want the client to make if we decide to support multiple ways. In the case of BLE we will need a characteristic that someone can access to tell them how to connect. In the case of iOS to iOS communication this would be some kind of ID for the multi-peer connectivity framework. In the case of iOS/Android we would have to have the Android handset switch to being a myfi end point and tell iOS what the name is. There are a lot of issues there btw. But I'll go into those later. But once we have a socket between the phones we still need to be able to authenticate. We can't use the user's public keys with mutual TLS auth because Wi-Fi advertises the keys in the clear and so exposes the users identity. Ideally we would use something like TLS_ECDHE_PSK_WITH_AES_128_CBC_SHA256. This would allow us to use HKDF to generate the session key that the two sides would use when opening a socket and establishing a TLS session and then ECDHE would provide forward secrecy. The problem is that if [this doc](https://www.openssl.org/docs/apps/ciphers.html) is up to date then OpenSSL (which we use under Node.js) does not support a TLS_ECDHE_PSK cipher suit. In fact if [this](http://en.wikipedia.org/wiki/Comparison_of_TLS_implementations) is to be believed than only 3 of the TLS libraries tracked there actually support TLS_ECDHE_PSK. So we will need to essentially fake it. To do this we need a way to do an exchange that emulates TLS_ECDHE_PSK. For example, each side of discovery could establish an insecure connection and send to each other an AES-128 encrypted (using the previously negotiated HKxy) ephemeral public key. Once each side confirms receiving the others ephemeral key then the side acting as the server can use the same socket to start listening for a TLS connection advertising its announced ephemeral key and waiting to validate that the other side sends the ephemeral key it advertised. This would provide perfect forward secrecy and never expose anyone's credentials in the clear. But in any case, we need to specify exactly how all of this works.]
 
 # Q&A
 ## Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
@@ -322,3 +314,17 @@ So the attacks aren't super easy and they aren't super effective but they absolu
 We still have obligations to do our best to protect users but we have to also recognize the limits of what is possible, especially in a social network where these sorts of transitive attacks are very possible.
 
 And of course this is all without discussing the various IDs that Bob's phone is already send out (see the last two sections [here](http://www.goland.org/localdiscoverybillofrights/)). So beware. There is no security panacea.
+
+## Are we guilty of bad public key hygiene?
+The notification protocol and TLS binding require the use of a public key to identify both parties and then that public key is used directly for Diffie-Hellman key exchanges. In and of itself this isn't bad. What's bad is that currently those public keys are the root identity keys and so long lived. Typically good practice argues for having some kind of infrequently used root key which is then used to sign an intermediary key which is then used to sign a leaf key which is then used to sign an ephemeral key. Each key then rotates based on how low in the tree it is, the lower in the tree the more frequently it is changed. So we range from the root key at the top which is essentially invariant to the ephemeral key at the bottom which is changed on each use.
+
+The notification protocol and TLS binding require the use of a public key to identify both parties and then that public key is used directly for Diffie-Hellman key exchanges. In and of itself this isn’t bad. What’s bad is that currently those public keys are the root identity keys and so long lived. Typically good practice argues for having some kind of infrequently used root key which is then used to sign an intermediary key which is then used to sign a leaf key which is then used to sign an ephemeral key. Each key then rotates based on how low in the tree it is, the lower in the tree the more frequently it is changed. So we range from the root key at the top which is essentially invariant to the ephemeral key at the bottom which is changed on each use.
+
+The problem with this approach is that we are both space and processor constrained. In an ideal world the beacon’s encrypted value would actually be encrypted using a key derived not from the sender’s root public key but instead from the ephemeral key and inside the encrypted statement would be a key chain where the ephemeral key would be signed by the leaf key which would be signed by the intermediate key which would then be signed by the root key. Unfortunately this approach would vastly (by orders of magnitude) increase the size of the beacon. So it’s not workable over the types of battery/bandwidth/process constrained environments we need to run in.
+
+What’s interesting is that while this approach would protect the notifier’s root key from being over used, it would not protect the peer being notified. After all the root of the discovery mechanism is a Diffie-Hellman key exchange with the public key of the peer to be notified. There is no way for the notifier to know ahead of time what keys below the root the peer to be notified is currently using. So the notifier can’t use those keys in the Diffie-Hellman key exchange.
+
+Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user’s behalf) or at the very least not on a process that is anywhere near a network connection.
+
+My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it’s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user’s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B’s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
+
