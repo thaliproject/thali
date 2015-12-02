@@ -28,3 +28,11 @@ For just over a month we had the awesome help of [Wenhui Lu](https://twitter.com
 [Sreejumon Purayil](http://sreesharp.com) - Sreejumon helped to create the initial version of the Postcard app that demonstrates what Thali can do and worked on the install and logging infrastructure. Install in particular was a nightmare because we had to get Android, iOS, Cordova and Node all playing well together.
 
 [Srikanth Challa](https://www.linkedin.com/pub/srikanth-challa/10/b47/905) - Srikanth did the work to put in support for HKDF and PKCS12 libraries directly into JXCore thus enabling new capabilities in JXCore's crypto library. He also worked on integrating these capabilities into Thali and updating the Postcard app to be able to use them. He also helped with some early work on implement a prototype of our notification system's crypto using the extended APIs.
+
+[Jukka Silvennoinen](http://www.drjukka.com/) - When Thali was rebooted as a Cordova/Node.js project Jukka was our very first dev. His contributions included but weren't limited to:
+
+* Got Wifi Direct and Bluetooth working well enough to enable us to demo Thali on Android
+* Wrote the first version of our JXcore/native layer
+* Helped us to eventually figure out that Wifi direct wasn't going to work right on Android
+* Did the initial work on figuring out if we could use BLE instead of Wifi direct
+* Helped us get the first iteration of our test infrastructure up and running
