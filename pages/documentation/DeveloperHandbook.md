@@ -190,12 +190,29 @@ When refering to the event in an @fires we also have to use the same syntax, not
 @fires module:foo.event:MyEventName
 ```
 
-## Methods on modules
+## Methods on modules and statics in general
 Imagine we have defined a node.js module and we are using module.exports.bar = function(). We now want to refer to bar. The way to do it
 would be:
 
 ```
 {@link module:foo.bar}
+```
+
+Another example of the "." syntax is statics. For example:
+
+```
+function Blah() {
+}
+
+Blah.foo = 3; // This is NOT a prototype, it's a static member of Blah called via Blah.foo
+
+module.exports = Blah;
+```
+
+This would be linked to as:
+
+```
+{@link module:foo~Blah.foo}
 ```
 
 ## Refering to prototypes
