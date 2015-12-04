@@ -257,6 +257,28 @@ Go [here](http://stackoverflow.com/questions/13578062/how-to-increase-ide-memory
 
 Then you want to look [here](http://stackoverflow.com/questions/7836313/how-to-stop-intellij-truncating-output-when-i-run-a-build) for the option that will let you increase the size of Intellij's buffer for logcat. Right now it's so small that after a minute or two of output it flips. So, for example, I'll miss the point where tests declare themselves done!
 
+First we need some plugins. Go to Settings->Plugins->Browser repositories and then find and install the following:
+
+* NodeJS
+* Wrap To Column
+
+The default key binding for Wrap to Column uses meta which doesn't work on Windows. To get around that I go to Settings->KeyMap->Main menu->Edit->Wrap to Column, double click, select add keyboard shortcut, select the first stroke field and then hit "ctrl alt w". I wanted window+ctrl+shift+w to mirror the Mac keymap but the window key doesn't like to be used with other keys in Intellij. I also tried ctrl+alt+shift+w but that was already assigned to something.
+
+Here are the settings I use:
+
+```
+Appearance & Behavior -> Appearance ->Theme->Darcula
+Editor->General->Appearance->Show line numbers
+Editor->Code Style->Right margin (columns): 80
+Editor->Code Style->JavaScript-> Tab Size, Indent, Continuation indent = 2
+Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint -> Enable = true
+Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint ->Use config files = true and location set to Default
+Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSCS -> Enable = true
+Then follow the instructions [here](https://www.jetbrains.com/webstorm/help/using-javascript-code-quality-tools.html#installJSCS) to actually install JSCS and come back to the dialog and set JSCS package.
+Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
+Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
+```
+
 # Notes on adventures in node.js land
 ## Building our Javascript Projects
 
