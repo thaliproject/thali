@@ -160,6 +160,69 @@ The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how 
 
 But please, DO NOT SUBMIT COMMITS DIRECTLY TO THE DEPOT! Fork and then submit PRs from a branch on your fork. The *only* exception to this rule is update to gh-pages for the website. Those (and those alone) may be pushed directly to the depot.
 
+# Dealing with JSDoc 3's namepath syntax
+This section records how to deal with declaring and using @link to refer to events, modules, etc. in JSDoc. I found the documentation
+hard to follow.
+
+## There is always a module declaration
+All files should start with /** @module name */ where name is the name of the file. This is the begining of all the paths. For the examples in this text we will use:
+
+```
+/** @module foo */.
+```
+
+## Events
+When declaring an event use the form:
+
+```
+@event module:foo.event:MyEventName
+```
+
+When refering to the event in a link use:
+
+```
+{@link module:foo.event:MyEventName}
+```
+
+When refering to the event in an @fires we also have to use the same syntax, not the event: syntax.
+
+```
+@fires module:foo.event:MyEventName
+```
+
+## Methods on modules
+Imagine we have defined a node.js module and we are using module.exports.bar = function(). We now want to refer to bar. The way to do it
+would be:
+
+```
+{@link module:foo.bar}
+```
+
+## Refering to prototypes
+Imagine we have a node.js module that returns a class called Bar:
+
+```
+function Bar() {
+}
+
+Bar.prototype.ick = function() {
+}
+module.exports = Bar;
+```
+
+With the idea that someone would then:
+
+```
+var Bar = require('Bar');
+var bick = new Bar();
+bick.ick();
+```
+
+To refer to ick we would use:
+```
+{@link module:foo~Bar#ick}
+```
+
 # Fun with Macs
 When I had to set up IntelliJ to run on OS/X and support our Cordova work I ran into two issues immediately. Both have similar solutions. The problems were that JAVA_HOME wasn't set in a way that made IntelliJ happy so Gradle wouldn't run. And IntelliJ couldn't find the Android SDK and so wouldn't load Android projects.
 
