@@ -5,7 +5,7 @@ permalink: "/PresenceProtocolForOpportunisticSynching/"
 header:
    image_fullwidth: "header.png"
 categories:
-    - technologyinvestigations
+    - documentation
 ---
 # Informally defining the problem
 Bob creates a post on his phone. The only way for Bob to communicate this post is via local radios (BLE, Bluetooth and Wi-Fi) because there is no Internet infrastructure in the neighborhood. In other words, all we have are mobile ad-hoc networks. Bob addressed the post to Alice, among others. So Bob wants to determine if Alice and the other people on the post are around and if so send them the post. The only way for Bob to figure this out is using his local radios.
