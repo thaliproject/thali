@@ -1,7 +1,6 @@
 ---
 title: Life Cycle
-layout: page
-sidebar: right
+layout: page-fullwidth
 permalink: "/LifeCycle/"
 categories:
     - documentation
