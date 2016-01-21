@@ -7,6 +7,10 @@
 - name: "Contribution Guide"
   url: "/WaysToContribute"
   title: "Contribution Guide"
+  
+- name: "Documentation"
+  url: "/Documentation"
+  title: "Documentation"
 
 - name: "Related Efforts"
   url: "/RelatedEfforts/"
