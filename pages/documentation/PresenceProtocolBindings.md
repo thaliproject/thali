@@ -5,7 +5,7 @@ permalink: "/PresenceProtocolBindings/"
 header:
    image_fullwidth: "header.png"
 categories:
-    - technologyinvestigations
+    - documentation
 ---
 
 # Bindings for Discovery and Connectivity
