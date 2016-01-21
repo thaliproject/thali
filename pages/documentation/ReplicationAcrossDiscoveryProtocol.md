@@ -5,7 +5,7 @@ permalink: "/ReplicationAcrossDiscoveryProtocol/"
 header:
    image_fullwidth: "header.png"
 categories:
-    - technologyinvestigations
+    - documentation
 ---
 
 In Thali local discovery based replication when a peer has information for other peers it will raise notification beacons for those other peers. Without those notification beacons there is no reliable way for the other peers to find the first peer. This presents a problem however when there is a screw up. 
