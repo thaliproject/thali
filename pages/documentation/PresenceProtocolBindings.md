@@ -9,7 +9,7 @@ categories:
 ---
 
 # Bindings for Discovery and Connectivity
-Thali provides a [specification](http://thaliproject.org/presenceprotocolforopportunisticsynching) that defines how to advertise notification beacons that are designed so that only the target of the beacon can determine who sent it. But that specification did not define how to advertise those beacons. That is the job of this specification.
+Thali provides a [specification](http://thaliproject.org/PresenceProtocolBindings) that defines how to advertise notification beacons that are designed so that only the target of the beacon can determine who sent it. But that specification did not define how to advertise those beacons. That is the job of this specification.
 
 It defines a set of bindings for three transports:
 
