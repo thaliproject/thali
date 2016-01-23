@@ -248,12 +248,14 @@ In the worst case the Bluetooth server might have already seen the Bluetooth cli
 After the Bluetooth Handshake has been sent then we had the streams over for sending and receiving TCP/IP data.
 
 The actual logic for relaying TCP/IP over the Bluetooth connection works as follows:
+
 1. The Thali software tells the local Thali Bluetooth layer to open a Bluetooth client connection to the remote peer
 2. The Bluetooth Client layer will establish the connection (and send the handshake) and will then open a localhost TCP/IP listener and return the port for the listener to the Thali software.
 3. The Thali software then opens a TCP/IP connection to the localhost TCP/IP listener. That listener will accept exactly one connection.
 4. The Bluetooth code will now take the input stream from the TCP/IP connection to the localhost TCP/IP listener and connect it to the output stream of the Bluetooth client connection. The Bluetooth code will then take the input stream from the Bluetooth client connection and connect it to the output stream from the localhost TCP/IP listener. Of course the first byte sent to the client will be confirmed as the response to the Bluetooth Handshake.
 
 The logic works the same on the Bluetooth Server side. Specifically:
+
 1. The Thali software tells the local Thali Bluetooth layer that it wants to receive incoming Bluetooth connections. As part of that API call telling the Thali Bluetooth layer to listen, the Thali software will specify a TCP/IP localhost listener and port.
 2. When a Bluetooth Client connection is made to the device the Thali Bluetooth code will open a TCP/IP client connection to the TCP/IP localhost listener and port specified by the Thali software in step 1. The Bluetooth server will wait to receive the Bluetooth Handshake and then response as defined by the Bluetooth Handshake. Once the Bluetooth Handshake is done then the Bluetooth Server will then take its input stream and connect it to the TCP/IP client's output stream. It will then take the TCP/IP client's input stream and connect it to the Bluetooth Server's output stream.
 
