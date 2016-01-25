@@ -81,7 +81,7 @@ function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration
   beacons = []
   UnencryptedKeyId = SHA256(Kx.public().encode()).first(16)
 
-  for(PubKy : listOfPublicKeysToSyncWith) {
+  for(PubKy : setOfReceivingDevicesPublicKeys) {
     Sxy = ECDH(Kx.private(), PubKy)
     HKxy = HKDF(SHA256, Sxy, Expiration, 32)
     BeaconHmac = HMAC(SHA256, HKxy, Expiration).first(16)
