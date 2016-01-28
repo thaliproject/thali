@@ -77,40 +77,18 @@ That's it. The article will automatically be picked up by our blog feed.
 Just a note that we forward our blog articles to Twitter using [TwitterFeed](http://twitterfeed.com/).
 
 # Process!!!!
-We have daily standups where we review everyone's work in [waffle](https://github.com/thaliproject/thali/blob/gh-pages/index.md). Whatever you are working on now should be in "In Progress" and whatever is on deck for the major feature(s) you are working on should be in "Ready". "Backlog" is just that, things we should do but haven't committed to doing quite yet. "IceBox" are just ideas that we may or may not ever do.
+We have daily standups where we review everyone's work in [HuBoard](https://huboard.com/thaliproject/thali#/).The key columns are Working which is what you are doing right now. When we do stand up we will look there. We don't really distinguish between Ready and Backlog. Icebox however is only for issues that we just don't want to forget but have no commitment of any sort to actually do. Keep in mind that HuBoard creates issues by default in IceBox. When filing a bug PLEASE REMEMBER TO:
 
-# Our backlog/stories
-Strictly speaking the backlog and current work is all tracked using GitHub issues that are aggregated with Waffle as specified above. But we do have a set of higher level stories we maintain to help us see the path ahead. Those stories are defined [here](/Stories).
+1. MOVE IT OUT OF ICEBOX! 
+2. Set the milestone
+3. Assing it to someone
+4. Set a label with a point estimate of how much effort it is (2 days, 5 days or 10 days)
 
 # Naming branches in our depots
-In all of our depots master should only be used for the latest known "good". That is, nobody should ever be doing development in master. Only "finished" code should be in master. Typically code is finished when it is part of a completed story (e.g. see [stories](/Stories)).
-
-All development work therefore occurs on branches. Because we have multiple depots with multiple developers we want to add a little consistency to how we handle naming branches so its easier to find and understand what people are working on. Branch names should always be of the form "storyX" where X is the number assigned to the story. Note that there is no space. Dealing with spaces can be annoying so we will just skip them.
-
-In theory all work on story X should be in branch storyX. But in reality there are times where people are working in the same depot and don't want to deal with running into each other until their code is a bit more mature. In that case you can create your own dev branch called storyX-alias.
-
-So if I was working on story 0.1.0 I would create a branch called story0.1.0.
-
-If I wanted to work on my own dev version of that branch that only I should ever be checking into then I would create a branch called story0.1.0-yarong.
-
-# Shadowing
-Every full time dev on the project must have a shadow. A shadow's job is to make sure that the project can keep making progress even if someone is on vacation or leaves the team. A shadow has two specific jobs:
-
-1. They must review all the code the person they are shadowing owns and must review all PRs from that person. Note that this does not mean that the shadow has to approve all the PRs. Someone else can beat them to the +1, that's fine. It's just that they must actually review all the PRs.
-2. They will be assigned occassional work items in the code base they are shadowing. This work won't take more than a few hours a week maximum (and usually less). But we need to make sure that shadows have their hands "dirty" in the code base they are watching. Assignments will typically be small features or tests.
-
-## Our shadow list
-
-| Developer | Area of Ownership | Shadow |
-|-----------|-------------------|--------|
-| David Douglas | UX | Matthew Podwysocki|
-| Jukka Silvennoinen | Android | Toby Bradshaw |
-| Matthew Podwysocki | Node Code | Yaron Y. Goland |
-| Toby Bradshaw | iOS | Jukka Silvennoinen |
-| Yaron Y. Goland | Node Code | Matthew Podwysocki |
+Right now we have two primary branches. Master (which is what people should be downloading) and vNext which is our next major release. Typically your branch will have the name `vNext_[your email alias]_[Issue Number]`. So, for example, there is vNext_yarong_417 which is a branch that was created from vNext, by yarong working on issue 417.
 
 # Code Reviews
-All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review. The +1 doesn't have to come from the shadow, any qualified person will do.
+All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review.
 
 A code reviewer upon reviewing a PR is certifying two things:
 
@@ -121,8 +99,7 @@ A code reviewer upon reviewing a PR is certifying two things:
 
 In general PRs should be done "silently". A PR gets submitted and someone grabs it and reviews it. Comments should be transmitted via GitHub using in-line commenting. Please DO NOT engage in long discussions. That defeats the purpose since those discussions won't be in the code. Instead the best response to a comment is for the submitter to submit an update to the PR. Good comments aren't offensive and are focused. Unfortunately submitters do need to be able to handle comments like "I really don't understand what this code is doing." However a good reviewer will then follow up that comment with details. Such as "I expected that the code would do X, but I don't see any variables related to X and I don't understand how this function relates to X. For X you would to do A, B and C. I don't see A, B and C." In other words be clear as to what you thought would happen and were your expectations were confounded.
 
-## Code Review etiquette on GitHub
-We are using [codereviewhub.com](http://codereviewhub.com) to make code reviewing PRs on GitHub a tiny bit less painful. Please click on that link and watch the 95 second video. It really does explain everything. The general rule is that the only person who can :+1: a comment to close it is the person who created it. So as the person whose code is being reviewed please just respond to the comment when you have fixed it and then the person who created the comment will get an email and can then see if they agree and if so :+1:.
+You will notice that there is a link to reviewable in our code reviews. Please use it to do your code reviews.
 
 # Coding guidelines
 ## Javascript (both Node.js and in our demo apps)
