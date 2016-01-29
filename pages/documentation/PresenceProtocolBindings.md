@@ -74,6 +74,27 @@ Node 10 and above do not support OpenSSL's PSK support. Therefore we have to ext
 
 We propose adding a new option to tls.createServer, `PSKCallback`. This option takes as its value a function which will receive a UTF-8 string as input.
 
+> **NOTE:** The TBD approach on `tls.createServer` is to provide a callBack (as `pskCallback`) which when given a string is to provide the Pre-shared key as a Buffer in return.
+
+```Javascript
+var serverOptions = {
+  // optional - configure a mixed set of cert and PSK ciphers
+  ciphers: 'RC4-SHA:AES128-SHA:AES256-SHA:PSK-AES256-CBC-SHA:PSK-3DES-EDE-CBC-SHA:PSK-AES128-CBC-SHA:PSK-RC4-SHA',
+  /**
+    * @param {String} id User ID for lookup
+    * @returns {Buffer}
+  */
+  pskCallback: function (id) {
+    if (id in users) {
+      return users.psk;
+    }
+    return null;
+  },
+  key: loadPEM('agent2-key'),
+  cert: loadPEM('agent2-cert')
+};
+```
+
 `PSKCallback` will only be called if the TLS connection negotiates a `PSK` cipher suite. Otherwise it is ignored.
 
 If the synchronous response to the `PSKCallback` is a Node.js buffer object with at least one byte then that buffer's content MUST be used the PSK on the TLS connection. If the response is either not a buffer object or is an empty buffer object then the PSK connection MUST be rejected with a TLS `decrypt_error`.
@@ -105,9 +126,20 @@ var supportedPskCiphers = {
 */
 ```
 
+> **NOTE:** The approach TBD is that `tls.connect` will take an object that contains `pskIdentity {string}` and `pskKey {Buffer}`.  Ciphers within tls are to be expanded to support what exists in OpenSSL 1.0.x today - which are: 
+
+```Javascript
+var DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' + // TLS 1.2
+                      'PSK-AES256-CBC-SHA:PSK-3DES-EDE-CBC-SHA:PSK-AES128-CBC-SHA:PSK-RC4-SHA:' + //TODO:SPC PSK adding to default ciphers
+                      'RC4:HIGH:!MD5:!aNULL:!EDH';                   // TLS 1.0
+
+``` 
+
 If pskConfig is set to null, if any of the required properties are missing, if any of the required properties do not have the specified type (including the enum binding for cipher), if the psk buffer is empty or if the pskIdentity string is null then the pskConfig value MUST be ignored.
 
 If the pskConfig option is used with pfx, key, passphrase, cert or ca then pskConfig MUST be ignored.
+
+> **NOTE:** the base implemenentation for tls.createServer *requires* that a cert and key are provided; although the resulting implementation here will just use the PSK instead.
 
 If the pskConfig option is not ignored then the TLS client connection MUST use the specified cipher, must submit the specified pskIdentity and must use the submitted psk value with the connection. If the server should reject any of these choices then an appropriate clientError MUST be emitted.
 
