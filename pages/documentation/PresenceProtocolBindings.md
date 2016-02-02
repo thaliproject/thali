@@ -317,7 +317,7 @@ When starting BLE advertising on Android the `startAdvertising()` API of `Blueto
 
 `advertiseData` MUST be set to:
 * `addManufacturerData()` - This MUST NOT be set. We need all the space in the BLE Advertisement we can get.
-* `addServiceData(serviceDataUuid, serviceData)` - `serviceDataUuid` MUST be set to the Thali service's BLE UUID and serviceData MUST be set to the single byte "0" followed by the BLE UUID as a byte stream.
+* `addServiceData(serviceDataUuid, serviceData)` - `serviceDataUuid` MUST be set to the Thali service's BLE UUID and serviceData MUST be set to the single byte "0" followed by the Bluetooth MAC address as a byte stream.
 * `addServiceUuid(serviceUuid)` - `serviceUuid` MUST be set to the Thali service's BLE UUID.
 * `setIncludeDeviceName()` - Must be set to false. We need the space.
 * `setIncludeTxPowerLevel()` - Must be set to false. We need the space.
