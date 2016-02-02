@@ -8,11 +8,10 @@ layout: frontpage
 header:
   image: 'banner.png'
   caption: 'An experimental platform for building the peer web sponsored by Microsoft'
-  background-color: "#CA0046"
+  background-color: "#2C9C91"
 widget1:
   title: "No Internet? No problem."
   image: 'widget-no-internet.png'
-  color: "#ff0000"
   text: 'Communicate with other local devices without any Internet support using BLE, Bluetooth and Wi-Fi Direct.'
 widget2:
   title: "Stay in sync"
