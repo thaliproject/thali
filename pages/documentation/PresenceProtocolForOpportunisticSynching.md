@@ -169,7 +169,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
       return null; // Once we find a matching beacon we stop, even if the sender is unrecognized
     }
 
-    BeaconHmac = encryptedBeacon.slice(32, 48)
+    BeaconHmac = encryptedBeaconKeyId.slice(32, 48)
     Sxy = ECDH(Ky.private(), PubKx)
     HKxy = HKDF(SHA256, Sxy, Expiration, 32)
     if (BeaconHmac.equals(HMAC(SHA256, HKxy, Expiration).first(16)) {
