@@ -27,6 +27,7 @@ Personal devices can store our data, exchange it with trusted peers, and sync to
 
 # How?
 On the wire we create our peer to peer web using:
+
 * CouchDB's HTTP based synch protocol,
 * public keys for identity with mutual TLS auth for authentication and secrecy,
 * Tor Hidden Services for traffic analysis protection and NAT/Firewall penetration,
@@ -34,6 +35,7 @@ On the wire we create our peer to peer web using:
 * Our soon to be invented HTTP based protocol for high latency mesh formation
 
 Our software is based on:
+
 * [Cordova](https://cordova.apache.org/),
 * a Cordova plugin to provide local Node.js support using [JXCore](https://github.com/jxcore/jxcore),
 * [PouchDB](http://pouchdb.com/),
