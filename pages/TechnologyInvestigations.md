@@ -5,7 +5,7 @@ permalink: "/TechnologyInvestigations/"
 header:
    image_fullwidth: "header.png"
 ---
-##Thali, Node.js & PouchDB
+## Thali, Node.js & PouchDB
 
  - [Node.js on Devices](/NodeOnDevices)
  - [Securing WebView/Node.js communication](/SecuringCordovaAndNodeJs)
@@ -18,7 +18,7 @@ header:
  - [OpenSSL and Thali](/OpenSSLAndThali)
  - [Spec for Thali's Identity Exchange Protocol for Node](http://www.goland.org/thaliidentityexchangeprotocol/)
 
-##Our P2P Connectivity Investigation on Android
+## Our P2P Connectivity Investigation on Android
 
  - [BTConApp - where we keep the p2p code](https://github.com/thaliproject/BTConApp)
  - [P2P between Android Devices](/AndroidP2P)
@@ -30,14 +30,14 @@ header:
  - [Service Discovery Oddities](http://www.drjukka.com/blog/wordpress/?p=52)
  - [Announcing the first release of the P2P library](http://www.drjukka.com/blog/wordpress/?p=75)
 
-##Our P2P Connectivity Investigation on iOS
+## Our P2P Connectivity Investigation on iOS
 
  - [iOS P2P - An overview](/iOSp2p)
  - [Thali Bubbles - where we keep the P2P code](https://github.com/thaliproject/ThaliBubbles)
  - [BLE issues on iOS](http://www.softwarenerd.org/code/2015/4/16/bubble-chat-and-tsnpeerbluetooth-cocoapod)
  - [Android/iOS Local Radio Interop - Oy](http://www.goland.org/thaliiosandroidinterop/)
 
-##Other relevant articles
+## Other relevant articles
 
  - [Thali and Tor Onion Proxy](/ThaliAndTorOnionProxy)
  - [Thali and Tor Hidden Services](/ThaliAndTorHiddenServices)

@@ -69,6 +69,7 @@ But the core library would handle publishing location information and extend rep
 For battery based devices we will also need a module to specifically be smart about using radios in a battery smart way. The device can't afford to constantly be communicating. So we will need logic specifically to handle how often and how much to sync.
 
 # PublicKeyIdentity
+
 ## Node.js Package
 We want to use the Thali approach of allowing two devices to authenticate to each other and communicate security using X.509 and mutual TLS auth. This is all supported in node.js already but we really could use a library to handle a lot of the scut work on generating keys, storing them, configuring TLS mutual auth connections, etc.
 

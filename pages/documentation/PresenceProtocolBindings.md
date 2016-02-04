@@ -126,14 +126,14 @@ var supportedPskCiphers = {
 */
 ```
 
-> **NOTE:** The approach TBD is that `tls.connect` will take an object that contains `pskIdentity {string}` and `pskKey {Buffer}`.  Ciphers within tls are to be expanded to support what exists in OpenSSL 1.0.x today - which are: 
+> **NOTE:** The approach TBD is that `tls.connect` will take an object that contains `pskIdentity {string}` and `pskKey {Buffer}`.  Ciphers within tls are to be expanded to support what exists in OpenSSL 1.0.x today - which are:
 
 ```Javascript
 var DEFAULT_CIPHERS = 'ECDHE-RSA-AES128-SHA256:AES128-GCM-SHA256:' + // TLS 1.2
                       'PSK-AES256-CBC-SHA:PSK-3DES-EDE-CBC-SHA:PSK-AES128-CBC-SHA:PSK-RC4-SHA:' + //TODO:SPC PSK adding to default ciphers
                       'RC4:HIGH:!MD5:!aNULL:!EDH';                   // TLS 1.0
 
-``` 
+```
 
 If pskConfig is set to null, if any of the required properties are missing, if any of the required properties do not have the specified type (including the enum binding for cipher), if the psk buffer is empty or if the pskIdentity string is null then the pskConfig value MUST be ignored.
 
@@ -176,7 +176,7 @@ Systems MUST also detect when they are receiving an excessive number of incoming
 # Implications of Bluetooth and Multi-Peer Connectivity Framework's (MPCF) TCP/IP Binding approaches
 
 ## TCP/IP Framing and command packets are torn off
-As will be explained below we relay TCP/IP content over our non-TCP/IP transports by connecting TCP/IP output streams to the non-TCP/IP transport's input streams and the non-TCP/IP transport's input streams to TCP/IP's output streams. 
+As will be explained below we relay TCP/IP content over our non-TCP/IP transports by connecting TCP/IP output streams to the non-TCP/IP transport's input streams and the non-TCP/IP transport's input streams to TCP/IP's output streams.
 
 But when we do this the only thing that gets moved is the data inside of the TCP/IP data packets. The data packet headers and the TCP control commands like FIN packets are not transmitted.
 
@@ -196,14 +196,14 @@ To a certain extent peer to peer just doesn't work super well in massively noisy
 
 Our general reaction to super noisy environments is to just shut down. Basically there is no difference for us between super noisy environments and a denial of service attack.
 
-However, and this clearly violates user privacy, there are hacks. 
+However, and this clearly violates user privacy, there are hacks.
 
 For example, let's say someone pulls out their Android Thali application and sends a message to someone. If the Thali app has previously talked to that person then it could record their Bluetooth address and try to just blind connect to the Bluetooth address. This costs several seconds but if the person is around and if there is enough bandwidth to talk then a Bluetooth connection can be established and communication can begin. This approach can be generalized where, when we are in a noisy environment, we switch from broadcast to point to point discovery and try to walk down the list of folks we want to notify. This only works because Android does not rotate Bluetooth network addresses. If it did then we couldn't use this shortcut. Note that this approach also works in the case that the Thali application didn't know the other application's Bluetooth address ahead of time but rather learns it via local discovery. Once the address is known, however that happened, it can be used to directly connect in the future.
 
 A similar trick is possible with iOS if we are willing to play evil games with peerIDs. There are two variants of this game. The less evil variant is that when an application establishes a `MCSession` it will never end it until it goes into the background. That way if two peers find each other then at least they can keep talking until the app goes into the background. A slightly more evil variant is that a peer will pick a `peerID` that it will use for some fixed period of time (say 24 hours) and will always advertise. It would then advertise a second `peerID` (assuming iOS allows for multiple simultaneous `MCNearbyServiceAdvertiser` objects to exist) that would then rotate everytime the notification beacon changes. When the peer makes connection with another peer it can communicate its static `peerID` so that the other peer can try to establish a direct connection in the future. Ideally we would be able to get rid of the second `peerID` by putting notification beacon "updated" values into the info field. But this assumes that if we stop and restart advertising with the same `peerID` but different info objects that this change will be picked up by those around us and thus make it an effective notification mechanism.
 
 # BLE Binding
-For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send. 
+For now we will use `ADV_NONCONN_IND` as our advertising PDU and leverage AdvData  to transmit the information we need to send.
 
 We do not currently define any `ScanRspData` values for `SCAN_RSP` responses to `SCAN_REQ` PDUs. We also do not currently define any characteristics. Instead we transfer all the data we need in the BLE announcement PDU. In the future however, when we want to work with iOS in the background, we will need to introduce characteristics.
 
@@ -252,7 +252,7 @@ Once the Bluetooth Address is discovered the central will switch to an insecure 
 ## The Bluetooth handshake and surprise connections
 Imagine a situation where Thali Peer B is advertising over BLE and suddenly receives a Bluetooth connection from Thali Peer A. Thali Peer B had not previously discovered Thali Peer A over BLE.
 
-There are two possible reasons for why Thali Peer B hadn't previously discovered Thali Peer A. 
+There are two possible reasons for why Thali Peer B hadn't previously discovered Thali Peer A.
 
 One possibility is that Thali Peer A hadn't been advertising itself over BLE because it didn't have any notification beacons to advertise. In other words, Thali Peer B hadn't found Thali Peer A over BLE because Thali Peer A wasn't advertising itself over BLE.
 
@@ -300,7 +300,7 @@ As mentioned above this only creates a single TCP/IP connection over each Blueto
 ## iOSDevice
 Normally we do not use BLE for discovery with iOS. Instead we use the multi-peer connectivity framework whose binding will be described later in this document. However in order to enable iOS devices to be discovered in the background we also want to support BLE. However when an iOS device is in the background it can only communicate over BLE and so any further communication will have to occur using BLE characteristics. We will define the characteristics used to communicate beacon data in the future when we get closer to implementing this functionality.
 
-##Notifying when beacons change
+## Notifying when beacons change
 Once a Thali central finds a Thali peripheral and makes a request to /NotificationBeacons how does it know if the value of the notification beacons ever changes? After all, the peripheral might have new data for the central. How will this be discovered? If we were using characteristics then we could do a connect and use the notify functionality built into BLE. But for the reasons previously discussed we are not using characteristics.
 
 Our solution depends on a behavior we have observed with Android. Whenever we stop and re-start a BLE peripheral Android appears to always give us a new BLE address. Therefore whenever the value in /NotificationBeacons change the BLE service MUST be stopped and restarted in order to obtain a new address. The result being that the peripheral will now look like a brand new device to everyone in the vicinity and they will automatically connect to get the new /NotificationBeacons value.
@@ -375,10 +375,10 @@ __Note:__ Our experiments with iOS 8 have shown that if we form two simultaneous
 
 ## MCNearbyServiceBrowser
 MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `initWithPeer:serviceType:` on  `MCNearbyServiceBrowser` the arguments MUST be:
-* `myPeerID` - a newly generated UUID. 
+* `myPeerID` - a newly generated UUID.
 * `serviceType` - "thaliproject".
 
-__Open issue:__ I need to get out wireshark or equivalent to resolve this one but I believe the `serviceType` argument is meant to map to the `service` component of a mDNS discovery name as defined in [RFC 6763](http://tools.ietf.org/html/rfc6763). This then takes us to [RFC 6355](http://tools.ietf.org/html/rfc6335) which manages registration of DNS service names. The requirements in section [5.1 of RFC 6355](http://tools.ietf.org/html/rfc6335#section-5.1) match Apple's rules for `serviceType`. We therefore will use a complying name, in this case, "thaliproject" and yes, we really need to register it with IANA per [this bug](https://github.com/thaliproject/Thali_CordovaPlugin/issues/230). 
+__Open issue:__ I need to get out wireshark or equivalent to resolve this one but I believe the `serviceType` argument is meant to map to the `service` component of a mDNS discovery name as defined in [RFC 6763](http://tools.ietf.org/html/rfc6763). This then takes us to [RFC 6355](http://tools.ietf.org/html/rfc6335) which manages registration of DNS service names. The requirements in section [5.1 of RFC 6355](http://tools.ietf.org/html/rfc6335#section-5.1) match Apple's rules for `serviceType`. We therefore will use a complying name, in this case, "thaliproject" and yes, we really need to register it with IANA per [this bug](https://github.com/thaliproject/Thali_CordovaPlugin/issues/230).
 
 The `MCNearbyServiceBrowser` MUST have its delegate property set to a proper callback.
 
@@ -433,11 +433,11 @@ __Open Issue:__ It is worth noting that a race condition exists where the lexica
 
 ### Lexically Smaller Peer
 
-From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules. 
+From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
 
 As soon as the session invitation is accepted the lexically smaller peer MUST establish an output stream with the lexically larger peer following the same rules as given for the lexically larger peer above.
 
-The lexically smaller peer MUST wait to receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm its values as given for the lexically larger peer. 
+The lexically smaller peer MUST wait to receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm its values as given for the lexically larger peer.
 
 At this point the session is said to be ready. That is, both peers are members of the same session and both have established output streams to each other.
 

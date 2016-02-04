@@ -79,7 +79,7 @@ Just a note that we forward our blog articles to Twitter using [TwitterFeed](htt
 # Process!!!!
 We have daily standups where we review everyone's work in [HuBoard](https://huboard.com/thaliproject/thali#/).The key columns are Working which is what you are doing right now. When we do stand up we will look there. We don't really distinguish between Ready and Backlog. Icebox however is only for issues that we just don't want to forget but have no commitment of any sort to actually do. Keep in mind that HuBoard creates issues by default in IceBox. When filing a bug PLEASE REMEMBER TO:
 
-1. MOVE IT OUT OF ICEBOX! 
+1. MOVE IT OUT OF ICEBOX!
 2. Set the milestone
 3. Assing it to someone
 4. Set a label with a point estimate of how much effort it is (2 days, 5 days or 10 days)
@@ -102,6 +102,7 @@ In general PRs should be done "silently". A PR gets submitted and someone grabs 
 You will notice that there is a link to reviewable in our code reviews. Please use it to do your code reviews.
 
 # Coding guidelines
+
 ## Javascript (both Node.js and in our demo apps)
 We follow PouchDB on this one, please read their "Guide to Contributions" [here](https://github.com/pouchdb/pouchdb/blob/master/CONTRIBUTING.md#guide-to-contributions)
 
@@ -142,7 +143,7 @@ This section records how to deal with declaring and using @link to refer to even
 hard to follow.
 
 ## There is always a module declaration
-All files should start with /** @module name */ where name is the name of the file. This is the begining of all the paths. For the examples in this text we will use:
+All files should start with `/** @module name */` where name is the name of the file. This is the beginning of all the paths. For the examples in this text we will use:
 
 ```
 /** @module foo */.
@@ -257,6 +258,7 @@ Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
 ```
 
 # Notes on adventures in node.js land
+
 ## Building our Javascript Projects
 
 Right now we are using stock PouchDB. We just keep this section around if we have to remember how we used to build our own version.
