@@ -244,18 +244,16 @@ The default key binding for Wrap to Column uses meta which doesn't work on Windo
 
 Here are the settings I use:
 
-```
-Appearance & Behavior -> Appearance ->Theme->Darcula
-Editor->General->Appearance->Show line numbers
-Editor->Code Style->Right margin (columns): 80
-Editor->Code Style->JavaScript-> Tab Size, Indent, Continuation indent = 2
-Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint -> Enable = true
-Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint ->Use config files = true and location set to Default
-Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSCS -> Enable = true
-Then follow the instructions [here](https://www.jetbrains.com/webstorm/help/using-javascript-code-quality-tools.html#installJSCS) to actually install JSCS and come back to the dialog and set JSCS package.
-Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
-Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
-```
+* Appearance & Behavior -> Appearance ->Theme->Darcula
+* Editor->General->Appearance->Show line numbers
+* Editor->Code Style->Right margin (columns): 80
+* Editor->Code Style->JavaScript-> Tab Size, Indent, Continuation indent = 2
+* Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint -> Enable = true
+* Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSHint ->Use config files = true and location set to Default
+* Languages & Frameworks -> JavaScript -> Code Quality Tools -> JSCS -> Enable = true
+* Then follow the instructions [here](https://www.jetbrains.com/webstorm/help/using-javascript-code-quality-tools.html#installJSCS) to actually install JSCS and come back to the dialog and set JSCS package.
+* Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
+* Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
 
 # Notes on adventures in node.js land
 
