@@ -35,6 +35,10 @@ urlimg: 'http://thaliproject.org/images/'
 logo: "logo@2x.png"
 
 
+# Gems
+gems:
+  - jekyll-paginate
+
 # Paginates all X entries
 paginate: 5
 
@@ -43,10 +47,15 @@ paginate: 5
 paginate_path: "blog/page:num"
 
 
-# Theme works best with kramdown (using the table of contents function)
+# gh-pages settings
 markdown: kramdown
+kramdown:
+  input: GFM
+  hard_wrap: false
+  syntax_highlighter: rouge
+
+# Config
 permalink: /:categories/:title/
-highlight: pygments
 excerpt_separator: "<!--more-->"
 include: ['.htaccess']
 # Exclude these files from your production _site
@@ -58,6 +67,15 @@ exclude:
     - LICENSE
     - README.md
     - INSTALL.md
+
+
+# Configuration settings you cannot change for gh-pages
+lsi: false
+safe: true
+incremental: false
+highlighter: rouge
+gist:
+  noscript: false
 
 
 # The language setting is used in /includes/header.html for html-settings

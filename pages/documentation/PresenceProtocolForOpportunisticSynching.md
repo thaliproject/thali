@@ -203,6 +203,7 @@ __get(k)__ - Returns the value associated with the submitted key, null if there 
 __read(n)__ - Reads n bytes from a stream.
 
 # Q&A
+
 ## Why can't users just announce their keys publicly? Maybe encrypt them with a group key?
 
 Looking at our informal definition we can imagine that one way for Bob to find Alice is for Alice to just announce her public key over BLE. In fact, if everyone would just announce their public keys over BLE everything would be so much simpler! Everyone can see exactly who is around, figure out if they have something for them and then transmit it. The problem is that now everyone is announcing their identity to anyone who will listen.
@@ -327,4 +328,3 @@ What’s interesting is that while this approach would protect the notifier’s 
 Another, probably much more significant, problem with using the root keys is that this means that the root identity keys have to be physically present on the device and usable by a process that is network connected. This is usually considered less than an ideal because it means a security compromise, much more likely with a network connected process, can be escalated into a full identity compromise. In an ideal work the root identity key would either not be on the device at all (the device only using a time limited key chain from the root authorizing it to act on the user’s behalf) or at the very least not on a process that is anywhere near a network connection.
 
 My current best guess is that the way we will address these issues is by using purpose specific notification keys. These keys are not the root identity key but instead are separate keys that are generated and then signed by the root keys and exchanged during identity exchange. The keys are time limited and the peers would need to occasionally do exchanges of updated notification keys. In the case of personal meshes it’s even possible (although clearly not ideal as it puts too much of a burden on others and leaks too much information about the user’s devices) that each device in the mesh would have its own distinct notification keys. In that case if user A wants to notify user B who has 5 different devices then user A might have to advertise 5 different notification beacons, one for each of user B’s devices. Imagine replicating this across 100 users and we just increased the number of notification beacons by a factor of 5. But the alternative is that all the devices in the personal mesh have to share the same key which means moving the notification private key across the wire, generally a no-no.
-

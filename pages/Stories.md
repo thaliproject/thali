@@ -13,10 +13,10 @@ There is nothing particularly magical about these stories. They certainly won't 
 
 In addition there are dependencies between stories that are shown as not being dependent. For example, ACLs, notifications and quotas are all shown as being parallel stories but in fact all depend on having an eventual consistency hosting framework (see below for details). Rather than creating tons of tiny stories I've laid things out in a general "big picture" flow with the understanding that all dependencies aren't fully shown.
 
-#####Story dependency chart
+##### Story dependency chart
 The following displays all the stories listed below in dependency order:
 
-#Stories:
+# Stories:
  - ~~**-1** Integrate native and JXCore~~
  - ~~**0** Turn on the lights~~
    - ~~**0.0** Bring in the public keys~~

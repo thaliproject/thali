@@ -8,10 +8,10 @@ categories:
     - technologyinvestigations
 ---
 
-#WARNING#
+# WARNING
 These are my raw notes trying to figure out how to get Node-Gyp on Linux to build for Android. As I learn more I'll clean these up and eventually (if things work) turn them into instructions or (if things don't work) explain the problem. But for now, they are just a mess. You have been warned!
 
-#The Notes#
+# The Notes
 The immediate goal is to build node-leveldown.
 
 I started simply on my Linux box and ran "npm install leveldown". That worked just fine, including building leveldb which is a C program.
@@ -34,7 +34,7 @@ In truth I dug into the node-gyp code and looked at the JS for handling the call
 
 I actually tried a little experiment, I issued the following:
 
-``` bash
+```bash
 yaron@yaron-elementary-VirtualBox:/tmp/node-leveldown$ /usr/lib/node_modules/node-gyp/gyp/gyp_main.py binding.gyp -f android -I /tmp/node-leveldown/build/config.gypi -I /usr/lib/node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=/tmp/node-leveldown --depth=. --no-parallel --generator-output build -Goutput_dir=.
 ```
 
@@ -58,7 +58,7 @@ source ./android-configure NDK_PATH gyp
 
 The [script](https://github.com/joyent/libuv/blob/master/android-configure) starts with the traditional android-toolchain script we see in the node.js build script. The interesting part is the bottom where it calls:
 
-``` bash
+```bash
 ./gyp_uv.py -Dtarget_arch=arm -DOS=android
 ```
 
@@ -117,12 +117,12 @@ So the obviously sane thing for me to do now is to start without any native code
 
 So in the source code I need to put in:
 
-```Javascript
+```javascript
 var pouch = new PouchDB('myDB', {db: require('medeadown')});
 ```
 The previous was taken from [here](https://groups.google.com/forum/#!topic/pouchdb/xEdGxX7JIiM).
 
-#My current (incomplete, non-functional) attempt at instructions#
+# My current (incomplete, non-functional) attempt at instructions
 Setting up IntelliJ on Linux
 
  1. Run 'npm -g install node-gyp'
@@ -135,15 +135,15 @@ Setting up IntelliJ on Linux
  7. For Script navigate to node-leveldown/node_modules/node-gyp/gyp/gyp_main.py and set that
  8. For Script parameters use:
 
-    ``` bash
-    binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
-    ```
+     ```bash
+     binding.gyp -f android -I ./build/config.gypi -I ./node_modules/node-gyp/addon.gypi -I /home/yaron/.node-gyp/0.10.32/common.gypi -Dlibrary=shared_library -Dvisibility=default -Dnode_root_dir=/home/yaron/.node-gyp/0.10.32 -Dmodule_root_dir=. --depth=. --no-parallel --generator-output build -Goutput_dir=.
+     ```
 
-  1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
+     1. Note that you have to replace /home/yaron with your own home path. I did try using ~ but it doesn't resolve correctly.
  9. For Python Interpreter set to 'Use specified interpreter' and choose the one set for your project
  10. For working directory set it to the full path to wherever you cloned node-leveldown
  11. Now find your comment line and edit deps/snappy/snappy.gyp and add the following to targets/variables/conditions:
 
-    ``` json
-    , ['OS=="android"', {'os_include': 'linux'}]
-    ```
+     ```json
+     , ['OS=="android"', {'os_include': 'linux'}]
+     ```

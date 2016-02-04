@@ -214,6 +214,7 @@ So your code in your forked repository is done and you are ready to have it move
 Generally the goal when submitting a pull request is to make a 'clean' request. That is, nobody (generally) is interested in the entire history of everything you have done. What they want is a pull request that will add exactly one commit to their history, the one with your changes.
 
 How I handle this depends on how big my pull request is and how far ahead of the upstream repository I am.
+
 ## My branch contains a superset of what I want to submit in the pull request
 
 An example of this situation is CouchBase Lite. I have a branch of their depots that contains a whole list of changes that CouchBase isn't ready to deal with. So instead they ask me to submit them one by one over a long period of time. Since I can't stop developing it means that my personal branch is way, way ahead of what is in the upstream branch. So when I do pull requests with them the way I handle it is by creating a new local branch, synching it to the current state of the upstream branch and then making the changes I want in the pull request.
