@@ -32,13 +32,13 @@ Next step is to walk through our spec stack. After reading the above the specs t
 
 * [Notification Crypto Design](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolForOpportunisticSynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
 * [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
-* [Our Mobile Layer Bindings](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
-* [A wrapping for our mobile layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobileNativeWrapper.js) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
-* [Our TCP Server/Multiplex Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/TCPServersManager.js) - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
-* [Our WiFi Discovery layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
-* [Connectivity Layer](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
-* [Notification Beacons](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_03_yarong/thali/thaliNotificationBeacons.js) - Defines an API for generating and processing notification beacons
-* [Thali Mobile WiFi Mock](https://github.com/thaliproject/Thali_CordovaPlugin/blob/story_001/thali/NextGeneration/wifiBasedNativeMock.js) - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop.
+* thaliMobileNative.js - This defines the API that our native code implementations are supposed to expose to JXcore.
+* thaliMobileNativeWrapper.js - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
+* TCPServersManager.js - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
+* thaliWifiInfrastructure.js - How we do discovery when we have WiFi available
+* thaliMobile.js - This is a common API to handle both TCP and non-TCP transports
+* thaliNotificationBeacons.js - Defines an API for generating and processing notification beacons
+* wifiBasedNativeMock.js - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop. We aren't completely committed to this yet.
 
 With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_001 and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
 
@@ -77,7 +77,7 @@ That's it. The article will automatically be picked up by our blog feed.
 Just a note that we forward our blog articles to Twitter using [TwitterFeed](http://twitterfeed.com/).
 
 # Process!!!!
-We have daily standups where we review everyone's work in [HuBoard](https://huboard.com/thaliproject/thali#/).The key columns are Working which is what you are doing right now. When we do stand up we will look there. We don't really distinguish between Ready and Backlog. Icebox however is only for issues that we just don't want to forget but have no commitment of any sort to actually do. Keep in mind that HuBoard creates issues by default in IceBox. When filing a bug PLEASE REMEMBER TO:
+We have daily standups where we review everyone's work in [HuBoard](https://huboard.com/thaliproject/thali/).The key columns are Working which is what you are doing right now. When we do stand up we will look there. We don't really distinguish between Ready and Backlog. Icebox however is only for issues that we just don't want to forget but have no commitment of any sort to actually do. Keep in mind that HuBoard creates issues by default in IceBox. When filing a bug PLEASE REMEMBER TO:
 
 1. MOVE IT OUT OF ICEBOX!
 2. Set the milestone
