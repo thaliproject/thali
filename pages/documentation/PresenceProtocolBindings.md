@@ -166,6 +166,8 @@ HTTP clients making requests to /NotificationBeacons MUST put in place protectio
 
 HTTP servers offering /NotificationBeacons MUST put in place protections such that if the load of requests on the server becomes excessive the server will either filter out excessive requesters or if that is not workable then the server will disable the notification discovery system all together and not offer the server port for a period of time.
 
+A problem we have is that right we can only serve up a single TCP port over non-TCP transports and even over SSDP we only advertise a single port. So how do we host both a TLS connection with PSK for authenticated callers and a non-TLS clear HTTP connection for those who just want beacons? There are solutions such as connection sniffing and some proxy magic but Ville suggested a much simpler solution. We will reserve the magic identity name "beacons" and a secret consising of 16 0 bytes in a row. Anyone who just wants a beacon value can use that identity/secret to get beacons and nothing else.
+
 # Denial of Service (DOS) Protections for Discovery and Connectivity
 In general it is impossible to stop DOS attacks in a local radio environment. There are just too many easy ways to block channels. However implementers do have a responsibility to mitigate the damage from DOS attacks to just being a loss of connectivity. It should not be possible to escalate such attacks to the point where they cause a loss of CPU, Storage or (usually as a result of the other two) battery.
 
