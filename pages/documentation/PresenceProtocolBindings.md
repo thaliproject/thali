@@ -384,7 +384,8 @@ Throughout the discussion on MPCF we'll be referring to two different kinds of p
 
 ### PeerID - Breakdown
 The general format for a PeerID is:
-  <UUID>:<GenerationID> where <UUID> is the unique identifier for the peer, : is the literal ':' (colon) character and <GenerationID> is an unsigned integer.
+  UUID:GenerationID 
+where UUID is the unique identifier for the peer, : is the literal ':' (colon) character and GenerationID is an unsigned integer starting at 1.
 
   * UUID - The globally unique identifier of the peer. This uniquely identifies the peer to other application instances. It is not guaranteed to persist between application sessions.
   * GenerationID - Used by the thali application to signify to other peers that some state of the peer has changed and that remote peers may wish to connect to this peer to determine if there is new information i.e. a message for the remote peer.
@@ -430,7 +431,9 @@ If a lexically larger peer wishes to connect to a lexically smaller peer then it
 
 * `PeerID` - The `PeerID` of the discovered peer taken from the discoveryInfo passed into the `MCNearbyServiceBrowser` callback.
 * `toSession` - The `MCSession` object that is passed in MUST be newly created for this connection following the previously specified rules.
-* `withContext` - utf8-encoded string of the form: <PeerID>+<PeerID> where the local (connecting) PeerID appears on the left hand-side of the literal '+' (plus) character and the remote PeerID appears on the right hand side.
+* `withContext` - utf8-encoded string of the form: 
+  PeerID+PeerID
+ where the local (connecting) PeerID appears on the left hand-side of the literal '+' (plus) character and the remote PeerID appears on the right hand side.
 * `timeout` - Unless overridden by the application the default timeout MUST be 10 seconds.
 
 Once the lexically larger peer has invited the lexically smaller peer to a session the lexically larger peer MUST NOT invite the lexically smaller peer to any additional sessions until the outstanding invite has been resolved (either via time out, acceptance or rejection). If the invitation times out then the lexically larger peer MAY repeat the invitation but no more frequently than ever 300 ms. If the invitation is rejected then the lexically larger peer MUST return an error if the invitation came as part of a request from the local Thali application. In either case the lexically larger peer, if the invitation is rejected, MUST NOT retry without another request either from the Thali application or from the lexically smaller peer (see next section).
@@ -452,7 +455,7 @@ __Open Issue:__ It is worth noting that a race condition exists where the lexica
 
 ### Lexically Smaller Peer
 
-From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is well-formed (<PeerID>+<PeerID>) . If the `context` is not well-formed then the invited peer MUST reject the invitation. If the `context` is well-formed, and the UID portion of that context is indeed lexically smaller than the local peers current UID then the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
+From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is well-formed (PeerID+PeerID) . If the `context` is not well-formed then the invited peer MUST reject the invitation. If the `context` is well-formed, and the UID portion of that context is indeed lexically smaller than the local peers current UID then the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
 
 As soon as the session invitation is accepted the lexically smaller peer MUST establish an output stream with the lexically larger peer following the same rules as given for the lexically larger peer above.
 
