@@ -405,7 +405,7 @@ Because iOS requires that `MCNearbyServiceBrowser` MUST stop running when the ap
 ## MCNearbyServiceAdvertiser
 When the Thali application wishes to be discovered, typically because it has notification beacon values to advertise, it MUST create a `MCNearbyServiceAdvertiser`  object with the arguments as follows:
 * `myPeerID` - The same MCPeerID object being used by MCNearbyServiceBrowser
-* `info` - UTF8 encoded string representation of an application-generated UUID that is the current application level peer id.
+* `info` - UTF8 encoded string representation of an application-generated UUID + GenerationID that is the current application level peer id. - See discussion [above](#PeerID - Breakdown)
 * `serviceType` - "thaliproject".
 
 The MCNearbyServiceAdvertiser object MUST also have its delegate property set to a proper callback.
@@ -423,14 +423,14 @@ The core of the binding is the `MCSession` object. This object can be created in
 
 But per the previously mentioned bug we MUST NOT end up in a situation where we have two `MCSession` objects on the same peer involving the same remote peer.
 
-Our solution to this situation is to leverage the fact that as defined below `peerID`s are UUIDs. This means they are (within reason) globally unique and they can be lexically compared. The larger of two UUIDs is defined as the UUID whose value represented as ASCII bytes when compared in ASCII ordering is the first to have a higher byte value for a character.
+Our solution to this situation is to leverage the fact that as defined above `PeerID`s contain UUIDs. This means they are (within reason) globally unique and they can be lexically compared. The larger of two UUIDs is defined as the UUID whose value represented as ASCII bytes when compared in ASCII ordering is the first to have a higher byte value for a character.
 
 ### Lexically Larger Peer
 If a lexically larger peer wishes to connect to a lexically smaller peer then it MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session with the following arguments:
 
-* `peerID` - The `peerID` of the discovered peer taken from the `MCNearbyServiceBrowser` callback.
+* `PeerID` - The `PeerID` of the discovered peer taken from the discoveryInfo passed into the `MCNearbyServiceBrowser` callback.
 * `toSession` - The `MCSession` object that is passed in MUST be newly created for this connection following the previously specified rules.
-* `withContext` - This MUST be set to `base64EncodedString` containing the Thali service's type name, e.g. "thaliproject".
+* `withContext` - utf8-encoded string of the form: <PeerID>+<PeerID> where the local (connecting) PeerID appears on the left hand-side of the literal '+' (plus) character and the remote PeerID appears on the right hand side.
 * `timeout` - Unless overridden by the application the default timeout MUST be 10 seconds.
 
 Once the lexically larger peer has invited the lexically smaller peer to a session the lexically larger peer MUST NOT invite the lexically smaller peer to any additional sessions until the outstanding invite has been resolved (either via time out, acceptance or rejection). If the invitation times out then the lexically larger peer MAY repeat the invitation but no more frequently than ever 300 ms. If the invitation is rejected then the lexically larger peer MUST return an error if the invitation came as part of a request from the local Thali application. In either case the lexically larger peer, if the invitation is rejected, MUST NOT retry without another request either from the Thali application or from the lexically smaller peer (see next section).
@@ -440,7 +440,8 @@ Once an invitation is accepted the lexically larger peer MUST NOT invite the lex
 When the lexically larger peer receives a call on  `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST establish an output stream with the lexically smaller peer by calling `startStreamWithName:toPeer:error:` on the `MCSession` objects targeted at the lexically smaller peer with the `streamName` set to "ThaliStream".
 
 The lexically larger peer will then receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm that:
-* The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. Specifically the lexically larger peer must have somehow invited more than one peer to the session.
+* The UID portion of the `PeerID` matches the UID portion of the `PeerID` that they associate with the `session` object. If the UID does not match then a system error must be raised because something went seriously wrong. Specifically the lexically larger peer must have somehow invited more than one peer to the session.
+* Additionally, the receiving peer must validate that the GenerationID part of the remote peer id sent in the `withContext` field of the invite matches the current GenerationID of the local peer's PeerID. If the two GenerationID's do not match then the receiver MUST refuse the invite. The connecting peer is free to send further invites at a later date once they have discovered the latest GenerationID of the receiving peer via callbacks to the didFindPeer method of the delegate.
 * The `streamName` MUST be "ThaliStream" or the session MUST be terminated.
 
 At this point the session is said to be ready. That is, both peers are members of the same session and both have established output streams to each other.
@@ -451,7 +452,7 @@ __Open Issue:__ It is worth noting that a race condition exists where the lexica
 
 ### Lexically Smaller Peer
 
-From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
+From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is well-formed (<PeerID>+<PeerID>) . If the `context` is not well-formed then the invited peer MUST reject the invitation. If the `context` is well-formed, and the UID portion of that context is indeed lexically smaller than the local peers current UID then the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
 
 As soon as the session invitation is accepted the lexically smaller peer MUST establish an output stream with the lexically larger peer following the same rules as given for the lexically larger peer above.
 
