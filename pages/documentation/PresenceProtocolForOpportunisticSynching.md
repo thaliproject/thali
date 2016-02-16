@@ -82,15 +82,17 @@ function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration
   UnencryptedKeyId = SHA256(Kx.public().encode()).first(16)
 
   for(PubKy : setOfReceivingDevicesPublicKeys) {
-    Sxy = ECDH(Kx.private(), PubKy)
-    HKxy = HKDF(SHA256, Sxy, Expiration, 32)
-    BeaconHmac = HMAC(SHA256, HKxy, Expiration).first(16)
-
     Sey = ECDH(Ke.private(), PubKy)
     KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
     IV = KeyingMaterial.slice(0,16)
     HKey = KeyingMaterial.slice(16, 32)
-    beacons.append(AESEncrypt(GCM, HKey, IV, 128, UnencryptedKeyId) + BeaconHmac)
+    BeaconFlag = AESEncrypt(GCM, HKey, IV, 128, UnencryptedKeyId)
+  
+    Sxy = ECDH(Kx.private(), PubKy)
+    HKxy = HKDF(SHA256, Sxy, Expiration, 32)
+    BeaconHmac = HMAC(SHA256, HKxy, Expiration).first(16)
+
+    beacons.append(BeaconFlag + BeaconHmac)
   }
   return beacons
 }
