@@ -33,20 +33,14 @@ The problem is that TLS mutual auth exposes the public keys of the participants 
 
 To work around this problem we plan on using a TLS feature known as "Pre-Shared Key" or  defined in [RFC 4279](https://tools.ietf.org/html/rfc4279). PSK assumes that somehow the TLS client and TLS server have a pre-existing key that they have negotiated out of band. TLS then provides a mechanism by which the TLS client and TLS server can securely negotiate a connection using that pre-shared key.
 
-Thali clients that establish connections based on discovery via notification beacons SHOULD establish TCP/IP connections to the discovered peer using TLS with the `DHE_PSK_WITH_AES_256_GCM_SHA384` and MUST NOT use a weaker cipher suite. A new Diffie-Hellman private key MUST be generated for each handshake.
-
-The previous cipher suite is selected because:
-
-* It uses a Diffie Hellman key exchange in order to provide for perfect forward secrecy
-* AES 256 is considered secure against even theoretical quantum computing attacks (how's that for famous last words?)
-* GCM provides protection against various types of data insertion and manipulation attacks
+Thali clients that establish connections based on discovery via notification beacons SHOULD establish TCP/IP connections to the discovered peer using TLS with the `psk-aes256-cbc-sha` and MUST NOT use a weaker cipher suite. A new Diffie-Hellman private key MUST be generated for each handshake. 
 
 If a Thali peer receives a preamble and a set of beacons and determines that one of the beacons is intended for itself and if the Thali peer wishes to communicate with the peer who sent the beacon then the Thali peer MUST set aside the preamble and the specific beacon from the set of discovered beacons that was targeted at it. The Thali peer MUST then establish a TCP/IP connection using the binding specific mechanism to the Thali peer that sent the beacon. The Thali peer MUST then establish a TLS connection on top of the TCP/IP connection using the previously defined PSK cipher suite.
 
 When creating a TLS PSK connection, the Thali TLS client MUST include the following value in the PSK identity field of the ClientKeyExchange message: 
 
 ```
-PSK Identity Field - base64(preamble + beacon)
+PSK_Identity_Field = base64(preamble + beacon)
 ```
 
 That is, the preamble and the beacon put aside in the previous requirement are combined together and then `base64` encoded as defined in [RFC 4648 section 5](https://tools.ietf.org/html/rfc4648#section-5). Note that the base64 encoding is introduced to meet the UTF-8 encoding requirement for PSK identity fields specified in section [5.1 of RFC 4279](https://tools.ietf.org/html/rfc4279#section-5.1).
@@ -64,9 +58,11 @@ Both the Thali TLS client and Thali TLS server need to generate the same PSK val
 ```
 function generatePSK(PubKy, Kx, PSKIdentity) {
    Sxy = ECDH(Kx.private(), PubKy)
-   return HKDF(SHA256, Sxy, PSKIdentity, 16);
+   return HKDF(SHA256, Sxy, PSKIdentity, 32);
 }
 ```
+
+We use 32 bytes since we are using aes 256 in our cipher.
 
 In the case of the Thali TLS client PubKy represents the public key confirmed for the Thali TLS server from the decrypted beacon and Kx is the Thali TLS client's own public/private key pair. The PSKIdentity is the base64 encoded value the Thali TLS client will send as the PSK identity value. The functions used in the pseudo-code work as previously defined. The returned 16 octet value is the value to be used as the PSK in the TLS PSK connection.
 
