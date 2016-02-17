@@ -60,7 +60,7 @@ PubKe = 88-OCTET
 Beacon = 48-OCTET
 ```
 
-PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
+PubKe MUST encode an Elliptic Curve Diffie-Hellman (ECDH) key using the secp256k1 curve. We use the secp256k1 curve, even though that curve is known to be slightly less secure than secp256r1, because the process for generating the curve is more open and thus less susceptible to subversion. To avoid potential patent issues we will transfer the key uncompressed using the X.509 SubjectPublicKeyInfo encoding as defined in RFC 5480. This means that a key that should probably have required (256/8 + 1) = 33 bytes to send will instead require 88 bytes.
 
 __NOTE:__ For the moment we plan on using the base64 encoded format outputted by Node.js's ECDH library to encode the public keys. Eventually we'll even figure out what format it is using and standardize that.
 
@@ -70,7 +70,7 @@ __OPEN ISSUE:__ If we at least used a direct binary encoding we could reduce the
 
 __OPEN ISSUE:__ I am asserting that the X.509 encoding (with point compression explicitly disallowed) is always 88 bytes long. But I haven't actually proven this.
 
-Expiration MUST encode a 64 bit integer, in network byte order, specifying the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored.
+Expiration MUST encode a 64 bit integer, in network byte order, specifying the number of milliseconds since the epoch (1/1/1970 at 00:00:00 GMT). The value in the Expiration MUST encode the point in time after which the sender does not want the discovery announcement to be honored. When generating the expiration value we MUST add a small random offset to the current system time in order to prevent attacks based on observing the device's actual time. Note that it isn't clear what the attack would be here but it's easy to do.
 
 Implementers MUST NOT honor discovery announcements with expirations that are too far into the future. It is up to each implementation to decide what constitutes "too far" but generally anything greater than 24 hours SHOULD be rejected.
 
@@ -83,9 +83,7 @@ function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration
 
   for(PubKy : setOfReceivingDevicesPublicKeys) {
     Sey = ECDH(Ke.private(), PubKy)
-    KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
-    IV = KeyingMaterial.slice(0,16)
-    HKey = KeyingMaterial.slice(16, 32)
+    HKey = HKDF(SHA256, Sey, Expiration, 16)
     BeaconFlag = AESEncrypt(GCM, HKey, IV, 128, UnencryptedKeyId)
   
     Sxy = ECDH(Kx.private(), PubKy)
@@ -139,6 +137,8 @@ __SHA256(value)__ - Generates the SHA-256 digest of the given value.
 __slice(a, b)__ - Returns a sub-set of an array starting at byte a and end at the byte before b
 
 __+__ - When applied to two arrays it concatenates them together.
+
+Note that the security of the protocol rests, amongst other things, on us never encrypting the same value for the same peer at the same time. In general this guarantee is easy to keep because our code limits how often we update beacons to a time period greater than a millisecond which is our clock accuracy that we use for the expiration value. But it's worth keeping in mind our dependence on the expiration value being unique when implementing the protocol. If we can't guarantee that then we will need to introduce a nonce that is sent along with the beacons.
 
 # Processing the pre-amble and beacons
 When a device receives a discovery announcement it has to validate several things.
