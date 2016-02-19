@@ -154,12 +154,13 @@ The receiver then parses through the beacon values included in the announcement.
 ```
 function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
    while(beaconStream.empty() == false) {
-    encryptedBeaconKeyId = beaconStream.read(48)
+    Beacon = beaconStream.read(48)
     Sey = ECDH(Ky.private, PubKe)
     KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
     IV = KeyingMaterial.slice(0,16)
     HKey = KeyingMaterial.slice(16, 32)
-    UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, encryptedBeaconKeyId.slice(0, 32))
+    EncryptedBeaconFlag = Beacon.slice(0, 32)
+    UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, EncryptedBeaconFlag)
 
     if (UnencryptedKeyId == null) { // GCM mac check failed
        next;
@@ -171,7 +172,7 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
       return null; // Once we find a matching beacon we stop, even if the sender is unrecognized
     }
 
-    BeaconHmac = encryptedBeaconKeyId.slice(32, 48)
+    BeaconHmac = Beacon.slice(32, 48)
     Sxy = ECDH(Ky.private(), PubKx)
     HKxy = HKDF(SHA256, Sxy, Expiration, 32)
     if (BeaconHmac.equals(HMAC(SHA256, HKxy, Expiration).first(16)) {
