@@ -394,9 +394,24 @@ __Note:__ We have runs tests that show that if `MCNearbyServiceAdvertiser` is tu
 
 __Note:__ Our experiments with iOS 8 have shown that if we form two simultaneous MCSession objects between the same two peers then when moving larger amounts of data the streams associated with those session objects will spontaneously fail. This has proven to be a big enough problem that we have been forced to work around it by making sure that we only have a single MCSession object between any two peers and then multiplexing TCP connections established on either end across a single pair of streams associated with that session.
 
+## A Note on Peer Identifiers
+Throughout the discussion on MPCF we'll be referring to two different kinds of peer identifier:
+
+* MCPeerID - The transport-level identifier used by the MPCF to distinguish peers. This is an opqaue object. Whilst MCPeerID objects can be compared, with matches indicating the two objects represent the same peer, no other meaningful inspection can take place. An instance of an MCPeerID object identifies a single instance of an MCNearbyServiceAdvertiser running somewhere in the local vicinity, even on the same device. A single device may host multiple MCNearbyServiceAdvertisers.
+
+* PeerID - The application-level identifier used by the upper application levels to distinguish instances of the thali application. This is not exposed to the user. In this implementation the PeerID is composed of two parts which each carry a different kind of information. 
+
+### PeerID - Breakdown
+The general format for a PeerID is: __UUID:GenerationID__ where __UUID__ is the unique identifier for the peer as a utf8 encoded string, __:__ is the literal ':' (colon) character and __GenerationID__ is the utf8 encoded string represenation of an unsigned integer starting at 1.
+
+  * UUID - The globally unique identifier of the peer. This uniquely identifies the peer to other application instances. It is not guaranteed to persist between application sessions.
+  * GenerationID - Used by the thali application to signify to other peers that some state of the peer has changed and that remote peers may wish to connect to this peer to determine if there is new information i.e. a message for the remote peer.
+
+In simple terms: the entire PeerID is continuously broadcast to peers in the local vicinity. Remote peers may connect at any time to the local peer to determine if there are messages for them. Having done so they will disconnect. In order to signal that new information may subsequently be available for a remote peer and to encourage them to reconnect, the GenerationID portion of the PeerID is incremented and rebroadcast. Remote peers who may have previously connected will observe the change in GenerationID and may conclude there is a reason to reconnect.
+
 ## MCNearbyServiceBrowser
 MPCF discovers nearby services via `MCNearbyServiceBrowser`. When calling `initWithPeer:serviceType:` on  `MCNearbyServiceBrowser` the arguments MUST be:
-* `myPeerID` - a newly generated UUID.
+* `myPeerID` - a MCPeerID object
 * `serviceType` - "thaliproject".
 
 __Open issue:__ I need to get out wireshark or equivalent to resolve this one but I believe the `serviceType` argument is meant to map to the `service` component of a mDNS discovery name as defined in [RFC 6763](http://tools.ietf.org/html/rfc6763). This then takes us to [RFC 6355](http://tools.ietf.org/html/rfc6335) which manages registration of DNS service names. The requirements in section [5.1 of RFC 6355](http://tools.ietf.org/html/rfc6335#section-5.1) match Apple's rules for `serviceType`. We therefore will use a complying name, in this case, "thaliproject" and yes, we really need to register it with IANA per [this bug](https://github.com/thaliproject/Thali_CordovaPlugin/issues/230).
@@ -407,8 +422,8 @@ Because iOS requires that `MCNearbyServiceBrowser` MUST stop running when the ap
 
 ## MCNearbyServiceAdvertiser
 When the Thali application wishes to be discovered, typically because it has notification beacon values to advertise, it MUST create a `MCNearbyServiceAdvertiser`  object with the arguments as follows:
-* `myPeerID` - The same UUID as currently being used by `MCNearbyServiceBrowser`.
-* `info` - Empty.
+* `myPeerID` - The same MCPeerID object being used by MCNearbyServiceBrowser
+* `info` - utf8 encoded string representing the current local `PeerID` - See discussion [above](#PeerID - Breakdown)
 * `serviceType` - "thaliproject".
 
 The MCNearbyServiceAdvertiser object MUST also have its delegate property set to a proper callback.
@@ -426,14 +441,14 @@ The core of the binding is the `MCSession` object. This object can be created in
 
 But per the previously mentioned bug we MUST NOT end up in a situation where we have two `MCSession` objects on the same peer involving the same remote peer.
 
-Our solution to this situation is to leverage the fact that as defined below `peerID`s are UUIDs. This means they are (within reason) globally unique and they can be lexically compared. The larger of two UUIDs is defined as the UUID whose value represented as ASCII bytes when compared in ASCII ordering is the first to have a higher byte value for a character.
+Our solution to this situation is to leverage the fact that as defined above `PeerID`s contain UUIDs. This means they are (within reason) globally unique and they can be lexically compared. The larger of two UUIDs is defined as the UUID whose value represented as ASCII bytes when compared in ASCII ordering is the first to have a higher byte value for a character.
 
 ### Lexically Larger Peer
 If a lexically larger peer wishes to connect to a lexically smaller peer then it MUST use `invitePeer` from `MCNearbyServiceBrowser` to invite the peer to a session with the following arguments:
 
-* `peerID` - The `peerID` of the discovered peer taken from the `MCNearbyServiceBrowser` callback.
+* `PeerID` - The `PeerID` of the discovered peer taken from the discoveryInfo passed into the `MCNearbyServiceBrowser` callback.
 * `toSession` - The `MCSession` object that is passed in MUST be newly created for this connection following the previously specified rules.
-* `withContext` - This MUST be set to `base64EncodedString` containing the Thali service's type name, e.g. "thaliproject".
+* `withContext` - utf8-encoded string of the form: __PeerID+PeerID__ where the local (connecting) PeerID appears on the left hand-side of the literal '+' (plus) character and the remote PeerID appears on the right hand side.
 * `timeout` - Unless overridden by the application the default timeout MUST be 10 seconds.
 
 Once the lexically larger peer has invited the lexically smaller peer to a session the lexically larger peer MUST NOT invite the lexically smaller peer to any additional sessions until the outstanding invite has been resolved (either via time out, acceptance or rejection). If the invitation times out then the lexically larger peer MAY repeat the invitation but no more frequently than ever 300 ms. If the invitation is rejected then the lexically larger peer MUST return an error if the invitation came as part of a request from the local Thali application. In either case the lexically larger peer, if the invitation is rejected, MUST NOT retry without another request either from the Thali application or from the lexically smaller peer (see next section).
@@ -443,7 +458,8 @@ Once an invitation is accepted the lexically larger peer MUST NOT invite the lex
 When the lexically larger peer receives a call on  `MCSessionDelegate`'s `session:peer:didChangeState` with `state` set to `MCSessionStateConnected` then it MUST establish an output stream with the lexically smaller peer by calling `startStreamWithName:toPeer:error:` on the `MCSession` objects targeted at the lexically smaller peer with the `streamName` set to "ThaliStream".
 
 The lexically larger peer will then receive a callback on its `MCSessionDelegate`'s `session:didReceiveStream:withName:fromPeer:` and MUST confirm that:
-* The `peerID` matches the `peerID` that they associate with the `session` object. If the `peerID` does not match then a system error must be raised because something went seriously wrong. Specifically the lexically larger peer must have somehow invited more than one peer to the session.
+* The UUID portion of the `PeerID` matches the UUID portion of the `PeerID` that they associate with the `session` object. If the UUID does not match then a system error must be raised because something went seriously wrong. Specifically the lexically larger peer must have somehow invited more than one peer to the session.
+* Additionally, the receiving peer must validate that the GenerationID part of the remote peer id sent in the `withContext` field of the invite matches the current GenerationID of the local peer's PeerID. If the two GenerationID's do not match then the receiver MUST refuse the invite. The connecting peer is free to send further invites at a later date once they have discovered the latest GenerationID of the receiving peer via callbacks to the didFindPeer method of the delegate.
 * The `streamName` MUST be "ThaliStream" or the session MUST be terminated.
 
 At this point the session is said to be ready. That is, both peers are members of the same session and both have established output streams to each other.
@@ -454,7 +470,7 @@ __Open Issue:__ It is worth noting that a race condition exists where the lexica
 
 ### Lexically Smaller Peer
 
-From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is set to a `base64EncodedString` that records the Thali service's type name, "thaliproject". If the `context` is not set to the Thali service's type name then the discovered peer MUST reject the invitation. Otherwise the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
+From the lexically smaller peer's perspective when it receives a callback on the `advertiser:didReceiveInvitationFromPeer:withContext:invitationHandler:` interface on the  `MCNearbyServiceAdvertiserDelegate` callback registered with its `MCNearbyServiceAdvertiser` object from the lexically larger peer it MUST validate that the `context` in the callback is well-formed (PeerID+PeerID) . If the `context` is not well-formed then the invited peer MUST reject the invitation. If the `context` is well-formed, and the UUID portion of that context is indeed lexically smaller than the local peers current UUID then the lexically smaller peer MUST call the `invitationHandler` with `accept` set to `true` and the `session` object set to a newly created `MCSession`  object created using the previously specified rules.
 
 As soon as the session invitation is accepted the lexically smaller peer MUST establish an output stream with the lexically larger peer following the same rules as given for the lexically larger peer above.
 
@@ -489,9 +505,9 @@ For the lexically smaller peer:
 It will then be up to the Node.js layer to add a multiplexer on top of this single TCP/IP connect. That multiplexer will be able to establish TCP/IP connections in both directions. See the Node.js documentation for more details.
 
 ## Handling beacon changes
-Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser`. The old `MCNearbyServiceAdvertiser` instance SHOULD be discarded but it is acceptable for there to be a delay in doing so as apparently iOS reacts badly if `MCNearbyServericeAdvertiser` objects get discarded too quickly. Then the Thali peer MUST create a new `MCNearbyServiceAdvertiser` instance with a new `peerID`. This process is required because once `peerID` is set on a `MCNearbyServiceAdvertiser` it cannot be changed.
+Whenever the beacons change a Thali peer MUST call `stopAdvertisingPeer` on `MCNearbyServiceAdvertiser`. The old `MCNearbyServiceAdvertiser` instance SHOULD be discarded but it is acceptable for there to be a delay in doing so as apparently iOS reacts badly if `MCNearbyServiceAdvertiser` objects get discarded too quickly. Then the Thali peer MUST create a new `MCNearbyServiceAdvertiser` instance with new `discoveryInfo` containing the new `PeerID` information. Specifically the GenerationID part of the `PeerID` MUST be incremented. Other peers within the vicinity will now be able to see that the beacon information for a peer they may already have discovered has been updated and make decisions about whether they should reconnect (or use an existing connection) to query for updates.
 
-By changing the `peerID` this should trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. This then notifies those peers that the advertiser has new notification values they need to examine.
+Updating `discoveryInfo` does not in itself trigger a `browser:foundPeer:withDiscoveryInfo:` callback on the local `MCNearbyServiceBrowserDelegate` for the surrounding peers. In order to notice the updated `discoveryInfo` peers must periodically restart their browser component after which the updated peer and it's `discoveryInfo` are rapidly discovered again. This then notifies those peers that the advertiser has new notification values they need to examine.
 
 ## Multiple Thali Apps on the same iOS device
 Thali as specified here can only run in the foreground. So you can have as many Thali apps as you want, only the one in the foreground gets to play. If we want to distinguish between multiple types of Thali apps we can either require each app to get its own unique service type (which we would then take as an argument). Or we can specify a HTTP endpoint where remote apps can just query as to the app's type. And if and when we put in BLE support it would be easy enough to put in a characteristic with type data. So we are probably o.k.
