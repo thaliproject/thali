@@ -34,21 +34,21 @@ There are two fairly obvious ways to handle this. One way is to play around with
 
 ### Hacking up the CouchDB protocol
 
-You can read an overview of the core of the protocol [here](https://people.apache.org/~dch/snapshots/couchdb/20140715/new-docs-build/html/replication/protocol.html#algorithm) but the key first step of the protocol and the part most relevant to this conversation occurs in `_Local/<uniqueid>`. _Local is a magic document key prefix that all CouchDB databases must have. Any documents with a key under _Local are never sync'd. When a requester synchs with a database they create a document using a `<uniqueid>` that they use to record information about the replication, such as the last ID they have replicated to.  In other words, the exact value we need! But there are complications.
+You can read an overview of the core of the protocol [here](https://people.apache.org/~dch/snapshots/couchdb/20140715/new-docs-build/html/replication/protocol.html#algorithm) but the key first step of the protocol and the part most relevant to this conversation occurs in `_local/<uniqueid>`. _local is a magic document key prefix that all CouchDB databases must have. Any documents with a key under _local are never sync'd. When a requester synchs with a database they create a document using a `<uniqueid>` that they use to record information about the replication, such as the last ID they have replicated to.  In other words, the exact value we need! But there are complications.
 
 The first one is `<uniqueid>` itself. There is a voodoo protocol that is explicitly not inter-operable for generating the id. In our case we can cheat a little because we require authentication so we know who generated which unique ID. But the fun part is that there can be multiple such uniqueIDs from the same requester if they are using different profiles to replicate against the destination database. So which one are we supposed to read? All of them? Pick the latest?
 
-Even better, as far as I can tell there is no standard for what the contents of `_Local/<uniqueid>` are supposed to look like. See [here](http://docs.couchdb.org/en/latest/api/local.html#db-local-id) for example. This is o.k. because the database the document is written on doesn't need (outside of Thali) to know what's in there.
+Even better, as far as I can tell there is no standard for what the contents of `_local/<uniqueid>` are supposed to look like. See [here](http://docs.couchdb.org/en/latest/api/local.html#db-local-id) for example. This is o.k. because the database the document is written on doesn't need (outside of Thali) to know what's in there.
 
 But all of this means that if we want to use CouchDB's replication protocol to fix this we would have to define a bunch of things that aren't defined currently and that doesn't sound warm and fuzzy from an interoperability perspective. We would like to "just work" with any existing CouchDB implementation (we aren't always doing P2P replication, sometimes we do the old fashioned Internet based kind too).
 
-So all of this makes me want to leave `_Local/<uniqueid>` alone.
+So all of this makes me want to leave `_local/<uniqueid>` alone.
 
 ### Our solution
 
-Since we aren't using `_Local/<uniqueid>` we can't rely on PouchDB's replication to just do everything for us. But PouchDB helps out anyway by providing us which sync number it has gotten up to on the remote database via both the change and complete events on its replication object. So we can track the highest number and every once in awhile write it over to the remote database as a document under _Local.
+Since we aren't using `_local/<uniqueid>` we can't rely on PouchDB's replication to just do everything for us. But PouchDB helps out anyway by providing us which sync number it has gotten up to on the remote database via both the change and complete events on its replication object. So we can track the highest number and every once in awhile write it over to the remote database as a document under _local.
 
-The full ID of the document will be `_Local/thali<peer ID>` where thali is just the string 'thali' and peer ID is the device's public key (which is currently the only public key we have) encoded as a Base64 URL safe encoded value. See PubKe syntax as defined [here](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolForOpportunisticSynching.md#generating-the-pre-amble-and-beacons) and then base64 url safe encode it.
+The full ID of the document will be `_local/thali_<peer ID>` where thali is just the string 'thali' and peer ID is the device's public key (which is currently the only public key we have) encoded as a Base64 URL safe encoded value. See PubKe syntax as defined [here](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolForOpportunisticSynching.md#generating-the-pre-amble-and-beacons) and then base64 url safe encode it.
 
 Inside that document we will create a JSON object which contains the property "lastSyncedSequenceNumber" with a number as a value recording the last sequence on the host device that the remote device claims to have synch'd to. Note that unrecognized properties in this document MUST be ignored.
 
@@ -68,9 +68,9 @@ There are other approaches like listing who one has sync'd with lately and how f
 So we'll see, if this problem is causing real problems then we cna probably figure something out.
 
 #### Can't B effectively force A to advertise for it forever?
-Yes. B can just never update the `_Local/thali<peerId>` document and so A will advertise for B forever. In the long term, since advertising space (and battery life) isn't infinite we expect devices to pick a subset of folks they could notify to actually advertise. So if B never seems to pick anything up then it's likely to get put lower and lower on the list until it falls off.
+Yes. B can just never update the `_local/thali_<peerId>` document and so A will advertise for B forever. In the long term, since advertising space (and battery life) isn't infinite we expect devices to pick a subset of folks they could notify to actually advertise. So if B never seems to pick anything up then it's likely to get put lower and lower on the list until it falls off.
 
-Now if B does something dirty like synch data but not update `_Local/thali<peerId>` this is potentially detectable by A. It can see that B is making GET requests but the sequence number never changes. This would mark B as a bad player.
+Now if B does something dirty like synch data but not update `_local/thali_<peerId>` this is potentially detectable by A. It can see that B is making GET requests but the sequence number never changes. This would mark B as a bad player.
 
 But the more interesting question is - who cares? The main use of this attack is to let B (or its confederates, if B is willing to share its private key) find A. But B could accomplish this just as easily by just advertising for A.
 
