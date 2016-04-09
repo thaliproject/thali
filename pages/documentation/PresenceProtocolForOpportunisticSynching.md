@@ -157,10 +157,9 @@ function parseBeacons(beaconStream, addressBook, Ky, PubKe, Expiration) {
     Beacon = beaconStream.read(48)
     Sey = ECDH(Ky.private, PubKe)
     KeyingMaterial = HKDF(SHA256, Sey, Expiration, 32)
-    IV = KeyingMaterial.slice(0,16)
     HKey = KeyingMaterial.slice(16, 32)
     EncryptedBeaconFlag = Beacon.slice(0, 32)
-    UnencryptedKeyId = AESDecrypt(GCM, HKey, IV, 128, EncryptedBeaconFlag)
+    UnencryptedKeyId = AESDecrypt(GCM, HKey, 0, 128, EncryptedBeaconFlag)
 
     if (UnencryptedKeyId == null) { // GCM mac check failed
        next;
