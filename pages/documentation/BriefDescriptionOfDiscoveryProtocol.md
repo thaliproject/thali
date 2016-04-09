@@ -95,8 +95,6 @@ __private()__ - The private key of a public/private key pair
 
 __SHA256(value)__ - Generates the SHA-256 digest of the given value.
 
-__slice(a, b)__ - Returns a sub-set of an array starting at byte a and end at the byte before b
-
 __+__ - When applied to two arrays it concatenates them together.
 
 Note that the security of the protocol rests, amongst other things, on us never encrypting the same value for the same peer at the same time. In general this guarantee is easy to keep because our code limits how often we update beacons to a time period greater than a millisecond which is our clock accuracy that we use for the expiration value. But it's worth keeping in mind our dependence on the expiration value being unique when implementing the protocol. If we can't guarantee that then we will need to introduce a nonce that is sent along with the beacons.
