@@ -4,7 +4,9 @@ title: A path off JXcore?
 ---
 Some choices have appeared that might, someday, get Thali onto Node.js v5+ on Android and iOS.
 
-TL;DR – There is an effort from Mozilla to get Node running on Spidermonkey and the Node.js community is mumbling about making Android an officially supported platform. Still, the first effort isn't lookng at Android and neither effort is looking at iOS. Although one group claims to have v8 running on iOS so that could be interesting. But even if we get Node.js v5 on Android and iOS there is work on top of that which Thali needs. But what is cool about that work is that it’s all things we could commit directly to or as additions to Node.js and so would work with either of the previously mentioned efforts. So a path off JXcore is becoming more plausible but it doesn’t appear possible in the near or even medium term.
+__TL;DR__ – There is an effort from Mozilla to get Node running on Spidermonkey and the Node.js community is mumbling about making Android an officially supported platform. The first effort isn't lookng at Android and neither effort is looking at iOS and even if we get Node.js v5 on Android and iOS there is work on top of that which Thali needs. But still, paths are opening up.
+
+__Long Winded Version__
 
 While we still hope to get JXcore stabilized I don’t think anyone has a plan to take it forward. Which is going to become more and more of a problem. For example, PouchDB has decided to stop even testing on Node 0.10 (the version of Node.js that JXcore is mostly based on). They’ll take bug fixes for it and aren’t looking to break compatibility but they have had enough weird transient issues with Travis and Node 0.10 that they decided to stop looking. This is just the start of the inevitable march away from Node 0.10. So we really need alternatives.
 
