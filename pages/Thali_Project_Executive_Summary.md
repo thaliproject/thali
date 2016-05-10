@@ -5,8 +5,6 @@ permalink: "/ThaliProjectExecutiveSummary/"
 header:
    image_fullwidth: "header.png"
 ---
-## Thali Project Executive Summary
-
 5/9/2016
 
 From: Yaron Y. Goland, Principal Developer, Microsoft Corporation
