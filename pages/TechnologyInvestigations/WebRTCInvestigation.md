@@ -40,6 +40,10 @@ SCTP and by extension WebRTC faces the same problems with Firewall and NATs that
 
 This is a related effort by Google to create a TCP like protocol over UDP with TLS capabilities. I put it here just to remember it exists but it doesn't really change any of the conclusions of this paper other than it could be an interesting transport for SCTP.
 
+#### What about WebRTC in the browser?
+
+Lots of folks have been excited about the P2P possiblities of WebRTC in the browser. As explained [here](http://www.goland.org/webrtcthaliinthebrowser/) the WebRTC support in the browser doesn't appear to solve the hard P2P Web problems.
+
 #### What I think this means for Thali
 
 A fundamental rethink of TCP is long overdue and the ideas in SCTP frankly harken back to a variety of MUX protocols that have been made over the years (net.tcp anyone?). This is good. We are well overdue for a fundamental rethink of TCP and HTTP in an application protocol context. But I am very concerned that the SCTP stack is just too complex. It reminds me too much of the kind of 'nobody can say no' standards that end up being an overly complex mess. Maybe I'm wrong. Maybe the level of complexity and the flying wing of specs involved in the WebRTC data channel truly represent the minimum possible complexity for a system like this. Certainly if you look at the mountain of RFCs defining TCP (which in a very real sense the WebRTC data channel and related specs are trying to replace) you would think so.
