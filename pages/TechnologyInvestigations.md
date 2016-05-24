@@ -51,6 +51,7 @@ header:
 ##Thali has looked at a number of possible ways to implement itself. Below we provide links to those investigations.
 
  - [WebRTC Investigation](/WebRTCInvestigation)
+ - [WebRTC in the browser investigation](http://www.goland.org/webrtcthaliinthebrowser/)
  - [Stun / Turn / ICE Investigation](/StunTurnICEInvestigation)
  - [HTML 5 Raw Sockets Investigation](/HTML5RawSocketsInvestigation)
  - [Building Thali on top of Firefox](/BuildingThaliOnTopOfFirefox)
