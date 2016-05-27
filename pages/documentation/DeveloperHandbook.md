@@ -43,6 +43,7 @@ Next step is to walk through our spec stack. After reading the above the specs t
 With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_001 and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
 
 At this time our repo's are:
+
 * https://github.com/thaliproject/thali - This is our website
 * https://github.com/thaliproject/Thali_CordovaPlugin - This is our main project
 * https://github.com/thaliproject/Thali_CordovaPlugin_BtLibrary - The Java code for Android
