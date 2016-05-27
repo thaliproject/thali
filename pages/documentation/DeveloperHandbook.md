@@ -53,6 +53,9 @@ At this time our repo's are:
 * https://github.com/thaliproject/postcardapp - Our sample app
 * https://github.com/thaliproject/scan_node_modules - A utility to help us figure out what we are bringing in through NPM so we can hack it down
 * https://github.com/thaliproject/CI - The source code for our continuous integration environment.
+* https://github.com/thaliproject/salti-admin - Secures a node.js interface over PouchDB Express intended to be called by the WebView from Cordova.
+* https://github.com/thaliproject/salti - Secures the external facing PouchDB Express server
+* https://github.com/thaliproject/jxbuild - Instructions for building our customer release of JXcore along with pointers to our custom binaries
 
 # Sign up to follow us
 Please go [here](/WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you go to our [main projects](https://github.com/thaliproject/) and hit 'watch' on them in GitHub. Right now our "main" projects are a moving target but basically any project that has been modified in the last two months is probably worth watching.
