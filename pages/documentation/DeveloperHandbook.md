@@ -34,13 +34,16 @@ Next step is to walk through our spec stack. After reading the above the specs t
 * [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
 * thaliMobileNative.js - This defines the API that our native code implementations are supposed to expose to JXcore.
 * thaliMobileNativeWrapper.js - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
-* TCPServersManager.js - This manages both incoming and outgoing connections and handles binding TCP/IP and our Node.js based Multiplex logic.
 * thaliWifiInfrastructure.js - How we do discovery when we have WiFi available
 * thaliMobile.js - This is a common API to handle both TCP and non-TCP transports
-* thaliNotificationBeacons.js - Defines an API for generating and processing notification beacons
 * wifiBasedNativeMock.js - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop. We aren't completely committed to this yet.
+* mux - We turn non-TCP transports like Bluetooth or Multi-Peer Connectivity Framework into a single TCP connection but we need to run multiple simultaneous TCP connections over that single connection. The files in this directory handle that logic.
+* notification - As described in the crypto documents we both send out notifications of people we want to talk to as well as process incoming notifications. This directory contains the logic to handle that.
+* replication - This handles telling the notification layer when to send out notifications based on changes in the local DB. It also handles incoming notifications that someone wants to replicate with us.
+* security - Various security related stuff
+* thaliPeerPool - This is the central controller which receives requests to use the local nework connectivity and decides which ones will get through.
 
-With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to story_001 and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
+With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to vNext and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
 
 At this time our repo's are:
 
@@ -48,7 +51,6 @@ At this time our repo's are:
 * https://github.com/thaliproject/Thali_CordovaPlugin - This is our main project
 * https://github.com/thaliproject/Thali_CordovaPlugin_BtLibrary - The Java code for Android
 * https://github.com/thaliproject/postcardapp - Our sample app
-* https://github.com/thaliproject/org.thaliproject.iospackager - A utility to make doing Cordova development with iOS much less painful
 * https://github.com/thaliproject/scan_node_modules - A utility to help us figure out what we are bringing in through NPM so we can hack it down
 * https://github.com/thaliproject/CI - The source code for our continuous integration environment.
 
