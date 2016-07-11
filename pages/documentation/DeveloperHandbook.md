@@ -15,10 +15,12 @@ Welcome to Thali! So you want to learn more? Great!
 
 # Checklist for adding a new team member
 1. Tell them that they need to read this doc and make sure they do what it says in terms of things to sign up for.
-2. Go [here](https://github.com/orgs/thaliproject/people) and add them as an owner.
+2. Go [here](https://github.com/orgs/thaliproject/people) and add them as a member.
 3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/pages/info.md) and add them to the "Who?" section.
 4. Send out a mail to the public mailing list about them joining
-5. If they are a Microsoft employee then:
+5. Add them to our slack channel
+
+For Microsoft employees:
  1. Add them to the internal OWA Thali group
  2. Add them to our weekly standup and other random meetings
  3. Send out a mail to the internal mailing list about them joining
@@ -58,7 +60,7 @@ At this time our repo's are:
 * https://github.com/thaliproject/jxbuild - Instructions for building our customer release of JXcore along with pointers to our custom binaries
 
 # Sign up to follow us
-Please go [here](/WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you go to our [main projects](https://github.com/thaliproject/) and hit 'watch' on them in GitHub. Right now our "main" projects are a moving target but basically any project that has been modified in the last two months is probably worth watching.
+Please go [here](/WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you hit 'watch' on all the projects listed above.
 
 If you don't 'watch' the projects then you won't get notified when we have updates, new issues, etc. So please hit 'watch'.
 
@@ -133,7 +135,7 @@ We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handl
 We don't really have coding guidelines per se in HTML (we don't write enough for it to really be worth it) but all HTML should be validated with [HTML TIDY](http://www.w3.org/People/Raggett/tidy/)
 
 # Dev Machine Set Up
-We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to en dup doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
+We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to end up doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
 
 We have a bunch of instructions on how to get this software for Windows, see [set up for windows](/SetupForWindows) but we have tested everything on Mac and Linux and it all runs just fine there as well.
 
@@ -262,12 +264,6 @@ Here are the settings I use:
 * Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
 
 # Notes on adventures in node.js land
-
-## Building our Javascript Projects
-
-Right now we are using stock PouchDB. We just keep this section around if we have to remember how we used to build our own version.
-
-[Configuring PouchDB](/ConfiguringPouchDB)
 
 ## How to debug PouchDB tests in Node.js and Intellij
 I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran into is that I use IntelliJ as my IDE and I needed a way to run PouchDB's mocha tests. Normally this is handled easily by just executing ./bin/test-node.sh which handles all the details. The good news is that what test-node.sh does is very straight forward and easy to set up as a test in IntelliJ. Except.... it turns out that in the tests directory there are tests both for node.js and tests for the browser. test-node.sh works around this by providing a test file path that ends with test.*.js where all files that match that pattern are guaranteed to be safe for node.js. The shell then expands the wild card into a set of files and then node/mocha gets called. The issue is https://youtrack.jetbrains.com/issue/WEB-10067 which doesn't support wild card expansing of files when specifying the test directory. To work around this here is what I do.
