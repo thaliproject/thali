@@ -35,17 +35,11 @@ https://github.com/thaliproject/jxbuild - This is the project where all the code
 
 You can head over to https://huboard.com/thaliproject/thali#/?milestone=%5B%22New%20Infra%22%5D and check out all the items that are needed to finish up New Infra. But let's walk through them.
 
-720 - This contains a bunch of fixes to the Android layer. But unfortunately Tomi just doesn't have time to finish it. Most of the issues are pretty minor but the issue in SocketThreadBase is a much bigger deal than it looks like. So we need to finish this PR out and get it checked in.
+### Node.js layer
 
 417/740 - 417 is the issue to add the replication layer and 740 is the PR that actually does it. The good news is that 740 is code and test complete and passes on my machine. But there are multiple layers of bad news we have to dig through. First off, there are several bugs in PouchDB and Express-PouchDB that will keep the tests from passing (they pass on my machine because I'm using custom builds of both PouchDB and Express-PouchDB). So we either have to wait for new releases of both projects before we can actually get this PR to pass or we have to install our own versions. Installing our own versions isn't actually that hard so we should probably do that. This leads to our second problem, I haven't been running these tests on either Android or iOS. Instead I have only been testing on desktop. The reason for this is that I felt it was better to get the code finished and then fix bugs on Android/iOS then get stuck waiting for the issues there to be resolved (see below). Third off, this PR actually already includes 720. So we really can't check in 740 until 720 is finished up.
 
 507 - This is just some top level code to make it easy to start and stop Thali. It's no big deal. But it would be a good intro item for someone trying to learn Thali's code base top down to take on.
-
-721 - This is one of the bigger open issues from 720 above. It's in the Android code and it really does need to be fixed.
-
-718 - This is just a bug we need to see if it still repro's on Android when we get 740 passing on its Android tests.
-
-719 - This actually needs to be fixed because the code we commented out to get this passing is, I believe, actually doing important stuff.
 
 621 - When we started 'New Infra' we wrote the code 'in place' with the old code (bad idea, but oh well). So what we did is create a new directory called 'NextGeneration' and stuck all the new code there. This work item is to finally 'bust out' the new code from the sub-directory and move it to the top level directory while simultaneously deleting a bunch of old code.
 
@@ -55,10 +49,249 @@ You can head over to https://huboard.com/thaliproject/thali#/?milestone=%5B%22Ne
 
 361 - Without identity exchange there is no way to actually connect two Thali devices without some magical backdoor key exchange mechanism. The good news is that identity exchange really works with full testing. The bad news is that the code works on an older version of Thali (the master release). So we need to upgrade it to the new infrastructure.
 
-The rest of the 'new infra' bugs are all related to iOS.
+383, 133, 136, 137, 219, 158 -Known bugs in identity exchange.
 
+### Android
+
+720 - This contains a bunch of fixes to the Android layer. But unfortunately Tomi just doesn't have time to finish it. Most of the issues are pretty minor but the issue in SocketThreadBase is a much bigger deal than it looks like but it's covered in 721 below. So we need to finish this PR out and get it checked in.
+
+721 - This is one of the bigger open issues from 720 above. It's in the Android code and it really does need to be fixed.
+
+718 - This is just a bug we need to see if it still repro's on Android when we get 740 passing on its Android tests.
+
+719 - This actually needs to be fixed because the code we commented out to get this passing is, I believe, actually doing important stuff.
+
+### iOS
+
+646 - This is a PR that was supposed to get iOS working with our Node.js infrastructure. It also submitted a new version of our Mux layer that was supposed to handle some of the peculiarities of iOS (such as only handling one connection at a time). Unfortunately the code didn't work. We have already checked in a fairly massive re-write of the mux layer separately. But that re-write only focused on gettting Android working, not iOS. iOS's mux layer is more complicated than Android's. So this PR is going to have to have a lot of surgery before it's ready. To get a sense for the details see the bugs below.
+
+751 - This is really the heart of the iOS problems. Read the bug for all the details but this is probably the most important question we can answer to get iOS back on its feet.
+
+652 - If the answer to 751 is 'no, there really is a bug in the multi-peer connectivity framework' then for our sanity the way to fix the Node.js mux layer issues is to first teach the WiFi based Mobile emulator environment to act like the iOS environment.
+
+358 - With 652 we can fix up the remaining mux layer issues using the WiFi emulator and then test on the actual device. This will radically increase productivity given how long it takes to test/debug on the hardware or even the emulator. Amongst other things, with 652 we can debug Node.js easily.
+
+552 - This is really to write the tests needed to prove that 358 is working.
+
+665 - The named branch was Ville's attempt to address some of th eproblems with 646 and it has some nasty hangs, we need to resolve them.
+
+536 - This is a non-compliance in the iOS code with the requirement node.js behavior. We need to put in a test (if we don't already have one) and fix the bug as described.
+
+699, 663 - Some pretty straight forward iOS bugs
+
+637 - We have seen a ton of connection failures in iOS. It's unclear if the problem is the multi-peer connectivity framework or bugs in iOS. We need to investigate.
 
 ## What happens after New Infra?
 
-Getting off Bluetooth and into BLE
-Handling illities
+Oh boy, there is a lot of stuff to do once we get New Infra out the door. Everything after New Infra is all about getting to V1. But we can break the work into several sub areas.
+
+### Missing functionality/security/bugs
+
+New Infra actually has the bulk of required functionality. What's left over are mostly security related features. Things that aren't visible to users but necessary to have a secure system.
+
+#### Features
+
+108 - Need to manage size of PouchDB
+
+#### Perf Bugs
+
+151 - Last time we checked if a record was updated, even if its attachment isn't changed, the attachment would be resent! MUST FIX (if still tthere)!
+
+42 - Right now we use Bluetooth to do token discovery on Android. This is a battery suck of the first order. What we really need is to move tokens over BLE. But we have run into a lot of issues with BLE on Android. We need to figure those issues out.
+
+735 - We don't detect when two phones are already in the same state so we'll think they aren't and keep resynching forever, great way to kill battery.
+
+734 - We don't notify when a peer disappears so we'll keep looking for them (and eating battery) forever.
+
+730 - There is a bug in PouchDB that keeps it from honoring customer http agents which means we can't share agents for the same remote clients across different operations. This result is that we will put too much load on those agents. Fixing the PouchDB bug isn't a big deal but we will also need to update our test code to recognize that the agent feature now works.
+
+62 - We need to confirm that we setting Java socket options correctly.
+
+700 - The way we handle discovery is not efficient, we need to make it easier to figure out when a peer ID comes from a peer we have seen before. The bug has the details.
+
+697 - There is a setInterval that will kill phone batteries dead. The fix is thankfully fairly straight forward.
+
+651 - When new peers show up everyone will try to connect to everyone causing lots of wasted radio time. We need a random delay.
+
+420 - The thaliPeerPoolInterface doesn't currently have support for event emitters from tcpServersManager which means it can't make good decisions about how to prioritize things.
+
+32 - We might be able to use Android's new Marshmallow scan APIs to save some battery.
+
+333 - Using NetworkRequest.Builder we could be much smarter about detecting when Bluetooth and Wifi are available.
+
+379 - We have to make sure we don't eat up too many resources while we are in the background.
+
+#### Stability Bugs
+
+701 - This is a bug in Leveldown mobile that has caused others to crash. To be fair we haven't seen it ourselves.
+
+430 - We need to properly get notified when there are life cycle events in Node.js or we will crash iOS and hurt Android.
+
+409 - Implementation of 430 for Android.
+
+448 - It would be a good idea to just completely shut down JXcore every once in a while and restart it, running a node.js server for way too long can have funny effects.
+
+7/42 - We need to figure out if JXcore is properly giving us persistent locations to store user content in.
+
+229 - Need to review the cipher suite we are using.
+
+471, 476, 477, 479, 489 - All minor node-ssdp related issues
+
+407 - Need to make sure Android behaves itself in the background.
+
+#### Security
+
+723 - We don't test that we properly reject bad PSK connections.
+
+664 - This is related to 723, it involves us testing bad PSK connections specifically in thaliWiFiInfrastructure and thaliMobileNativeWrapper.
+
+707 - This is a JXcore issue. The version of OpenSSL it uses is so old it doesn't support any of the ECDHE_PSK_* suites so we don't have perfect forward secrecy. We need to update the OpenSSL version to one that supports those suites.
+
+705 - Our HTTP handling has identical security related code in different places (bad, since fixes might not be applied everywhere), doesn't check properly to limit download size and doesn't properly time out connections over WiFi.
+
+264 - We need professionals to confirm the correctness of the discovery protocol.
+
+490 - There is an attack possible using SSDP headers, easy to prevent but we need to do the work.
+
+261 - There is an attack that could be used to expose our admin password, it's pretty easy to protect against.
+
+499 - We have no protections currently in place for badly behaving but otherwise authorized attackers. This includes everything from making too many network requests to storing too much data.
+
+444 - A nasty attack where an authorized third party can freeze someone out. Fairly easy to stop though.
+
+434 - We don't have DOS protection against bad peers
+
+137 - Another DOS issue.
+
+53 - We need to delete old logs so we don't overwhelm the device. An attacked could take advantage of this to disable a device.
+
+52 - We have to make sure our logs don't have sensitive data.
+
+320 - We need a spec to secure the webview.
+
+446 - This is related to 320 and defines how we move secrets to the Webview.
+
+447 - This implements 446.
+
+125 - We need to make sure we have only enabled the SSL cipher suites we need.
+
+140 - If you don't have a threat model then you don't know if you are secure.
+
+138 - We need our network APIs fuzzed.
+
+#### Android
+
+265 - We have a problem right now where on some devices we can't set a service type. We can only set manufacturer type. We have to figure out if this is a bug in our code or a problem on those devices and what we want to do about it.
+
+645 - This is related to 265. We're worried that the work around may suck battery (e.g. searching for both service and manufacturer type).
+
+66 - The code to check for BLE feature support is scary.
+
+#### Nice to haves
+
+747 - We really should get PSK into mainline node. The work on this actually underway. We just need to support it.
+
+269 - Using something like rollup we could turn our huge mess of Node.js files into one massive file. This would help things like iOS perf. But it's not clear how big a win this really is and how much it would hurt to implement it.
+
+668 - There is a bug in our PSK code that if the callback to check the identity has a Javascript error it will crash everything.
+
+449 - Right now we don't run in the background at all in iOS. But this could give us a few extra minutes of sync time which is a big deal.
+
+282 - If androidAftterPrepare in our install script fails the dev doesn't get any notification.
+
+123 - Best practice is that all crypto operations, like creating keys, should be in a separately spawned process that doesn't have any connections to the network.
+
+124 - We constantly use our root key for all crypto operations. That is a bad idea. We should be using a chain.
+
+582 - We don't take into account failed connections when marking a peer as unavailable.
+
+### Illities
+
+Since 'new infra' was meant as product quality proof of concept there is a ton of basic blocking and tackling we didn't handle.
+
+#### Testing
+
+556 - This is by far the biggest sin we have and probably something that should be moved to new infra. We have zero CI testing or automated test suites for iOS. There is a tiny bit of code coverage but nothing comprehensive. This has got to be fixed at the highest priority. Let me repeat - our iOS native code has effectively ZERO test coverage.
+
+78 - We have done a ton of work giving code coverage for Android but only for the code in ThaliCordova_Plugin_Bluetooth. We only indirectly test the Java code in ThaliCordova_Plugin via exercising the Java interfaces from Node.js. But that is just asking for problems. We need dedicated Java level tests of the Android code in ThaliCordova_Plugin.
+
+750 - We have no idea how good our code coverage is in Node, Android or iOS. We really need to find out.
+
+39 - This is a bug in CI where we don't get any logs. Bad.
+
+709 - We set related environment variables in random different places, we need to clean that up.
+
+19 - We need to let the CI run for longer times. Some of our tests take a while.
+
+554 - We don't even have a way to run iOS unit tests in CI!
+
+112 - We need a framework to randomly kill connections when we are testing to see how well we do.
+
+337 - How many connections can we handle on iOS and Android before things become unstable?
+
+#### Code Quality
+
+731 - We have frozen all of our dependencies in config.json because of issues we ran into where minor updates broke things. But this means we don't automatically get bug fixes. So we really must introduce something like greenkeeper to help us manage our dependencies.
+
+715 - We have some repeated code that needs to be abstracted out.
+
+712 - PouchDB no longer blocks on Node 0.10 failures during CI. Since JXcore is (more or less) Node 0.10 this is a big deal for us. We have to set up a way to get notified when PouchDB's Travis tests fail on Node 0.10 and investigate.
+
+667 - At one point our PSK code required that certs be supplied even thought they weren't being used. The bug is fixed but we need to clean up our tests to make sure they don't send the certs anymore.
+
+609 - Our docs for JXcore's PSK support aren't any good, we need to fix.
+
+602 - thaliTcpServersManager is a huge mess of repeated code.
+
+457 - Automate tests of our code to detect when we are running on a device that doesn't have the right BLE hardware.
+
+253 - Our code docs have a lot of broken @link, we really need to fix.
+
+265 - Our install.js install file is a beast. We really need to clean up.
+
+488 - The HKDF code we checked into JXcore turns out to be broken. We either need to fix or remove.
+
+541 - Our dev instructions are not complete
+
+547 - Put in a test for Marshmallow related behavior, this is really about adding Marshmallow devices to CI
+
+#### Stability
+
+450 - What happens to our data and over all functionality if Android or iOS just straight out kills us?
+
+408 - We have to confirm that we properly kill things when we go into and out of the background on iOS.
+
+#### Measuring performance
+
+404 - We used to have perf tests but they have been fallow for a long time now. We really need to comprehensively measure perf.
+
+41 - We need to measure how much slower WiFi is when Bluetooth is running, if it's bad then we will probably need to avoid synching with Bluetooth on Android when there is a foreground app using WiFi or people will hate us for making their phones slow.
+
+40 - If we turned off WiFi when we aren't connected would that increase Bluetooth bandwidth? (Remember, WiFi and Bluetooth are time division multiplexed across the same antenna)
+
+37 - We don't know what we don't know about Bluetooth perf, connection limits, etc. Help!
+
+258 - We've had some issues with connections constantly being dropped in iOS. We need to confirm it actually exists and then fix if necessary.
+
+367 - Just how much data can our multiplex layer handle in practice? How many connections? How much does it slow things down?
+
+336 - How do we affect the phone (iOS or Android) when we are going full blast on synch's?
+
+23 - We need to measure how our code to handle multiple BT handshakes actually works in practice.
+
+160 - What is our battery performance on iOS?
+
+#### Nice to haves
+
+44 - We really need to get a local NPM cache into our CI environment. We already lost a full day of work when NPM went down. A cache wuld protect us.
+
+729 - There are various ways that PouchDB can become corrupt. How do we recover? 
+
+15 - We need CI to update itself automatically when we update the CI project. Right now it's manual and we forget.
+
+349 - We need to clean up install scripts a bit to make it easier for 3rd parties to install us.
+
+569 - PouchDB now supports SQL Lite. Is it even theoretically a good replacement for LevelDB?
+
+116 - Life would be better if we could live reload Node.js content on devices for testing purposes.
+
