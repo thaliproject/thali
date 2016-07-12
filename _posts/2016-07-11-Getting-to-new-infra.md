@@ -98,6 +98,16 @@ New Infra actually has the bulk of required functionality. What's left over are 
 
 419 - We need the quota manager
 
+#### New Platforms
+
+754 - Test JXcore on Android Nougat
+
+755 - Add Android Nougat devices to CI
+
+756 - Test JXcore on iOS 10
+
+757 - Add iOS 10 devices to CI
+
 #### Perf Bugs
 
 151 - Last time we checked if a record was updated, even if its attachment isn't changed, the attachment would be resent! MUST FIX (if still there)!
