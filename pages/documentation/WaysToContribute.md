@@ -21,7 +21,7 @@ If you would like to contribute, consider these options:
 * Tell others about the project.
 * Tell the developers how much you appreciate the product!
 
-You can also track our current work items on [our backlog](https://waffle.io/thaliproject/thali).
+You can also track our current work items on [our backlog](https://huboard.com/thaliproject/thali#/).
 
 ## Contributing Code
 
