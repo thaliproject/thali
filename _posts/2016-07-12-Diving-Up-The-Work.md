@@ -48,17 +48,24 @@ I also don't actually expect us to get to all of these tests or even all aspects
 
 #### Battery consumption testing 
 We have no idea how much battery we eat. In the case of iOS this isn't a big deal because we only run when the app is in the foreground. But with Android this is huge since we run in the background. We also have to test Android on the three different levels of power available for BLE. We have to figure out how much energy discovery eats. We have to figure out how much energy data transfer eats. We need to start with 1 device to 1 device testing but then test other configurations to see what happens. Is battery usage linear as a function of the number of other devices? Or does it plateau because of limitations in the radio stack? What is the plateau? Anyone building on Thali MUST have these numbers or they can't create a peer pool policy that makes any sense.
+
 #### Time to discovery testing
 We have no idea how long it takes two phones in range of each other to discover each other. Anecdotally the time seems super short. But we need to quantify it and make sure it is consistent. Nothing will anger users more than standing in front of another user, both having the phone app and nothing happening!
+
 #### Distance to discovery testing
 We have never run any meaningful tests to see how far away two phones can be, even if just line of sight, and still discover each other. This is really important on Android because we use BLE for discovery and we can set the strength of the BLE signal. This lets us trade off battery vs distance but right now we have no idea what the trade off is!
+
 #### Bandwidth testing
 We did some testing of how much data we could move peer to peer between devices over both iOS and Android and the results were pretty sad. But those tests are out of date. We need to do a variety of tests here. We need to test raw bandwidth (e.g. write native tests that just try to move bulk data across the radios, this should include WiFi!) to give us a baseline. Then we should try to run our replication logic and see just how bad the overhead is. This will require distinguishing between replicating attachments vs JSON records since they have very different behavior and some known (awful) perf issues.
+
 #### Load testing 
 One of the best ways to find awful bugs is to just open up a big can of data and let it rip. This would involve taking a device and having it do non-stop discovery and data transfer for at least 12-24 hours and see what breaks.
+
 #### DOS testing
 This is fundamentally different than load testing in that we are explicitly testing that the DOS protections work. There are several variants of this testing including testing attacks on discovery, attacks on brute force Bluetooth connections (that will fail PSK), attacks on the network layer of Bluetooth by authorized users and attacks on PouchDB storage by authorized users.
+
 #### Chaos Monkey Testing
 In the real world connections are constantly going to go up and down. We need to test how we handle this. This would be a variant of load testing but would intentionally have the test rigs randomly drop connections at various points in the life cycle. E.g. someone being discovered would go away, someone exchanging data would cut the connection, etc.
+
 #### Uptime testing
 Apps can run essentially forever. But most software isn't really trustworthy that long. We need to run tests where we try to run the code for extended periods of time and just see if it keeps working right or not. We need to test both constant activity (like the load test) but also more realistic patterns where activity is transient with long dead periods.
