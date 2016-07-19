@@ -80,7 +80,7 @@ This would be a Cordova plugin that would provide some standardized support for 
 We really need a library to let endpoints specify their access control policy using ACLs which are based on groups of public keys. This library would provide a simple implementation to store the ACLs and groups and run the ACL engine using the groups. And yes, in Thali style, it will all be backed by PouchDB (e.g. CouchDB on Node.js).
 
 # Cloud integration
-Those wacky IoT folks, as much as they love offline, still really love online and the cloud. They want an easy way to share data with the cloud. The great news is that so many people are already working on this part of the problem we can just surf on their effort. So we can leverage projects like [Nitrogen.io](http://nitrogen.io/) (full disclosure - Nitrogen is built by the team I work for) to get us into the cloud.
+Those wacky IoT folks, as much as they love offline, still really love online and the cloud. They want an easy way to share data with the cloud. The great news is that so many people are already working on this part of the problem we can just surf on their effort. 
 
 # So what's missing for Thali?
 The stack of technologies listed here are awesome and get us about 80% of the way to Thali. But there are still missing pieces.
