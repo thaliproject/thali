@@ -142,7 +142,13 @@ We have a bunch of instructions on how to get this software for Windows, see [se
 NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](/SetupForWindows) BECAUSE IT CONTAINS IMPORTANT CONFIGURATION INSTRUCTIONS THAT APPLY TO ALL PLATFORMS
 
 # Git
-The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there.
+The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there. First of all you MUST set ignorecase setting to false:  
+
+`git config core.ignorecase false` 
+
+You may set it globally: 
+
+`git config --global core.ignorecase false`
 
 But please, DO NOT SUBMIT COMMITS DIRECTLY TO THE DEPOT! Fork and then submit PRs from a branch on your fork. The *only* exception to this rule is update to gh-pages for the website. Those (and those alone) may be pushed directly to the depot.
 
