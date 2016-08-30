@@ -9,15 +9,15 @@ Rockwell Automation has brought on board a bunch of new folks to work on Thali. 
 |Company | Name  |Start Date | Assignment |
 |--------|-------|-----------|------------|
 |[Hiqo](http://www.hiqo-solutions.com/) | | | |
-|                                       | [Alexander Evsyuchenya](https://twitter.com/baydet) | 7/2016 | iOS |
-|                                       | [Andrew Aladev](https://www.puchuu.com/) | 7/2016 | Node.js |
-|                                       | [Artem Stepanishchev](https://vk.com/artem.jackson)   | 7/2016 | Node.js |
+|                                       | [Alexander Evsyuchenya](https://github.com/baydet) | 7/2016 | iOS |
+|                                       | [Andrew Aladev](https://github.com/andrew-aladev) | 7/2016 | Node.js |
+|                                       | [Artem Stepanishchev](https://github.com/artemjackson)   | 7/2016 | Node.js |
 |                                       | [Dersim Davaod](https://github.com/dersim-davaod) | 8/2016 | iOS |
 |                                       | [Evgeni Vabishchevich](https://github.com/evabishchevich)  | 7/2016 | Android |
-|                                       | [Ilya Laryionau](https://twitter.com/larryonoff) | 7/2016 | Team lead and iOS |
+|                                       | [Ilya Laryionau](https://github.com/larryonoff) | 7/2016 | Team lead and iOS |
 |                                       | [Katsiaryna Vasileuskaya](https://github.com/vasilevskayaem) | 8/2016 | Android |
 |[Rockwell Automation](http://www.rockwellautomation.com/)| | | |
-|                   | [Jaroslaw Slota](https://github.com/jareksl) | 3/2016 | Maintain CI, test Android and integrate Thali with Stanton | 
+|                   | [Jaroslaw Slota](https://github.com/jareksl) | 3/2016 | Maintain CI, test Android and integrate Thali with Stanton |
 |                   | [Marcin Lesniczek](https://github.com/mlesnic) | 6/2016 | Same |
 |                   | [Marek Czyz](https://github.com/czyzm) | 3/2016 | Same  |
 |[Janea](http://www.janeasystems.com/) | | | |
