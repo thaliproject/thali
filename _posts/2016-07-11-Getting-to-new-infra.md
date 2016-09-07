@@ -40,49 +40,49 @@ You can head over to https://huboard.com/thaliproject/thali#/?milestone=%5B%22Ne
 
 ### Node.js layer
 
-[417](thaliproject/Thali_CordovaPlugin/issues/417)/[740](thaliproject/Thali_CordovaPlugin/issues/740) - 417 is the issue to add the replication layer and 740 is the PR that actually does it. The good news is that 740 is code and test complete and passes on my machine. But there are multiple layers of bad news we have to dig through. First off, there are several bugs in PouchDB and Express-PouchDB that will keep the tests from passing (they pass on my machine because I'm using custom builds of both PouchDB and Express-PouchDB). So we either have to wait for new releases of both projects before we can actually get this PR to pass in CI or we have to install our own versions. Installing our own versions isn't actually that hard so we should probably do that. This leads to our second problem, I haven't been running these tests on either Android or iOS. Instead I have only been testing on desktop. The reason for this is that I felt it was better to get the code finished and then fix bugs on Android/iOS then get stuck waiting for the issues there to be resolved (see below). Third off, this PR actually already includes 720. So we really can't check in 740 until 720 is finished up. 720 is discussed in the Android section below.
+[417](thaliproject/Thali_CordovaPlugin#417)/[740](thaliproject/Thali_CordovaPlugin#740) - 417 is the issue to add the replication layer and 740 is the PR that actually does it. The good news is that 740 is code and test complete and passes on my machine. But there are multiple layers of bad news we have to dig through. First off, there are several bugs in PouchDB and Express-PouchDB that will keep the tests from passing (they pass on my machine because I'm using custom builds of both PouchDB and Express-PouchDB). So we either have to wait for new releases of both projects before we can actually get this PR to pass in CI or we have to install our own versions. Installing our own versions isn't actually that hard so we should probably do that. This leads to our second problem, I haven't been running these tests on either Android or iOS. Instead I have only been testing on desktop. The reason for this is that I felt it was better to get the code finished and then fix bugs on Android/iOS then get stuck waiting for the issues there to be resolved (see below). Third off, this PR actually already includes 720. So we really can't check in 740 until 720 is finished up. 720 is discussed in the Android section below.
 
-[507](thaliproject/Thali_CordovaPlugin/issues/507) - This is just some top level code to make it easy to start and stop Thali. It's no big deal. But it would be a good intro item for someone trying to learn Thali's code base top down to take on.
+[507](thaliproject/Thali_CordovaPlugin#507) - This is just some top level code to make it easy to start and stop Thali. It's no big deal. But it would be a good intro item for someone trying to learn Thali's code base top down to take on.
 
-[621](thaliproject/Thali_CordovaPlugin/issues/621) - When we started 'New Infra' we wrote the code 'in place' with the old code (bad idea, but oh well). So what we did is create a new directory called 'NextGeneration' and stuck all the new code there. This work item is to finally 'bust out' the new code from the sub-directory and move it to the top level directory while simultaneously deleting a bunch of old code.
+[621](thaliproject/Thali_CordovaPlugin#621) - When we started 'New Infra' we wrote the code 'in place' with the old code (bad idea, but oh well). So what we did is create a new directory called 'NextGeneration' and stuck all the new code there. This work item is to finally 'bust out' the new code from the sub-directory and move it to the top level directory while simultaneously deleting a bunch of old code.
 
-[4](thaliproject/Thali_CordovaPlugin/issues/4) - Salti is a library we wrote and use to authorize connections to Thali and the sample is currently broken. It needs to be fixed.
+[4](project/salti#4) - Salti is a library we wrote and use to authorize connections to Thali and the sample is currently broken. It needs to be fixed.
 
-[716](thaliproject/Thali_CordovaPlugin/issues/716) - We never actually put Salti support into Thali. We need to fix that. It's not nearly as scary as you might think. :)
+[716](thaliproject/Thali_CordovaPlugin#716) - We never actually put Salti support into Thali. We need to fix that. It's not nearly as scary as you might think. :)
 
-[361](thaliproject/Thali_CordovaPlugin/issues/361) - Without identity exchange there is no way to actually connect two Thali devices without some magical backdoor key exchange mechanism. The good news is that identity exchange really works with full testing. The bad news is that the code works on an older version of Thali (the master release). So we need to upgrade it to the new infrastructure.
+[361](thaliproject/Thali_CordovaPlugin#361) - Without identity exchange there is no way to actually connect two Thali devices without some magical backdoor key exchange mechanism. The good news is that identity exchange really works with full testing. The bad news is that the code works on an older version of Thali (the master release). So we need to upgrade it to the new infrastructure.
 
-[383](thaliproject/Thali_CordovaPlugin/issues/383), [133](thaliproject/Thali_CordovaPlugin/issues/133), [136](thaliproject/Thali_CordovaPlugin/issues/136), [137](thaliproject/Thali_CordovaPlugin/issues/137), [219](thaliproject/Thali_CordovaPlugin/issues/219), [158](thaliproject/Thali_CordovaPlugin/issues/158) -Known bugs in identity exchange.
+[383](thaliproject/Thali_CordovaPlugin#383), [133](thaliproject/Thali_CordovaPlugin#133), [136](thaliproject/Thali_CordovaPlugin#136), [137](thaliproject/Thali_CordovaPlugin#137), [219](thaliproject/Thali_CordovaPlugin#219), [158](thaliproject/Thali_CordovaPlugin#158) -Known bugs in identity exchange.
 
 ### Android
 
-[720](thaliproject/Thali_CordovaPlugin/issues/720) - This contains a bunch of fixes to the Android layer. But unfortunately Tomi just doesn't have time to finish it. Most of the issues are pretty minor but the issue in SocketThreadBase is a much bigger deal than it looks like but it's covered in 721 below. So we need to finish this PR out and get it checked in.
+[720](thaliproject/Thali_CordovaPlugin#720) - This contains a bunch of fixes to the Android layer. But unfortunately Tomi just doesn't have time to finish it. Most of the issues are pretty minor but the issue in SocketThreadBase is a much bigger deal than it looks like but it's covered in 721 below. So we need to finish this PR out and get it checked in.
 
-[721](thaliproject/Thali_CordovaPlugin/issues/721) - This is one of the bigger open issues from 720 above. It's in the Android code and it really does need to be fixed.
+[721](thaliproject/Thali_CordovaPlugin#721) - This is one of the bigger open issues from 720 above. It's in the Android code and it really does need to be fixed.
 
-[718](thaliproject/Thali_CordovaPlugin/issues/718) - This is just a bug we need to see if it still repro's on Android when we get 740 passing on its Android tests.
+[718](thaliproject/Thali_CordovaPlugin#718) - This is just a bug we need to see if it still repro's on Android when we get 740 passing on its Android tests.
 
-[719](thaliproject/Thali_CordovaPlugin/issues/719) - This actually needs to be fixed because the code we commented out to get this passing is, I believe, actually doing important stuff.
+[719](thaliproject/Thali_CordovaPlugin#719) - This actually needs to be fixed because the code we commented out to get this passing is, I believe, actually doing important stuff.
 
 ### iOS
 
-[646](thaliproject/Thali_CordovaPlugin/issues/646) - This is a PR that was supposed to get iOS working with our Node.js infrastructure. It also submitted a new version of our Mux layer that was supposed to handle some of the peculiarities of iOS (such as only handling one connection at a time). Unfortunately the code didn't work. We have already checked in a fairly massive re-write of the mux layer separately. But that re-write only focused on getting Android working, not iOS. iOS's mux layer is more complicated than Android's. So this PR is going to have to have a lot of surgery before it's ready. To get a sense for the details see the bugs below.
+[646](thaliproject/Thali_CordovaPlugin#646) - This is a PR that was supposed to get iOS working with our Node.js infrastructure. It also submitted a new version of our Mux layer that was supposed to handle some of the peculiarities of iOS (such as only handling one connection at a time). Unfortunately the code didn't work. We have already checked in a fairly massive re-write of the mux layer separately. But that re-write only focused on getting Android working, not iOS. iOS's mux layer is more complicated than Android's. So this PR is going to have to have a lot of surgery before it's ready. To get a sense for the details see the bugs below.
 
-[751](thaliproject/Thali_CordovaPlugin/issues/751) - This is really the heart of the iOS problems. Read the bug for all the details but this is probably the most important question we can answer to get iOS back on its feet.
+[751](thaliproject/Thali_CordovaPlugin#751) - This is really the heart of the iOS problems. Read the bug for all the details but this is probably the most important question we can answer to get iOS back on its feet.
 
-[652](thaliproject/Thali_CordovaPlugin/issues/652) - If the answer to 751 is 'no, there really is a bug in the multi-peer connectivity framework' then for our sanity the way to fix the Node.js mux layer issues is to first teach the WiFi based Mobile emulator environment to act like the iOS environment.
+[652](thaliproject/Thali_CordovaPlugin#652) - If the answer to 751 is 'no, there really is a bug in the multi-peer connectivity framework' then for our sanity the way to fix the Node.js mux layer issues is to first teach the WiFi based Mobile emulator environment to act like the iOS environment.
 
-[358](thaliproject/Thali_CordovaPlugin/issues/358) - With 652 we can fix up the remaining mux layer issues using the WiFi emulator and then test on the actual device. This will radically increase productivity given how long it takes to test/debug on the hardware or even the emulator. Among other things, with 652 we can debug Node.js easily.
+[358](thaliproject/Thali_CordovaPlugin#358) - With 652 we can fix up the remaining mux layer issues using the WiFi emulator and then test on the actual device. This will radically increase productivity given how long it takes to test/debug on the hardware or even the emulator. Among other things, with 652 we can debug Node.js easily.
 
-[552](thaliproject/Thali_CordovaPlugin/issues/552) - This is really to write the tests needed to prove that 358 is working.
+[552](thaliproject/Thali_CordovaPlugin#552) - This is really to write the tests needed to prove that 358 is working.
 
-[665](thaliproject/Thali_CordovaPlugin/issues/665) - The named branch was Ville's attempt to address some of the problems with 646 and it has some nasty hangs, we need to resolve them.
+[665](thaliproject/Thali_CordovaPlugin#665) - The named branch was Ville's attempt to address some of the problems with 646 and it has some nasty hangs, we need to resolve them.
 
-[536](thaliproject/Thali_CordovaPlugin/issues/536) - This is a non-compliance in the iOS code with the required node.js behavior. We need to put in a test (if we don't already have one) and fix the bug as described.
+[536](thaliproject/Thali_CordovaPlugin#536) - This is a non-compliance in the iOS code with the required node.js behavior. We need to put in a test (if we don't already have one) and fix the bug as described.
 
-[699](thaliproject/Thali_CordovaPlugin/issues/699), [663](thaliproject/Thali_CordovaPlugin/issues/663) - Some pretty straight forward iOS bugs
+[699](thaliproject/Thali_CordovaPlugin#699), [663](thaliproject/Thali_CordovaPlugin#663) - Some pretty straight forward iOS bugs
 
-[637](thaliproject/Thali_CordovaPlugin/issues/637) - We have seen a ton of connection failures in iOS. It's unclear if the problem is the multi-peer connectivity framework or bugs in iOS. We need to investigate.
+[637](thaliproject/Thali_CordovaPlugin#637) - We have seen a ton of connection failures in iOS. It's unclear if the problem is the multi-peer connectivity framework or bugs in iOS. We need to investigate.
 
 ## What happens after New Infra?
 
@@ -94,135 +94,135 @@ New Infra actually has the bulk of required functionality. What's left over are 
 
 #### Features
 
-[108](thaliproject/Thali_CordovaPlugin/issues/108) - Need to manage size of PouchDB
+[108](thaliproject/Thali_CordovaPlugin#108) - Need to manage size of PouchDB
 
-[419](thaliproject/Thali_CordovaPlugin/issues/419) - We need the quota manager
+[419](thaliproject/Thali_CordovaPlugin#419) - We need the quota manager
 
 #### New Platforms
 
-[754](thaliproject/Thali_CordovaPlugin/issues/754) - Test JXcore on Android Nougat
+[754](thaliproject/Thali_CordovaPlugin#754) - Test JXcore on Android Nougat
 
-[755](thaliproject/Thali_CordovaPlugin/issues/755) - Add Android Nougat devices to CI
+[755](thaliproject/Thali_CordovaPlugin#755) - Add Android Nougat devices to CI
 
-[756](thaliproject/Thali_CordovaPlugin/issues/756) - Test JXcore on iOS 10
+[756](thaliproject/Thali_CordovaPlugin#756) - Test JXcore on iOS 10
 
-[757](thaliproject/Thali_CordovaPlugin/issues/757) - Add iOS 10 devices to CI
+[757](thaliproject/Thali_CordovaPlugin#757) - Add iOS 10 devices to CI
 
 #### Perf Bugs
 
-[151](thaliproject/Thali_CordovaPlugin/issues/151) - Last time we checked if a record was updated, even if its attachment isn't changed, the attachment would be resent! MUST FIX (if still there)!
+[151](thaliproject/Thali_CordovaPlugin#151) - Last time we checked if a record was updated, even if its attachment isn't changed, the attachment would be resent! MUST FIX (if still there)!
 
-[42](thaliproject/Thali_CordovaPlugin/issues/42) - Right now we use Bluetooth to do token discovery on Android. This is a battery suck of the first order. What we really need is to move tokens over BLE. But we have run into a lot of issues with BLE on Android. We need to figure those issues out.
+[42](thaliproject/Thali_CordovaPlugin#42) - Right now we use Bluetooth to do token discovery on Android. This is a battery suck of the first order. What we really need is to move tokens over BLE. But we have run into a lot of issues with BLE on Android. We need to figure those issues out.
 
-[735](thaliproject/Thali_CordovaPlugin/issues/735) - We don't detect when two phones are already in the same state so we'll think they aren't and keep resynching forever, great way to kill battery.
+[735](thaliproject/Thali_CordovaPlugin#735) - We don't detect when two phones are already in the same state so we'll think they aren't and keep resynching forever, great way to kill battery.
 
-[734](thaliproject/Thali_CordovaPlugin/issues/734) - We don't notify when a peer disappears so we'll keep looking for them (and eating battery) forever.
+[734](thaliproject/Thali_CordovaPlugin#734) - We don't notify when a peer disappears so we'll keep looking for them (and eating battery) forever.
 
-[730](thaliproject/Thali_CordovaPlugin/issues/730) - There is a bug in PouchDB that keeps it from honoring custom http agents which means we can't share agents for the same remote clients across different operations. This result is that we will put too much load on those agents. Fixing the PouchDB bug isn't a big deal but we will also need to update our test code to recognize that the agent feature now works.
+[730](thaliproject/Thali_CordovaPlugin#730) - There is a bug in PouchDB that keeps it from honoring custom http agents which means we can't share agents for the same remote clients across different operations. This result is that we will put too much load on those agents. Fixing the PouchDB bug isn't a big deal but we will also need to update our test code to recognize that the agent feature now works.
 
-[62](thaliproject/Thali_CordovaPlugin/issues/62) - We need to confirm that we setting Java socket options correctly.
+[62](thaliproject/Thali_CordovaPlugin#62) - We need to confirm that we setting Java socket options correctly.
 
-[700](thaliproject/Thali_CordovaPlugin/issues/700) - The way we handle discovery is not efficient, we need to make it easier to figure out when a peer ID comes from a peer we have seen before. The bug has the details.
+[700](thaliproject/Thali_CordovaPlugin#700) - The way we handle discovery is not efficient, we need to make it easier to figure out when a peer ID comes from a peer we have seen before. The bug has the details.
 
-[697](thaliproject/Thali_CordovaPlugin/issues/697) - There is a setInterval that will kill phone batteries dead. The fix is thankfully fairly straight forward.
+[697](thaliproject/Thali_CordovaPlugin#697) - There is a setInterval that will kill phone batteries dead. The fix is thankfully fairly straight forward.
 
-[651](thaliproject/Thali_CordovaPlugin/issues/651) - When new peers show up everyone will try to connect to everyone causing lots of wasted radio time. We need a random delay.
+[651](thaliproject/Thali_CordovaPlugin#651) - When new peers show up everyone will try to connect to everyone causing lots of wasted radio time. We need a random delay.
 
-[420](thaliproject/Thali_CordovaPlugin/issues/420) - The thaliPeerPoolInterface doesn't currently have support for event emitters from tcpServersManager which means it can't make good decisions about how to prioritize things.
+[420](thaliproject/Thali_CordovaPlugin#420) - The thaliPeerPoolInterface doesn't currently have support for event emitters from tcpServersManager which means it can't make good decisions about how to prioritize things.
 
-[32](thaliproject/Thali_CordovaPlugin/issues/32) - We might be able to use Android's new Marshmallow scan APIs to save some battery.
+[32](thaliproject/Thali_CordovaPlugin#32) - We might be able to use Android's new Marshmallow scan APIs to save some battery.
 
-[333](thaliproject/Thali_CordovaPlugin/issues/333) - Using NetworkRequest.Builder we could be much smarter about detecting when Bluetooth and Wifi are available.
+[333](thaliproject/Thali_CordovaPlugin#333) - Using NetworkRequest.Builder we could be much smarter about detecting when Bluetooth and Wifi are available.
 
-[379](thaliproject/Thali_CordovaPlugin/issues/379) - We have to make sure we don't eat up too many resources while we are in the background.
+[379](thaliproject/Thali_CordovaPlugin#379) - We have to make sure we don't eat up too many resources while we are in the background.
 
-[714](thaliproject/Thali_CordovaPlugin/issues/714) - We don't properly timeout connections in Android.
+[714](thaliproject/Thali_CordovaPlugin#714) - We don't properly timeout connections in Android.
 
-[733](thaliproject/Thali_CordovaPlugin/issues/733) - We don't notify folks upstream when peers disappear which means we will look for them (and waste battery) forever.
+[733](thaliproject/Thali_CordovaPlugin#733) - We don't notify folks upstream when peers disappear which means we will look for them (and waste battery) forever.
 
 #### Stability Bugs
 
-[701](thaliproject/Thali_CordovaPlugin/issues/701) - This is a bug in Leveldown mobile that has caused others to crash. To be fair we haven't seen it ourselves.
+[701](thaliproject/Thali_CordovaPlugin#701) - This is a bug in Leveldown mobile that has caused others to crash. To be fair we haven't seen it ourselves.
 
-[430](thaliproject/Thali_CordovaPlugin/issues/430), [409](thaliproject/Thali_CordovaPlugin/issues/409) - We need to properly get notified when there are life cycle events in Node.js or we will crash iOS and hurt Android.
+[430](thaliproject/Thali_CordovaPlugin#430), [409](thaliproject/Thali_CordovaPlugin#409) - We need to properly get notified when there are life cycle events in Node.js or we will crash iOS and hurt Android.
 
-[448](thaliproject/Thali_CordovaPlugin/issues/448) - It would be a good idea to just completely shut down JXcore every once in a while and restart it, running a node.js server for way too long can have funny effects.
+[448](thaliproject/Thali_CordovaPlugin#448) - It would be a good idea to just completely shut down JXcore every once in a while and restart it, running a node.js server for way too long can have funny effects.
 
-[7](thaliproject/Thali_CordovaPlugin/issues/7)/[42](thaliproject/Thali_CordovaPlugin/issues/42) - We need to figure out if JXcore is properly giving us persistent locations to store user content in.
+[7](thaliproject/Thali_CordovaPlugin#7)/[42](thaliproject/Thali_CordovaPlugin#42) - We need to figure out if JXcore is properly giving us persistent locations to store user content in.
 
-[229](thaliproject/Thali_CordovaPlugin/issues/229) - Need to review the cipher suite we are using.
+[229](thaliproject/Thali_CordovaPlugin#229) - Need to review the cipher suite we are using.
 
-[471](thaliproject/Thali_CordovaPlugin/issues/471), [476](thaliproject/Thali_CordovaPlugin/issues/476), [477](thaliproject/Thali_CordovaPlugin/issues/477), [479](thaliproject/Thali_CordovaPlugin/issues/479), [489](thaliproject/Thali_CordovaPlugin/issues/489), [684](thaliproject/Thali_CordovaPlugin/issues/684) - All minor node-ssdp related issues
+[471](thaliproject/Thali_CordovaPlugin#471), [476](thaliproject/Thali_CordovaPlugin#476), [477](thaliproject/Thali_CordovaPlugin#477), [479](thaliproject/Thali_CordovaPlugin#479), [489](thaliproject/Thali_CordovaPlugin#489), [684](thaliproject/Thali_CordovaPlugin#684) - All minor node-ssdp related issues
 
-[407](thaliproject/Thali_CordovaPlugin/issues/407) - Need to make sure Android behaves itself in the background.
+[407](thaliproject/Thali_CordovaPlugin#407) - Need to make sure Android behaves itself in the background.
 
-[48](thaliproject/Thali_CordovaPlugin/issues/48) - Need to confirm our logging framework for Android.
+[48](thaliproject/Thali_CordovaPlugin#48) - Need to confirm our logging framework for Android.
 
 #### Security
 
-[741](thaliproject/Thali_CordovaPlugin/issues/441) - We are using an old version of OpenSSL in JXcore, we need to upgrade or Google play will throw us out.
+[741](thaliproject/Thali_CordovaPlugin#441) - We are using an old version of OpenSSL in JXcore, we need to upgrade or Google play will throw us out.
 
-[707](thaliproject/Thali_CordovaPlugin/issues/707) - This is a JXcore issue. The version of OpenSSL it uses is so old it doesn't support any of the ECDHE_PSK_* suites so we don't have perfect forward secrecy. We need to update the OpenSSL version to one that supports those suites.
+[707](thaliproject/Thali_CordovaPlugin#707) - This is a JXcore issue. The version of OpenSSL it uses is so old it doesn't support any of the ECDHE_PSK_* suites so we don't have perfect forward secrecy. We need to update the OpenSSL version to one that supports those suites.
 
-[723](thaliproject/Thali_CordovaPlugin/issues/723) - We don't test that we properly reject bad PSK connections.
+[723](thaliproject/Thali_CordovaPlugin#723) - We don't test that we properly reject bad PSK connections.
 
-[664](thaliproject/Thali_CordovaPlugin/issues/664) - This is related to 723, it involves us testing bad PSK connections specifically in thaliWiFiInfrastructure and thaliMobileNativeWrapper.
+[664](thaliproject/Thali_CordovaPlugin#664) - This is related to 723, it involves us testing bad PSK connections specifically in thaliWiFiInfrastructure and thaliMobileNativeWrapper.
 
-[705](thaliproject/Thali_CordovaPlugin/issues/705) - Our HTTP handling has identical security related code in different places (bad, since fixes might not be applied everywhere), doesn't check properly to limit download size and doesn't properly time out connections over WiFi.
+[705](thaliproject/Thali_CordovaPlugin#705) - Our HTTP handling has identical security related code in different places (bad, since fixes might not be applied everywhere), doesn't check properly to limit download size and doesn't properly time out connections over WiFi.
 
-[264](thaliproject/Thali_CordovaPlugin/issues/264) - We need professionals to confirm the correctness of the discovery protocol.
+[264](thaliproject/Thali_CordovaPlugin#264) - We need professionals to confirm the correctness of the discovery protocol.
 
-[490](thaliproject/Thali_CordovaPlugin/issues/490) - There is an attack possible using SSDP headers, easy to prevent but we need to do the work.
+[490](thaliproject/Thali_CordovaPlugin#490) - There is an attack possible using SSDP headers, easy to prevent but we need to do the work.
 
-[261](thaliproject/Thali_CordovaPlugin/issues/261) - There is an attack that could be used to expose our admin password, it's pretty easy to protect against.
+[261](thaliproject/Thali_CordovaPlugin#261) - There is an attack that could be used to expose our admin password, it's pretty easy to protect against.
 
-[499](thaliproject/Thali_CordovaPlugin/issues/499) - We have no protections currently in place for badly behaving but otherwise authorized attackers. This includes everything from making too many network requests to storing too much data.
+[499](thaliproject/Thali_CordovaPlugin#499) - We have no protections currently in place for badly behaving but otherwise authorized attackers. This includes everything from making too many network requests to storing too much data.
 
-[444](thaliproject/Thali_CordovaPlugin/issues/444) - A nasty attack where an authorized third party can freeze someone out. Fairly easy to stop though.
+[444](thaliproject/Thali_CordovaPlugin#444) - A nasty attack where an authorized third party can freeze someone out. Fairly easy to stop though.
 
-[434](thaliproject/Thali_CordovaPlugin/issues/434) - We don't have DOS protection against bad peers
+[434](thaliproject/Thali_CordovaPlugin#434) - We don't have DOS protection against bad peers
 
-[137](thaliproject/Thali_CordovaPlugin/issues/137) - Another DOS issue.
+[137](thaliproject/Thali_CordovaPlugin#137) - Another DOS issue.
 
-[53](thaliproject/Thali_CordovaPlugin/issues/53) - We need to delete old logs so we don't overwhelm the device. An attacked could take advantage of this to disable a device.
+[53](thaliproject/Thali_CordovaPlugin#53) - We need to delete old logs so we don't overwhelm the device. An attacked could take advantage of this to disable a device.
 
-[52](thaliproject/Thali_CordovaPlugin/issues/52) - We have to make sure our logs don't have sensitive data.
+[52](thaliproject/Thali_CordovaPlugin#52) - We have to make sure our logs don't have sensitive data.
 
-[320](thaliproject/Thali_CordovaPlugin/issues/320) - We need a spec to secure the webview.
+[320](thaliproject/Thali_CordovaPlugin#320) - We need a spec to secure the webview.
 
-[446](thaliproject/Thali_CordovaPlugin/issues/446), [447](thaliproject/Thali_CordovaPlugin/issues/447) - This is related to 320 and defines how we move secrets to the Webview.
+[446](thaliproject/Thali_CordovaPlugin#446), [447](thaliproject/Thali_CordovaPlugin#447) - This is related to 320 and defines how we move secrets to the Webview.
 
-[125](thaliproject/Thali_CordovaPlugin/issues/125) - We need to make sure we have only enabled the SSL cipher suites we need.
+[125](thaliproject/Thali_CordovaPlugin#125) - We need to make sure we have only enabled the SSL cipher suites we need.
 
-[140](thaliproject/Thali_CordovaPlugin/issues/140) - If you don't have a threat model then you don't know if you are secure.
+[140](thaliproject/Thali_CordovaPlugin#140) - If you don't have a threat model then you don't know if you are secure.
 
-[138](thaliproject/Thali_CordovaPlugin/issues/138) - We need our network APIs fuzzed.
+[138](thaliproject/Thali_CordovaPlugin#138) - We need our network APIs fuzzed.
 
 #### Android
 
-[265](thaliproject/Thali_CordovaPlugin/issues/265) - We have a problem right now where on some devices we can't set a service type. We can only set manufacturer type. We have to figure out if this is a bug in our code or a problem on those devices and what we want to do about it.
+[265](thaliproject/Thali_CordovaPlugin#265) - We have a problem right now where on some devices we can't set a service type. We can only set manufacturer type. We have to figure out if this is a bug in our code or a problem on those devices and what we want to do about it.
 
-[645](thaliproject/Thali_CordovaPlugin/issues/645) - This is related to 265. We're worried that the work around may suck battery (e.g. searching for both service and manufacturer type).
+[645](thaliproject/Thali_CordovaPlugin#645) - This is related to 265. We're worried that the work around may suck battery (e.g. searching for both service and manufacturer type).
 
-[66](thaliproject/Thali_CordovaPlugin/issues/66) - The code to check for BLE feature support is scary.
+[66](thaliproject/Thali_CordovaPlugin#66) - The code to check for BLE feature support is scary.
 
 #### Nice to haves
 
-[747](thaliproject/Thali_CordovaPlugin/issues/747) - We really should get PSK into mainline node. The work on this actually underway. We just need to support it.
+[747](thaliproject/Thali_CordovaPlugin#747) - We really should get PSK into mainline node. The work on this actually underway. We just need to support it.
 
-[269](thaliproject/Thali_CordovaPlugin/issues/269) - Using something like rollup we could turn our huge mess of Node.js files into one massive file. This would help things like iOS perf. But it's not clear how big a win this really is and how much it would hurt to implement it.
+[269](thaliproject/Thali_CordovaPlugin#269) - Using something like rollup we could turn our huge mess of Node.js files into one massive file. This would help things like iOS perf. But it's not clear how big a win this really is and how much it would hurt to implement it.
 
-[668](thaliproject/Thali_CordovaPlugin/issues/668) - There is a bug in our PSK code that if the callback to check the identity has a Javascript error it will crash everything.
+[668](thaliproject/Thali_CordovaPlugin#668) - There is a bug in our PSK code that if the callback to check the identity has a Javascript error it will crash everything.
 
-[449](thaliproject/Thali_CordovaPlugin/issues/449) - Right now we don't run in the background at all in iOS. But this could give us a few extra minutes of sync time which is a big deal.
+[449](thaliproject/Thali_CordovaPlugin#449) - Right now we don't run in the background at all in iOS. But this could give us a few extra minutes of sync time which is a big deal.
 
-[282](thaliproject/Thali_CordovaPlugin/issues/282) - If androidAftterPrepare in our install script fails the dev doesn't get any notification.
+[282](thaliproject/Thali_CordovaPlugin#282) - If androidAftterPrepare in our install script fails the dev doesn't get any notification.
 
-[123](thaliproject/Thali_CordovaPlugin/issues/123) - Best practice is that all crypto operations, like creating keys, should be in a separately spawned process that doesn't have any connections to the network.
+[123](thaliproject/Thali_CordovaPlugin#123) - Best practice is that all crypto operations, like creating keys, should be in a separately spawned process that doesn't have any connections to the network.
 
-[124](thaliproject/Thali_CordovaPlugin/issues/124) - We constantly use our root key for all crypto operations. That is a bad idea. We should be using a chain.
+[124](thaliproject/Thali_CordovaPlugin#124) - We constantly use our root key for all crypto operations. That is a bad idea. We should be using a chain.
 
-[582](thaliproject/Thali_CordovaPlugin/issues/582) - We don't take into account failed connections when marking a peer as unavailable.
+[582](thaliproject/Thali_CordovaPlugin#582) - We don't take into account failed connections when marking a peer as unavailable.
 
 ### Illities
 
@@ -230,98 +230,98 @@ Since 'new infra' was meant as product quality proof of concept there is a ton o
 
 #### Testing
 
-[556](thaliproject/Thali_CordovaPlugin/issues/556) - This is by far the biggest sin we have and probably something that should be moved to new infra. We have zero CI testing or automated test suites for iOS. There is a tiny bit of code coverage but nothing comprehensive. This has got to be fixed at the highest priority. Let me repeat - our iOS native code has effectively ZERO test coverage.
+[556](thaliproject/Thali_CordovaPlugin#556) - This is by far the biggest sin we have and probably something that should be moved to new infra. We have zero CI testing or automated test suites for iOS. There is a tiny bit of code coverage but nothing comprehensive. This has got to be fixed at the highest priority. Let me repeat - our iOS native code has effectively ZERO test coverage.
 
-[78](thaliproject/Thali_CordovaPlugin/issues/78) - We have done a ton of work giving code coverage for Android but only for the code in ThaliCordova_Plugin_Bluetooth. We only indirectly test the Java code in ThaliCordova_Plugin via exercising the Java interfaces from Node.js. But that is just asking for problems. We need dedicated Java level tests of the Android code in ThaliCordova_Plugin.
+[78](thaliproject/Thali_CordovaPlugin#78) - We have done a ton of work giving code coverage for Android but only for the code in ThaliCordova_Plugin_Bluetooth. We only indirectly test the Java code in ThaliCordova_Plugin via exercising the Java interfaces from Node.js. But that is just asking for problems. We need dedicated Java level tests of the Android code in ThaliCordova_Plugin.
 
-[750](thaliproject/Thali_CordovaPlugin/issues/750) - We have no idea how good our code coverage is in Node, Android or iOS. We really need to find out.
+[750](thaliproject/Thali_CordovaPlugin#750) - We have no idea how good our code coverage is in Node, Android or iOS. We really need to find out.
 
-[39](thaliproject/Thali_CordovaPlugin/issues/39) - This is a bug in CI where we don't get any logs. Bad.
+[39](thaliproject/Thali_CordovaPlugin#39) - This is a bug in CI where we don't get any logs. Bad.
 
-[709](thaliproject/Thali_CordovaPlugin/issues/709) - We set related environment variables in random different places, we need to clean that up.
+[709](thaliproject/Thali_CordovaPlugin#709) - We set related environment variables in random different places, we need to clean that up.
 
-[19](thaliproject/Thali_CordovaPlugin/issues/19) - We need to let the CI run for longer times. Some of our tests take a while.
+[19](thaliproject/Thali_CordovaPlugin#19) - We need to let the CI run for longer times. Some of our tests take a while.
 
-[554](thaliproject/Thali_CordovaPlugin/issues/554) - We don't even have a way to run iOS unit tests in CI!
+[554](thaliproject/Thali_CordovaPlugin#554) - We don't even have a way to run iOS unit tests in CI!
 
-[112](thaliproject/Thali_CordovaPlugin/issues/112) - We need a framework to randomly kill connections when we are testing to see how well we do.
+[112](thaliproject/Thali_CordovaPlugin#112) - We need a framework to randomly kill connections when we are testing to see how well we do.
 
-[337](thaliproject/Thali_CordovaPlugin/issues/337) - How many connections can we handle on iOS and Android before things become unstable?
+[337](thaliproject/Thali_CordovaPlugin#337) - How many connections can we handle on iOS and Android before things become unstable?
 
-[636](thaliproject/Thali_CordovaPlugin/issues/636) - We print the wrong results summary in Unit tests for local devices.
+[636](thaliproject/Thali_CordovaPlugin#636) - We print the wrong results summary in Unit tests for local devices.
 
-[691](thaliproject/Thali_CordovaPlugin/issues/691) - If there is a failure while we are in teardown the CI system won't see it. That is bad because it has hidden bugs in the past
+[691](thaliproject/Thali_CordovaPlugin#691) - If there is a failure while we are in teardown the CI system won't see it. That is bad because it has hidden bugs in the past
 
 #### Code Quality
 
-[731](thaliproject/Thali_CordovaPlugin/issues/731) - We have frozen all of our dependencies in config.json because of issues we ran into where minor updates broke things. But this means we don't automatically get bug fixes. So we really must introduce something like greenkeeper to help us manage our dependencies.
+[731](thaliproject/Thali_CordovaPlugin#731) - We have frozen all of our dependencies in config.json because of issues we ran into where minor updates broke things. But this means we don't automatically get bug fixes. So we really must introduce something like greenkeeper to help us manage our dependencies.
 
-[715](thaliproject/Thali_CordovaPlugin/issues/715) - We have some repeated code that needs to be abstracted out.
+[715](thaliproject/Thali_CordovaPlugin#715) - We have some repeated code that needs to be abstracted out.
 
-[712](thaliproject/Thali_CordovaPlugin/issues/712) - PouchDB no longer blocks on Node 0.10 failures during CI. Since JXcore is (more or less) Node 0.10 this is a big deal for us. We have to set up a way to get notified when PouchDB's Travis tests fail on Node 0.10 and investigate.
+[712](thaliproject/Thali_CordovaPlugin#712) - PouchDB no longer blocks on Node 0.10 failures during CI. Since JXcore is (more or less) Node 0.10 this is a big deal for us. We have to set up a way to get notified when PouchDB's Travis tests fail on Node 0.10 and investigate.
 
-[667](thaliproject/Thali_CordovaPlugin/issues/667) - At one point our PSK code required that certs be supplied even thought they weren't being used. The bug is fixed but we need to clean up our tests to make sure they don't send the certs anymore.
+[667](thaliproject/Thali_CordovaPlugin#667) - At one point our PSK code required that certs be supplied even thought they weren't being used. The bug is fixed but we need to clean up our tests to make sure they don't send the certs anymore.
 
-[609](thaliproject/Thali_CordovaPlugin/issues/609) - Our docs for JXcore's PSK support aren't any good, we need to fix.
+[609](thaliproject/Thali_CordovaPlugin#609) - Our docs for JXcore's PSK support aren't any good, we need to fix.
 
-[602](thaliproject/Thali_CordovaPlugin/issues/602) - thaliTcpServersManager is a huge mess of repeated code.
+[602](thaliproject/Thali_CordovaPlugin#602) - thaliTcpServersManager is a huge mess of repeated code.
 
-[457](thaliproject/Thali_CordovaPlugin/issues/457) - Automate tests of our code to detect when we are running on a device that doesn't have the right BLE hardware.
+[457](thaliproject/Thali_CordovaPlugin#457) - Automate tests of our code to detect when we are running on a device that doesn't have the right BLE hardware.
 
-[253](thaliproject/Thali_CordovaPlugin/issues/253) - Our code docs have a lot of broken @link, we really need to fix.
+[253](thaliproject/Thali_CordovaPlugin#253) - Our code docs have a lot of broken @link, we really need to fix.
 
-[265](thaliproject/Thali_CordovaPlugin/issues/265) - Our install.js install file is a beast. We really need to clean up.
+[265](thaliproject/Thali_CordovaPlugin#265) - Our install.js install file is a beast. We really need to clean up.
 
-[488](thaliproject/Thali_CordovaPlugin/issues/488) - The HKDF code we checked into JXcore turns out to be broken. We either need to fix or remove.
+[488](thaliproject/Thali_CordovaPlugin#488) - The HKDF code we checked into JXcore turns out to be broken. We either need to fix or remove.
 
-[541](thaliproject/Thali_CordovaPlugin/issues/541) - Our dev instructions are not complete
+[541](thaliproject/Thali_CordovaPlugin#541) - Our dev instructions are not complete
 
-[547](thaliproject/Thali_CordovaPlugin/issues/547) - Put in a test for Marshmallow related behavior, this is really about adding Marshmallow devices to CI
+[547](thaliproject/Thali_CordovaPlugin#547) - Put in a test for Marshmallow related behavior, this is really about adding Marshmallow devices to CI
 
-[647](thaliproject/Thali_CordovaPlugin/issues/647) - We need to re-enable the DOC check linting in CI
+[647](thaliproject/Thali_CordovaPlugin#647) - We need to re-enable the DOC check linting in CI
 
 #### Stability
 
-[450](thaliproject/Thali_CordovaPlugin/issues/450) - What happens to our data and over all functionality if Android or iOS just straight out kills us?
+[450](thaliproject/Thali_CordovaPlugin#450) - What happens to our data and over all functionality if Android or iOS just straight out kills us?
 
-[408](thaliproject/Thali_CordovaPlugin/issues/408) - We have to confirm that we properly kill things when we go into and out of the background on iOS.
+[408](thaliproject/Thali_CordovaPlugin#408) - We have to confirm that we properly kill things when we go into and out of the background on iOS.
 
-[413](thaliproject/Thali_CordovaPlugin/issues/413) - Need to automate tests for doze and standby in Android on Marshmallow and higher.
+[413](thaliproject/Thali_CordovaPlugin#413) - Need to automate tests for doze and standby in Android on Marshmallow and higher.
 
 #### Measuring performance
 
-[404](thaliproject/Thali_CordovaPlugin/issues/404) - We used to have perf tests but they have been fallow for a long time now. We really need to comprehensively measure perf.
+[404](thaliproject/Thali_CordovaPlugin#404) - We used to have perf tests but they have been fallow for a long time now. We really need to comprehensively measure perf.
 
-[41](thaliproject/Thali_CordovaPlugin/issues/41) - We need to measure how much slower WiFi is when Bluetooth is running, if it's bad then we will probably need to avoid synching with Bluetooth on Android when there is a foreground app using WiFi or people will hate us for making their phones slow.
+[41](thaliproject/Thali_CordovaPlugin#41) - We need to measure how much slower WiFi is when Bluetooth is running, if it's bad then we will probably need to avoid synching with Bluetooth on Android when there is a foreground app using WiFi or people will hate us for making their phones slow.
 
-[40](thaliproject/Thali_CordovaPlugin/issues/40) - If we turned off WiFi when we aren't connected would that increase Bluetooth bandwidth? (Remember, WiFi and Bluetooth are time division multiplexed across the same antenna)
+[40](thaliproject/Thali_CordovaPlugin#40) - If we turned off WiFi when we aren't connected would that increase Bluetooth bandwidth? (Remember, WiFi and Bluetooth are time division multiplexed across the same antenna)
 
-[37](thaliproject/Thali_CordovaPlugin/issues/37) - We don't know what we don't know about Bluetooth perf, connection limits, etc. Help!
+[37](thaliproject/Thali_CordovaPlugin#37) - We don't know what we don't know about Bluetooth perf, connection limits, etc. Help!
 
-[258](thaliproject/Thali_CordovaPlugin/issues/258) - We've had some issues with connections constantly being dropped in iOS. We need to confirm it actually exists and then fix if necessary.
+[258](thaliproject/Thali_CordovaPlugin#258) - We've had some issues with connections constantly being dropped in iOS. We need to confirm it actually exists and then fix if necessary.
 
-[367](thaliproject/Thali_CordovaPlugin/issues/367) - Just how much data can our multiplex layer handle in practice? How many connections? How much does it slow things down?
+[367](thaliproject/Thali_CordovaPlugin#367) - Just how much data can our multiplex layer handle in practice? How many connections? How much does it slow things down?
 
-[336](thaliproject/Thali_CordovaPlugin/issues/336) - How do we affect the phone (iOS or Android) when we are going full blast on synch's?
+[336](thaliproject/Thali_CordovaPlugin#336) - How do we affect the phone (iOS or Android) when we are going full blast on synch's?
 
-[23](thaliproject/Thali_CordovaPlugin/issues/23) - We need to measure how our code to handle multiple BT handshakes actually works in practice.
+[23](thaliproject/Thali_CordovaPlugin#23) - We need to measure how our code to handle multiple BT handshakes actually works in practice.
 
-[160](thaliproject/Thali_CordovaPlugin/issues/160) - What is our battery performance on iOS?
+[160](thaliproject/Thali_CordovaPlugin#160) - What is our battery performance on iOS?
 
-[752](thaliproject/Thali_CordovaPlugin/issues/752) - What is our battery performance on Android?
+[752](thaliproject/Thali_CordovaPlugin#752) - What is our battery performance on Android?
 
-[330](thaliproject/Thali_CordovaPlugin/issues/330) - Need to measure our perf over WiFi.
+[330](thaliproject/Thali_CordovaPlugin#330) - Need to measure our perf over WiFi.
 
 #### Nice to haves
 
-[44](thaliproject/Thali_CordovaPlugin/issues/44) - We really need to get a local NPM cache into our CI environment. We already lost a full day of work when NPM went down. A cache wuld protect us.
+[44](thaliproject/Thali_CordovaPlugin#44) - We really need to get a local NPM cache into our CI environment. We already lost a full day of work when NPM went down. A cache wuld protect us.
 
-[729](thaliproject/Thali_CordovaPlugin/issues/729) - There are various ways that PouchDB can become corrupt. How do we recover?
+[729](thaliproject/Thali_CordovaPlugin#729) - There are various ways that PouchDB can become corrupt. How do we recover?
 
-[15](thaliproject/Thali_CordovaPlugin/issues/15) - We need CI to update itself automatically when we update the CI project. Right now it's manual and we forget.
+[15](thaliproject/Thali_CordovaPlugin#15) - We need CI to update itself automatically when we update the CI project. Right now it's manual and we forget.
 
-[349](thaliproject/Thali_CordovaPlugin/issues/349) - We need to clean up install scripts a bit to make it easier for 3rd parties to install us.
+[349](thaliproject/Thali_CordovaPlugin#349) - We need to clean up install scripts a bit to make it easier for 3rd parties to install us.
 
-[569](thaliproject/Thali_CordovaPlugin/issues/569) - PouchDB now supports SQL Lite. Is it even theoretically a good replacement for LevelDB?
+[569](thaliproject/Thali_CordovaPlugin#569) - PouchDB now supports SQL Lite. Is it even theoretically a good replacement for LevelDB?
 
 [116](thaliproject/Thali_CordovaPlugin/issues/116) - Life would be better if we could live reload Node.js content on devices for testing purposes.
