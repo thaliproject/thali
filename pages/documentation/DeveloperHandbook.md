@@ -130,6 +130,14 @@ We will follow the [Google Objective-C Style Guide](http://google.github.io/styl
 
 We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handle formatting with the [ClangFormat-Xcode](https://github.com/travisjeffery/ClangFormat-Xcode/) plugin.
 
+## Swift
+We use [Ray Wenderlich's guidelines](https://github.com/raywenderlich/swift-style-guide), with these amendments:
+* Lines are at most 100 characters long
+
+Also we use [SwiftLint tool](https://github.com/realm/SwiftLint) with some custom rules.
+All rules are listed in .swiftlint.yml file located in Thali_CordovaPlugin/lib/ios/ThaliCore.
+
+
 ## HTML
 
 We don't really have coding guidelines per se in HTML (we don't write enough for it to really be worth it) but all HTML should be validated with [HTML TIDY](http://www.w3.org/People/Raggett/tidy/)
