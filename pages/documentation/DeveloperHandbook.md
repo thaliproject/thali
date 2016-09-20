@@ -277,6 +277,24 @@ Here are the settings I use:
 * Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
 * Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
 
+
+# How to run our wifi only tests on desktop
+
+## Running tests in the iOS simulator
+
+To run WiFi only tests on the simulator please go through following steps:
+
+1. First, you need to run the app in the simulator from Xcode, in order to get it installed in the simulator. Make sure you’re running the same simulators you’ll ultimately be using.
+2. Then you have to launch all simulators on macOS. To do this:
+    * Open Terminal and run `cd /Applications/Xcode.app/Contents/Developer/Applications`
+    * Run `open -n Simulator.app`.
+    * Run `open -n Simulator.app` one more time to run another instance of simulator app. You'll get a warning message with text `Unable to boot device in current state: Booted.` Just click `OK`, then goto Hardware -> Device and select device on which you installed Thali app earlier.
+    * If you need more simulators just repeat previous step.
+3. Run Thali application on each simulator you opened.
+4. Goto `test/TestServer` directory in your `Thali_CordovaPlugin` repository.
+5. Run tests like `jx ./index.js "{\"devices\":{\"android\":0,\"ios\":3}}"`
+
+
 # Notes on adventures in node.js land
 
 ## How to debug PouchDB tests in Node.js and Intellij
