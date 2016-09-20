@@ -132,6 +132,7 @@ We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handl
 
 ## Swift
 We use [Ray Wenderlich's guidelines](https://github.com/raywenderlich/swift-style-guide), with these amendments:
+
 * Lines are at most 100 characters long
 
 Also we use [SwiftLint tool](https://github.com/realm/SwiftLint) with some custom rules.
