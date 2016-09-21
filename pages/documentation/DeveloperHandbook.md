@@ -278,6 +278,9 @@ Here are the settings I use:
 * Languages & Frameworks -> Node.js and NPM -> Code Assistance, hit Enable
 * Languages & Frameworks -> JavaScript -> Libraries -> Node.js Core
 
+# What you have to know about Cordova development
+
+If you add some native code files to src/android or src/ios, you have to add these files to plugin.xml in root folder.
 
 # How to run our wifi only tests on desktop
 
