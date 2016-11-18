@@ -38,7 +38,7 @@ Implementers MUST NOT honor discovery announcements with expirations that are to
 Beacons are generated as given in the following pseudo-code:
 
 ```
-function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, IV, Ke, Expiration) {
+function generateBeacons(setOfReceivingDevicesPublicKeys, Kx, Ke, Expiration) {
   beacons = []
   UnencryptedKeyId = SHA256(Kx.public().encode()).first(16)
 
