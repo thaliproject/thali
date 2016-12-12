@@ -44,4 +44,4 @@ Our software is based on:
 
 # Who?
 
-Thali is being actively developed by David Douglas, Doug Seven, Jaroslaw Slota, Marek Czyz, Matthew Podwysocki, Mike Ohlsen, Shawn Cicoria, Toby Bradshaw, Tomi Paananen, and Yaron Y. Goland from Microsoft. We love all sorts of [contributions!](/WaysToContribute) The previous page also contains lots of great ways to track what we are doing. You can also see our past contributors on our [Alumni Page](/Alumni).
+Thali is being actively developed by Andrew Aladjev, Diego Marino Monetti, Eugene Chapko, Dersim Davaod, Enrico Giordani, Eugene Vabishchevich, Igor Serzhan, Ilya Laryionau, Jaroslaw Slota, Marcin Lesniczek, Marek Czyz, Mike Ohlsen and Yaron Y. Goland from Microsoft. We love all sorts of [contributions!](/WaysToContribute) The previous page also contains lots of great ways to track what we are doing. You can also see our past contributors on our [Alumni Page](/Alumni).
