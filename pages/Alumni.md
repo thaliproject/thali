@@ -9,6 +9,8 @@ Thali started at the Partner Catalyst Team at Microsoft which uses a short term 
 
 ## Our longer term contributors
 
+[Marek Czyz](https://github.com/czyzm) - Marek started on 3/2016 and was with the project through 2/2017. Marek did work on just about every part of the project.  He drove a lot of the work of integrating Thali with Rockwell's TeamONE code. He also wrote up the key test app that we used to replicate problems with Thali found in TeamONE. He also did a ton of work to try and keep our CI environment going as well fixing issues with tests. While this isn't necessarily the sexiest work it is by far amongst the most critical for keeping the project going.
+
 [Diego Marino Monetti](https://github.com/ZepHakase) - Diego started with Thali in July of 2016 and continued through the early part of January 2017. His contributions were made through Janea on keeping JXcore alive. It's hard to see his contributions because in most cases they were committed by [Enrico Giordani](https://github.com/enricogior) but he worked all over the JXcore code base helping to fix a variety of bugs we found as well as helping with revamping the test framework for JXcore so we could automatically run tests on devices that weren't jail broken.
 
 [Alexander Telegin](https://github.com/drinkius/) - Alex worked on Thali from 10/21/2016 through 12/9/2016. Unfortunately a budget shift required us to shrink the team and Alex was reassigned. In his month or so on the project he focused on understanding how BLE works in iOS 10 in the background, helping us understand the actual perf of MPCF and helping with our migration to Swift 3.
