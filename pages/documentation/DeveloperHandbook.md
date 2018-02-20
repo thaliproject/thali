@@ -14,18 +14,20 @@ header:
 Welcome to Thali! So you want to learn more? Great!
 
 # Checklist for adding a new team member
+
+## General checklist:
 1. Tell them that they need to read this doc and make sure they do what it says in terms of things to sign up for.
 2. Go [here](https://github.com/orgs/thaliproject/people) and add them as a member.
 3. Go [here](https://github.com/thaliproject/thali/blob/gh-pages/pages/info.md) and add them to the "Who?" section.
 4. Send out a mail to the public mailing list about them joining
 5. Add them to our slack channel
 
-For Microsoft employees:
- 1. Add them to the internal OWA Thali group
- 2. Add them to our weekly standup and other random meetings
- 3. Send out a mail to the internal mailing list about them joining
- 4. Harass the new member to go get connected via [https://opensourcehub.microsoft.com/](https://opensourcehub.microsoft.com/)
- 5. Add them to our various private slack channels
+## For Microsoft employees:
+1. Add them to the internal OWA Thali group
+2. Add them to our weekly standup and other random meetings
+3. Send out a mail to the internal mailing list about them joining
+4. Harass the new member to go get connected via [https://opensourcehub.microsoft.com/](https://opensourcehub.microsoft.com/)
+5. Add them to our various private slack channels
 
 # Read!
 The first thing to do is read. Please start [here](/ThaliAndCouch). You can probably skip most of the links except for [this one](/NodeOnDevices) and [this one](/ThaliAndIoT) which will drive all of our immediate work. With these three articles you should have the background you need to understand what we are up to.
@@ -34,44 +36,46 @@ Next step is to walk through our spec stack. After reading the above the specs t
 
 * [Notification Crypto Design](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolForOpportunisticSynching.md) - This drives a lot of what we do so understanding it's basic outline is useful
 * [Non-TCP/IP Bindings](https://github.com/thaliproject/thali/blob/gh-pages/pages/documentation/PresenceProtocolBindings.md) - This drives how we actually talk over Android, iOS and WiFi.
-* thaliMobileNative.js - This defines the API that our native code implementations are supposed to expose to JXcore.
-* thaliMobileNativeWrapper.js - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
-* thaliWifiInfrastructure.js - How we do discovery when we have WiFi available
-* thaliMobile.js - This is a common API to handle both TCP and non-TCP transports
-* wifiBasedNativeMock.js - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop. We aren't completely committed to this yet.
-* mux - We turn non-TCP transports like Bluetooth or Multi-Peer Connectivity Framework into a single TCP connection but we need to run multiple simultaneous TCP connections over that single connection. The files in this directory handle that logic.
-* notification - As described in the crypto documents we both send out notifications of people we want to talk to as well as process incoming notifications. This directory contains the logic to handle that.
-* replication - This handles telling the notification layer when to send out notifications based on changes in the local DB. It also handles incoming notifications that someone wants to replicate with us.
-* security - Various security related stuff
-* thaliPeerPool - This is the central controller which receives requests to use the local nework connectivity and decides which ones will get through.
+* [thaliMobileNative.js](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/NextGeneration/thaliMobileNative.js) - This defines the API that our native code implementations are supposed to expose to JXcore.
+* [thaliMobileNativeWrapper.js](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/NextGeneration/thaliMobileNativeWrapper.js) - This turns the rather raw mobile layer into something easier to deal with, it also implements some of the logic needed for the mobile layer.
+* [thaliWifiInfrastructure.js](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/NextGeneration/thaliWifiInfrastructure.js) - How we do discovery when we have WiFi available
+* [thaliMobile.js](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/thali/NextGeneration/thaliMobile.js) - This is a common API to handle both TCP and non-TCP transports
+* [wifiBasedNativeMock.js](https://github.com/thaliproject/Thali_CordovaPlugin/blob/master/test/www/jxcore/lib/wifiBasedNativeMock.js) - Defines how to use our WiFi support to create a mock for Thali Native. This lets us test our native functionality on the desktop. We aren't completely committed to this yet.
+* [mux](https://github.com/thaliproject/Thali_CordovaPlugin/tree/master/thali/NextGeneration/mux) - We turn non-TCP transports like Bluetooth or Multi-Peer Connectivity Framework into a single TCP connection but we need to run multiple simultaneous TCP connections over that single connection. The files in this directory handle that logic.
+* [notification](https://github.com/thaliproject/Thali_CordovaPlugin/tree/master/thali/NextGeneration/notification) - As described in the crypto documents we both send out notifications of people we want to talk to as well as process incoming notifications. This directory contains the logic to handle that.
+* [replication](https://github.com/thaliproject/Thali_CordovaPlugin/tree/master/thali/NextGeneration/replication) - This handles telling the notification layer when to send out notifications based on changes in the local DB. It also handles incoming notifications that someone wants to replicate with us.
+* [security](https://github.com/thaliproject/Thali_CordovaPlugin/tree/master/thali/NextGeneration/security) - Various security related stuff
+* [thaliPeerPool](https://github.com/thaliproject/Thali_CordovaPlugin/tree/master/thali/NextGeneration/thaliPeerPool) - This is the central controller which receives requests to use the local nework connectivity and decides which ones will get through.
 
-With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to vNext and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
+With the exception of the first two all the other docs are JSDoc and so you can generate them locally by cloning Thali_CordovaPlugin, switching to `master` branch and then running `jx npm run createInternalDocs`. This will create an "out" directory which contains an index.html which has all the docs.
 
 At this time our repo's are:
 
-* https://github.com/thaliproject/thali - This is our website
-* https://github.com/thaliproject/Thali_CordovaPlugin - This is our main project
-* https://github.com/thaliproject/Thali_CordovaPlugin_BtLibrary - The Java code for Android
-* https://github.com/thaliproject/postcardapp - Our sample app
-* https://github.com/thaliproject/scan_node_modules - A utility to help us figure out what we are bringing in through NPM so we can hack it down
-* https://github.com/thaliproject/CI - The source code for our continuous integration environment.
-* https://github.com/thaliproject/salti-admin - Secures a node.js interface over PouchDB Express intended to be called by the WebView from Cordova.
-* https://github.com/thaliproject/salti - Secures the external facing PouchDB Express server
-* https://github.com/thaliproject/jxbuild - Instructions for building our customer release of JXcore along with pointers to our custom binaries
+* [https://github.com/thaliproject/thali](https://github.com/thaliproject/thali) - This is our website
+* [https://github.com/thaliproject/Thali_CordovaPlugin](https://github.com/thaliproject/Thali_CordovaPlugin) - This is our main project
+* [https://github.com/thaliproject/Thali_CordovaPlugin_BtLibrary](https://github.com/thaliproject/Thali_CordovaPlugin_BtLibrary) - The Java code for Android
+* [https://github.com/thaliproject/thali-ios](https://github.com/thaliproject/thali-ios) - The Swift code for iOS
+* [https://github.com/thaliproject/swift-corelibs-xctest](https://github.com/thaliproject/swift-corelibs-xctest) - Fork of XCTest project by Apple
+* [https://github.com/thaliproject/postcardapp](https://github.com/thaliproject/postcardapp) - Our sample app
+* [https://github.com/thaliproject/scan_node_modules](https://github.com/thaliproject/scan_node_modules) - A utility to help us figure out what we are bringing in through NPM so we can hack it down
+* [https://github.com/thaliproject/CI](https://github.com/thaliproject/CI) - The source code for our continuous integration environment.
+* [https://github.com/thaliproject/salti-admin](https://github.com/thaliproject/salti-admin) - Secures a node.js interface over PouchDB Express intended to be called by the WebView from Cordova.
+* [https://github.com/thaliproject/salti](https://github.com/thaliproject/salti) - Secures the external facing PouchDB Express server
+* [https://github.com/thaliproject/jxbuild](https://github.com/thaliproject/jxbuild) - Instructions for building our customer release of JXcore along with pointers to our custom binaries
 
 # Sign up to follow us
 Please go [here](/WaysToContribute) and subscribe to our blog, to our mailing list, follow us on Twitter, bookmark our backlog webpage, etc. Also make sure you hit 'watch' on all the projects listed above.
 
 If you don't 'watch' the projects then you won't get notified when we have updates, new issues, etc. So please hit 'watch'.
 
-# Wiki
+## Wiki
 Our main website is www.thaliproject.org and it is a [Github pages](https://pages.github.com/) site that is run out of the 'gh-pages' branch in the [Thali repository](https://github.com/thaliproject/thali). Please go read up on Github pages and understand what the header matter is, how MD files work, etc. The good news is that you can edit the pages directly in the Github web UX in our depot. You don't have to download the site and then submit PRs.
 
 HOWEVER!!!! If you make a significant changes to the website then please submit the change as a PR (you can do that from the Github repo web UX, just choose the second option by commit) and then accept your own PR. This will send a notification out to everyone about the change. Otherwise you can just use automatic commit.
 
 Also check any Markdown links start with a backslash '/' otherwise Jekyll will create a relative link from the directory in the 'pages' folder.
 
-# Blogging
+## Blogging
 We like to blog but most of us blog on our own blogs. But we would like to republish here interesting articles. So here are the instructions on how to use our blog.
 
 1. Go to [gh-pages/_posts](https://github.com/thaliproject/thali/tree/gh-pages/_posts)
@@ -81,21 +85,13 @@ We like to blog but most of us blog on our own blogs. But we would like to repub
 
 That's it. The article will automatically be picked up by our blog feed.
 
-## Twitter
-Just a note that we forward our blog articles to Twitter using [TwitterFeed](http://twitterfeed.com/).
-
 # Process!!!!
-We have daily standups where we review everyone's work in [HuBoard](https://huboard.com/thaliproject/thali/).The key columns are Working which is what you are doing right now. When we do stand up we will look there. We don't really distinguish between Ready and Backlog. Icebox however is only for issues that we just don't want to forget but have no commitment of any sort to actually do. Keep in mind that HuBoard creates issues by default in IceBox. When filing a bug PLEASE REMEMBER TO:
 
-1. MOVE IT OUT OF ICEBOX!
-2. Set the milestone
-3. Assing it to someone
-4. Set a label with a point estimate of how much effort it is (2 days, 5 days or 10 days)
+## Naming branches in our depots
+Right now we have one primary branch. `master` (which is what people should be downloading) and vNext which is our next major release.
+To implement a new feature/improvement you typically will have a new branch with the name `master_[your email alias]_[Issue Number]`, where `master` is a target branch for your feature, `[your email alias]` is your current email alias, `[Issue Number]` is number of corresponding issue in GitHub. So, for example, there is master_yarong_417 which is a branch that was created from master, by yarong working on issue #417.
 
-# Naming branches in our depots
-Right now we have two primary branches. Master (which is what people should be downloading) and vNext which is our next major release. Typically your branch will have the name `vNext_[your email alias]_[Issue Number]`. So, for example, there is vNext_yarong_417 which is a branch that was created from vNext, by yarong working on issue 417.
-
-# Code Reviews
+## Code Reviews
 All code MUST be submitted as a PR from a dev's branch to a story branch. No PR can be checked in until it is +1'd by someone who is qualified to do a code review.
 
 A code reviewer upon reviewing a PR is certifying two things:
@@ -109,53 +105,51 @@ In general PRs should be done "silently". A PR gets submitted and someone grabs 
 
 You will notice that there is a link to reviewable in our code reviews. Please use it to do your code reviews.
 
-# Coding guidelines
+## Coding guidelines
 
-## Javascript (both Node.js and in our demo apps)
+### Javascript (both Node.js and in our demo apps)
 We follow PouchDB on this one, please read their "Guide to Contributions" [here](https://github.com/pouchdb/pouchdb/blob/master/CONTRIBUTING.md#guide-to-contributions)
 
-In our case we will also be using lint, specifically jshint using [.jshintrc](https://github.com/pouchdb/pouchdb/blob/master/.jshintrc)
+In our case we will also be using lint, specifically [JSHint](https://github.com/jshint/jshint)
 
-Note that Intellij/WebStorm has built in support for jshint.
+Note that IntelliJ/WebStorm has built in support for JSHint.
+Also note that there is a jquery option for JSHint to include JQuery's globals. See [documentation](http://jshint.com/docs/options/#jquery) for details.
 
-Also note that there is a jquery option for JSHint to include JQuery's globals.
-
-## Java
+### Java
 We will follow the [Google Java Style Guide](http://google.github.io/styleguide/javaguide.html).
 
-[Check Style](https://github.com/checkstyle/checkstyle) provides for automatic enforcement and note that there is a [plugin](https://plugins.jetbrains.com/plugin/1065) for Intellij.
+[Check Style](https://github.com/checkstyle/checkstyle) provides for automatic enforcement and note that there is a [CheckStyle-IDEA plugin](https://plugins.jetbrains.com/plugin/1065) for IntelliJ.
 
-## Objective-C
-We will follow the [Google Objective-C Style Guide](http://google.github.io/styleguide/objcguide.xml).
+### Objective-C
+We will follow the [Google Objective-C Style Guide](https://github.com/google/styleguide/blob/gh-pages/objcguide.md).
 
-We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handle formatting with the [ClangFormat-Xcode](https://github.com/travisjeffery/ClangFormat-Xcode/) plugin.
+We will use [Clang Format](http://clang.llvm.org/docs/ClangFormat.html) to handle formatting with the [ClangFormat-Xcode plugin](https://github.com/travisjeffery/ClangFormat-Xcode).
 
-## Swift
+### Swift
 We use [Ray Wenderlich's guidelines](https://github.com/raywenderlich/swift-style-guide), with these amendments:
 
 * Lines are at most 100 characters long
 
 Also we use [SwiftLint tool](https://github.com/realm/SwiftLint) with some custom rules.
-All rules are listed in .swiftlint.yml file located in Thali_CordovaPlugin/lib/ios/ThaliCore.
+All rules are listed in [.swiftlint.yml](https://github.com/thaliproject/thali-ios/blob/master/.swiftlint.yml) file.
 
-
-## HTML
+### HTML
 
 We don't really have coding guidelines per se in HTML (we don't write enough for it to really be worth it) but all HTML should be validated with [HTML TIDY](http://www.w3.org/People/Raggett/tidy/)
 
 # Dev Machine Set Up
-We need a bunch of software. We use IntelliJ Ultimate Edition although I'm told that the (free) community edition supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need node.js. Most people seem to end up doing some Android work so you need the latest JDK, latest Android SDK, a local maven installation, gradle and a decent android emulator and/or device.
+We need a bunch of software. We use [IntelliJ Ultimate Edition](https://www.jetbrains.com/idea/download/) although I'm told that the (free) [Community Edition](https://www.jetbrains.com/idea/download/) supports what we do just fine. What else you need depends on what platforms you are developing for. At a minimum you need [Node.js](https://nodejs.org/). Most people seem to end up doing some Android work so you need the latest JDK, latest Android SDK, a local [Maven](https://maven.apache.org/) installation, [Gradle](https://gradle.org/) and a decent android emulator and/or device.
 
 We have a bunch of instructions on how to get this software for Windows, see [set up for windows](/SetupForWindows) but we have tested everything on Mac and Linux and it all runs just fine there as well.
 
 NOTE: EVEN IF YOU AREN'T RUNNING ON WINDOWS STILL READ THE [set up for windows](/SetupForWindows) BECAUSE IT CONTAINS IMPORTANT CONFIGURATION INSTRUCTIONS THAT APPLY TO ALL PLATFORMS
 
 # Git
-The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there. First of all you MUST set ignorecase setting to false:  
+The [Thali Guide to Git](/ThaliGuideToGit) has a bunch of information about how we use git but anyone who has used git regularly isn't going to find anything new there. First of all you MUST set ignorecase setting to false:
 
-`git config core.ignorecase false` 
+`git config core.ignorecase false`
 
-You may set it globally: 
+You may set it globally:
 
 `git config --global core.ignorecase false`
 
@@ -290,10 +284,10 @@ To run WiFi only tests on the simulator please go through following steps:
 
 1. First, you need to run the app in the simulator from Xcode, in order to get it installed in the simulator. Make sure you’re running the same simulators you’ll ultimately be using.
 2. Then you have to launch all simulators on macOS. To do this:
-    * Open Terminal and run `cd /Applications/Xcode.app/Contents/Developer/Applications`
-    * Run `open -n Simulator.app`.
-    * Run `open -n Simulator.app` one more time to run another instance of simulator app. You'll get a warning message with text `Unable to boot device in current state: Booted.` Just click `OK`, then goto Hardware -> Device and select device on which you installed Thali app earlier.
-    * If you need more simulators just repeat previous step.
+* Open Terminal and run `cd /Applications/Xcode.app/Contents/Developer/Applications`
+* Run `open -n Simulator.app`.
+* Run `open -n Simulator.app` one more time to run another instance of simulator app. You'll get a warning message with text `Unable to boot device in current state: Booted.` Just click `OK`, then goto Hardware -> Device and select device on which you installed Thali app earlier.
+* If you need more simulators just repeat previous step.
 3. Run Thali application on each simulator you opened.
 4. Goto `test/TestServer` directory in your `Thali_CordovaPlugin` repository.
 5. Run tests like `jx ./index.js "{\"devices\":{\"android\":0,\"ios\":3}}"`
@@ -317,8 +311,8 @@ I wanted to debug the tests in PouchDB as part of a PR. The main problem I ran i
 
 ```Javascript
 /*
- Awful hack for which I will burn in hades for eternity. But it lets me run the pouchdb node.js tests
- */
+Awful hack for which I will burn in hades for eternity. But it lets me run the pouchdb node.js tests
+*/
 var lastIndexOfArgv = process.argv.length - 1;
 process.argv[lastIndexOfArgv] += "test.*.js";
 var globMatchedFiles = glob.sync(process.argv[process.argv.length - 1]);
@@ -343,7 +337,7 @@ We often seem to be running custom version of PouchDB so it's useful to know how
 
 1. Go to where we have cloned our pouchdb repro and run 'npm link' in that directory
 2. Go to the node_modules directory which already contains pouchdb where you want to hook in the custom pouchdb and run 'npm link pouchdb'
- 3. An issue I ran into is permissions because of where I happened to have the code I wanted to link to. Since I'm using windows I had to open a git bash window as an admin and then run 'npm link pouchdb'.
+3. An issue I ran into is permissions because of where I happened to have the code I wanted to link to. Since I'm using windows I had to open a git bash window as an admin and then run 'npm link pouchdb'.
 3. Anytime you refresh (such as with npm install pouchdb-server, in my case) the parent project the link to pouchdb gets lost and has to be re-created.
 
 ## How to get debug statements to output in node.js using IntelliJ
@@ -404,3 +398,4 @@ The downside to jxcore-android-basics is that it ships with the jx core binaries
 3. Get a coffee or a tea, maybe a magazine, that compile takes forever.
 4. Go to jxcore-droid/jni/Android.mk which contains a value JXCORE_OUT_ANDROID that I needed to point to the jxcore/out_android/android/bin/ sub-directory created in step 2.
 5. Now run android-ndk-r10d/ndk-build in the root of the Android project we want to use JXCore in.
+
